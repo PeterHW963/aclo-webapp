@@ -23,9 +23,9 @@ const CartContents = () => {
 	];
 	return (
 		<div>
-			{cartProducts.map((product, idx) => (
+			{cartProducts.map((product, index) => (
 				<div
-					key={idx}
+					key={index}
 					className="flex items-start justify-between py-4 border-b"
 				>
 					<div className="flex items-start">
