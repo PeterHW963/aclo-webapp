@@ -5,9 +5,10 @@ import {
 } from "react-icons/hi2";
 import { Link } from "react-router-dom";
 import Searchbar from "./Searchbar";
-import Cartdrawer from "../layout/Cartdrawer";
+import Cartdrawer from "../layout/CartDrawer";
 import { useState } from "react";
 import { IoMdClose } from "react-icons/io";
+import { CATEGORIES } from "../../constants/categories";
 
 const Navbar = () => {
 	const [drawerOpen, setDrawerOpen] = useState<boolean>(false);
@@ -33,7 +34,7 @@ const Navbar = () => {
 				{/* Center - navigation */}
 				<div className="hidden md:flex items-center space-x-6">
 					<Link
-						to="#"
+						to="/collections/all"
 						className="text-black hover:text-gray-600 font-medium uppercase"
 					>
 						Learning Tower
@@ -90,27 +91,17 @@ const Navbar = () => {
 				<div className="p-4">
 					<h2 className="text-xl font-semibold mb-4">Menu</h2>
 					<nav className="space-y-4">
-						<Link
-							to="#"
-							onClick={toggleNavDrawer}
-							className="block hover:text-gray-600"
-						>
-							Learning Tower
-						</Link>
-						<Link
-							to="#"
-							onClick={toggleNavDrawer}
-							className="block hover:text-gray-600"
-						>
-							Stool
-						</Link>
-						<Link
-							to="#"
-							onClick={toggleNavDrawer}
-							className="block hover:text-gray-600"
-						>
-							Utensils
-						</Link>
+						{CATEGORIES.map((category) => (
+							<Link
+								key={category}
+								// to={`/collections/${category.toLowerCase().replace(/\s+/g, "-")}`}
+								to="#"
+								onClick={toggleNavDrawer}
+								className="block hover:text-gray-600"
+							>
+								{category}
+							</Link>
+						))}
 					</nav>
 				</div>
 			</div>

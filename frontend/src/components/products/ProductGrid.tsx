@@ -1,17 +1,5 @@
 import { Link } from "react-router-dom";
-
-/** Types */
-export type ProductImage = {
-	url: string;
-	altText?: string;
-};
-
-export type Product = {
-	_id: string | number;
-	name: string;
-	price: number;
-	images: ProductImage[];
-};
+import type { Product } from "../../types/products";
 
 type ProductGridProps = {
 	products: Product[];

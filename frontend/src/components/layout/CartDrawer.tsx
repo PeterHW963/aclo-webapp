@@ -16,7 +16,7 @@ const Cartdrawer = ({ drawerOpen, toggleCartDrawer }: CartDrawerProps) => {
 			{/* Close Button */}
 			<div className="flex justify-end p-4">
 				<button onClick={toggleCartDrawer}>
-					<IoMdClose className="h-6 w-6 hover:text-gray-600" />
+					<IoMdClose className="h-6 w-6 hover:text-gray-600 cursor-pointer" />
 				</button>
 			</div>
 			{/* Cart contents with a scrollable area */}

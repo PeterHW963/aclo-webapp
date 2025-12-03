@@ -1,0 +1,1 @@
+export const CATEGORIES = ["Learning Tower", "Stool", "Utensils"];

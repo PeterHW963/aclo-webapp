@@ -3,7 +3,7 @@ import yellowLearningTowerImg from "../../assets/lt-yellow1.jpg";
 import foldableStoolImg from "../../assets/stool-folded1.jpg";
 import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import { Link } from "react-router-dom";
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type MouseEvent } from "react";
 
 const NewArrivals = () => {
 	const scrollRef = useRef<HTMLDivElement | null>(null);
@@ -70,7 +70,7 @@ const NewArrivals = () => {
 		},
 	];
 
-	const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+	const handleMouseDown = (e: MouseEvent<HTMLDivElement>) => {
 		const container = scrollRef.current;
 		if (!container) return;
 
@@ -79,7 +79,7 @@ const NewArrivals = () => {
 		setScrollLeft(container.scrollLeft);
 	};
 
-	const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+	const handleMouseMove = (e: MouseEvent<HTMLDivElement>) => {
 		if (!isDragging) return;
 
 		const container = scrollRef.current;

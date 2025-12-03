@@ -3,6 +3,7 @@ import { FaSquareFacebook } from "react-icons/fa6";
 import { FiPhoneCall } from "react-icons/fi";
 import { IoLogoInstagram } from "react-icons/io";
 import { Link } from "react-router-dom";
+import { CATEGORIES } from "../../constants/categories";
 
 const Footer = () => {
 	return (
@@ -36,21 +37,17 @@ const Footer = () => {
 				<div>
 					<h3 className="text-lg text-gray-800 mb-4">Shop</h3>
 					<ul className="space-y-2 text-gray-600">
-						<li>
-							<Link to="#" className="text-gray-500 transition-colors">
-								Learning Tower
-							</Link>
-						</li>
-						<li>
-							<Link to="#" className="text-gray-500 transition-colors">
-								Stool
-							</Link>
-						</li>
-						<li>
-							<Link to="#" className="text-gray-500 transition-colors">
-								Utensils
-							</Link>
-						</li>
+						{CATEGORIES.map((category) => (
+							<li key={category}>
+								<Link
+									// to={`/collections/${category.toLowerCase().replace(/\s+/g, "-")}`}
+									to="#"
+									className="text-gray-500 transition-colors"
+								>
+									{category}
+								</Link>
+							</li>
+						))}
 					</ul>
 				</div>
 				{/* Support links */}

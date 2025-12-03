@@ -4,7 +4,9 @@ import storkNatural from "../../assets/stork-natural.jpg";
 import storkSilver from "../../assets/stork-silver.jpg";
 import storkWhite from "../../assets/stork-white.jpg";
 import { toast } from "sonner";
-import ProductGrid, { type Product } from "./ProductGrid";
+import ProductGrid from "./ProductGrid";
+import { COLOR_MAP } from "../../constants/colors";
+import type { Product } from "../../types/products";
 
 const selectedProduct = {
 	name: "Stork Learning Tower",
@@ -48,13 +50,6 @@ const similarProducts: Product[] = [
 		images: [{ url: "https://picsum.photos/500/500?random=9" }],
 	},
 ];
-
-const COLOR_MAP: Record<string, string> = {
-	Natural: "#d2b48c",
-	Cerulean: "#0d8ebd",
-	Silver: "#949494",
-	Snow: "#fffafa",
-};
 
 const ProductDetails = () => {
 	const [mainImage, setMainImage] = useState<string>(
