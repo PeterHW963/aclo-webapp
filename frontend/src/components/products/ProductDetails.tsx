@@ -26,25 +26,25 @@ const selectedProduct = {
 
 const similarProducts: Product[] = [
 	{
-		_id: 1,
+		_id: "1",
 		name: "Product 1",
 		price: 10000,
 		images: [{ url: "https://picsum.photos/500/500?random=3" }],
 	},
 	{
-		_id: 2,
+		_id: "2",
 		name: "Product 2",
 		price: 12000,
 		images: [{ url: "https://picsum.photos/500/500?random=4" }],
 	},
 	{
-		_id: 3,
+		_id: "3",
 		name: "Product 3",
 		price: 14000,
 		images: [{ url: "https://picsum.photos/500/500?random=7" }],
 	},
 	{
-		_id: 4,
+		_id: "4",
 		name: "Product 4",
 		price: 16000,
 		images: [{ url: "https://picsum.photos/500/500?random=9" }],

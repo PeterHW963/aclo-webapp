@@ -13,6 +13,10 @@ import OrderDetailsPage from "./pages/OrderDetailsPage";
 import MyOrdersPage from "./pages/MyOrdersPage";
 import AdminLayout from "./components/admin/AdminLayout";
 import AdminHomePage from "./pages/AdminHomePage";
+import UserManagement from "./components/admin/UserManagement";
+import ProductManagement from "./components/admin/ProductManagement";
+import EditProductPage from "./components/admin/EditProductPage";
+import OrderManagement from "./components/admin/OrderManagement";
 
 function App() {
 	return (
@@ -39,6 +43,10 @@ function App() {
 				<Route path="/admin" element={<AdminLayout />}>
 					{/* Admin Layout */}
 					<Route index element={<AdminHomePage />} />
+					<Route path="users" element={<UserManagement />} />
+					<Route path="products" element={<ProductManagement />} />
+					<Route path="products/:id/edit" element={<EditProductPage />} />
+					<Route path="orders" element={<OrderManagement />} />
 				</Route>
 			</Routes>
 		</BrowserRouter>
