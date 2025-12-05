@@ -26,13 +26,14 @@ Pages - all pages components (either full page or a route):
 - collection
 
 Packages needed for BACKEND:
-express - nodeJs framework to build APIs,
-mongoose - object data modelling lib for mongoDB to define schemas for our data & querying from database,
-dotenv - load env variables from .env file,
-jsonwebtoken - authentication & authorizxation of users,
-bcryptjs - for hashing passwords stored in the website,
-cors - to connect FE and BE because FE and BE are hosted on diff domains,
-nodemon - dev tool that restarts server whenever we save changes instead of manually restarting everytime
+
+- express - nodeJs framework to build APIs,
+- mongoose - object data modelling lib for mongoDB to define schemas for our data & querying from database,
+- dotenv - load env variables from .env file,
+- jsonwebtoken - authentication & authorizxation of users,
+- bcryptjs - for hashing passwords stored in the website,
+- cors - to connect FE and BE because FE and BE are hosted on diff domains,
+- nodemon - dev tool that restarts server whenever we save changes instead of manually restarting everytime
 
 To run FE, cd into the frontend folder and run `npm run dev`
 To run BE, cd into the backend folder and run `npm run dev`
