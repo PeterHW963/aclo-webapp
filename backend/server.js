@@ -14,6 +14,7 @@ const subscribeRoutes = require("./routes/subscribeRoutes");
 const adminRoutes = require("./routes/admin/adminRoutes");
 const productAdminRoutes = require("./routes/admin/productAdminRoutes");
 const orderAdminRoutes = require("./routes/admin/orderAdminRoutes");
+const testRoutes = require("./routes/testRoutes");
 
 const app = express();
 app.use(express.json());
@@ -39,6 +40,7 @@ app.use("/api/orders", orderRoutes); // prepends /api/orders to all the order ro
 app.use("/api/upload", uploadRoutes); // prepends /api/upload to all the upload routes
 app.use("/api/subscribe", subscribeRoutes); // prepends /api/subscribe to all the subscribe routes
 app.use("/api/reviews", reviewRoutes); //prepends /api/reviews to all the subscribe routes
+app.use("/api/test", testRoutes); // prepends /api/test to all the test routes
 
 // Admin
 app.use("/api/admin/users", adminRoutes);
