@@ -62,7 +62,7 @@ const MyOrdersPage = () => {
               {orders.length > 0 ? (
                 orders.map((order) => (
                   <tr
-                    key={order.orderId}
+                    key={order._id}
                     onClick={() => handleRowClick(order.orderId)}
                     className="border-b hover:border-gray-50 cursor-pointer"
                   >

@@ -54,7 +54,7 @@ const OrderManagement = () => {
             {orders.length > 0 ? (
               orders.map((order) => (
                 <tr
-                  key={order.orderId}
+                  key={order._id}
                   className="border-b hover:bg-gray-50 cursor-pointer"
                 >
                   <td className="py-4 px-4 font-medium text-gray-900 whitespace-nowrap">
