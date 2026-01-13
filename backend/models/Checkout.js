@@ -119,16 +119,6 @@ const checkoutSchema = new mongoose.Schema(
     { timestamps: true }
 );
 
-// checkoutSchema.pre("validate", async function (next) {
-//     if (this.orderId) return next();
-//     try {
-//         this.orderId = await generateOrderId();
-//         next();
-//     } catch (e) {
-//         next(e);
-//     }
-// });
-
 checkoutSchema.pre("validate", async function () {
     if (this.orderId) return;
     this.orderId = await generateOrderId();
