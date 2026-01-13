@@ -25,6 +25,7 @@ export interface PaymentProof {
 
 export interface Checkout {
   _id: string;
+  orderId: string;
   user: string; // userId
   checkoutItems: CheckoutItem[];
   shippingDetails: ShippingDetails;

@@ -20,6 +20,7 @@ export interface ShippingDetails {
 
 export interface Order {
   _id: string;
+  orderId: string;
   checkout: string; // checkoutId
   user: string | { name: string; email: string };
   orderItems: OrderItem[];

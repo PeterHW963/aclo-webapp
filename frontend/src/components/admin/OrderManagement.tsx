@@ -54,11 +54,11 @@ const OrderManagement = () => {
             {orders.length > 0 ? (
               orders.map((order) => (
                 <tr
-                  key={order._id}
+                  key={order.orderId}
                   className="border-b hover:bg-gray-50 cursor-pointer"
                 >
                   <td className="py-4 px-4 font-medium text-gray-900 whitespace-nowrap">
-                    #{order._id}
+                    #{order.orderId}
                   </td>
                   <td className="p-4">
                     {typeof order.user === "string"
@@ -71,7 +71,7 @@ const OrderManagement = () => {
                       value={order.status}
                       onChange={(e) => {
                         handleStatusChange(
-                          order._id,
+                          order.orderId,
                           e.target.value as Order["status"]
                         );
                       }}
@@ -87,22 +87,22 @@ const OrderManagement = () => {
                     <div className="flex gap-2">
                       <button
                         onClick={() =>
-                          handleStatusChange(order._id, "delivered")
+                          handleStatusChange(order.orderId, "delivered")
                         }
                         className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
                       >
                         Mark as Delivered
                       </button>
                       <button
-                        onClick={() => handleGenerateLabel(order._id)}
-                        disabled={generatingLabelForOrder === order._id}
+                        onClick={() => handleGenerateLabel(order.orderId)}
+                        disabled={generatingLabelForOrder === order.orderId}
                         className={`px-4 py-2 rounded flex items-center ${
-                          generatingLabelForOrder === order._id
+                          generatingLabelForOrder === order.orderId
                             ? "bg-blue-500/50 cursor-not-allowed"
                             : "bg-blue-500 hover:bg-blue-600 text-white"
                         }`}
                       >
-                        {generatingLabelForOrder === order._id ? (
+                        {generatingLabelForOrder === order.orderId ? (
                           <>
                             <AiOutlineLoading3Quarters className="animate-spin mr-2 h-4 w-4" />
                             Generating...

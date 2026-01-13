@@ -12,6 +12,7 @@ const productVariants = require("./data/productVariants");
 const reviews = require("./data/reviews");
 const orders = require("./data/orders");
 const checkouts = require("./data/checkouts");
+const { generateOrderId } = require("./utils/generateOrderId");
 
 dotenv.config();
 
@@ -209,9 +210,12 @@ const seedData = async () => {
 
         const orderPayload = buildOrderFromCheckout(orderTemp, createdCheckout);
 
+        const orderId = await generateOrderId();
+
         await Order.create({
             ...orderPayload,
             user: userId, // inject user
+            orderId,
         });
 
         await Review.insertMany(reviews);

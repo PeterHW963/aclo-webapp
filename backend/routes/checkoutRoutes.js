@@ -122,6 +122,7 @@ router.post("/:id/submit-proof", protect, async (req, res) => {
             createdOrder = await Order.create(
                 [
                     {
+                        orderId: checkout.orderId,
                         user: checkout.user,
                         checkout: checkout._id,
                         orderItems: checkout.checkoutItems,
