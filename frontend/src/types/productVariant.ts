@@ -35,6 +35,7 @@ export interface CreateProductVariantPayload {
 }
 
 export interface UpdateProductVariantPayload {
-  id: string;
-  variantData: Partial<CreateProductVariantPayload>;
+  productId: string;
+  variantId: string;
+  variantData: Partial<ProductVariant>;
 }

@@ -77,153 +77,71 @@ router.post("/", protect, admin, async (req, res) => {
     }
 });
 
-// TODO: separate the PUT API for product and productVariant.
-// @route PUT /api/admin/products/:id
-// @desc Update Product fields + related ProductVariant fields (default variant)
+// @route PATCH /api/admin/products/:id/variants/:variantId
+// @desc Update ProductVariant fields
 // @access Private/Admin
-router.put("/:id", protect, admin, async (req, res) => {
-    const session = await mongoose.startSession();
+router.patch("/:id/variants/:variantId", protect, admin, async (req, res) => {
     try {
-        const {
-            // Product fields
-            name,
-            description,
-            options,
-            images, // just Product
-            isListed,
-            dimensions,
-            weight,
+        const allowed = [
+            "sku",
+            "price",
+            "discountPrice",
+            "countInStock",
+            "category",
+            "color",
+            "variant",
+            "images",
+        ];
+        const update = {};
+        for (const k of allowed)
+            if (req.body[k] !== undefined) update[k] = req.body[k];
 
-            applyToAll, // flag to check if a global update is wanted
-            // variant fields
-            variantId, // <-- target the variant's ID
-            sku,
-            price,
-            discountPrice,
-            countInStock,
-            category,
-            color,
-            variant,
-            variantImages,
-        } = req.body;
+        const pv = await ProductVariant.findOneAndUpdate(
+            { _id: req.params.variantId, productId: req.params.id },
+            { $set: update },
+            { new: true }
+        );
 
-        let updatedProduct = null;
-        let updatedVariant = null;
-        let updatedAllCount = 0;
-
-        await session.withTransaction(async () => {
-            // find product by ID from url param
-            const product = await Product.findById(req.params.id).session(
-                session
-            );
-            if (!product) {
-                res.status(404).json({ message: "Product not found" });
-                return;
-            }
-
-            if (name != undefined) product.name = name;
-            if (description !== undefined) product.description = description;
-            if (options !== undefined) product.options = options;
-            if (images !== undefined) product.images = images;
-            if (isListed !== undefined) product.isListed = isListed;
-            if (dimensions !== undefined) product.dimensions = dimensions;
-            if (weight !== undefined) product.weight = weight;
-            updatedProduct = await product.save({ session });
-
-            const productVariants = await ProductVariant.find({
-                productId: product._id,
-            }).session(session);
-
-            if (!productVariants.length) {
-                res.status(404).json({
-                    message: "No variants found for this product",
-                });
-                return;
-            }
-
-            if (applyToAll) {
-                // only price and discountPrice can be globally updated
-                const globalVariantUpdate = {};
-                if (price !== undefined) globalVariantUpdate.price = price;
-                if (discountPrice !== undefined)
-                    globalVariantUpdate.discountPrice = discountPrice;
-
-                if (Object.keys(globalVariantUpdate).length) {
-                    const r = await ProductVariant.updateMany(
-                        { productId: product._id },
-                        { $set: globalVariantUpdate },
-                        { session }
-                    );
-                    updatedAllCount = r.modifiedCount ?? 0;
-                }
-            }
-
-            // variant specific updates, if any
-            const hasVariantSpecificFields =
-                sku !== undefined ||
-                countInStock !== undefined ||
-                category !== undefined ||
-                color !== undefined ||
-                variant !== undefined ||
-                variantImages !== undefined ||
-                (applyToAll !== true &&
-                    (price !== undefined || discountPrice !== undefined));
-
-            if (hasVariantSpecificFields) {
-                if (!variantId) {
-                    res.status(400).json({
-                        message:
-                            "variantId is required when updating variant-specific fields.",
-                    });
-                    return;
-                }
-
-                const pv = await ProductVariant.findOne({
-                    _id: variantId,
-                    productId: product._id, // safety: must belong to this product
-                }).session(session);
-
-                if (!pv) {
-                    res.status(404).json({
-                        message: "Variant not found for this product",
-                    });
-                    return;
-                }
-
-                // If applyToAll is false, price/discountPrice mean "this variant only"
-                if (!applyToAll) {
-                    if (price !== undefined) pv.price = price;
-                    if (discountPrice !== undefined)
-                        pv.discountPrice = discountPrice;
-                }
-
-                if (sku !== undefined) pv.sku = sku;
-                if (countInStock !== undefined) pv.countInStock = countInStock;
-                if (category !== undefined) pv.category = category;
-                if (color !== undefined) pv.color = color;
-                if (variant !== undefined) pv.variant = variant;
-
-                if (variantImages !== undefined) {
-                    pv.images = variantImages; // variant-specific images
-                }
-
-                updatedVariant = await pv.save({ session });
-            }
-        });
-        // If transaction returned early due to 404, stop here (response already sent)
-        if (res.headersSent) return;
-
-        return res.json({
-            product: updatedProduct,
-            updatedAllVariants: updatedAllCount,
-            productVariant: updatedVariant,
-        });
+        if (!pv)
+            return res
+                .status(404)
+                .json({ message: "Variant not found for this product" });
+        res.json({ productVariant: pv });
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: "Server Error" });
-    } finally {
-        session.endSession();
     }
+});
+
+// @route PATCH /api/admin/products/:id
+// @desc Update Product fields
+// @access Private/Admin
+router.patch("/:id", protect, admin, async (req, res) => {
+    const allowed = [
+        "name",
+        "description",
+        "options",
+        "images",
+        "isListed",
+        "dimensions",
+        "weight",
+        "metaTitle",
+        "metaDescription",
+        "metaKeywords",
+    ];
+    const update = {};
+
+    for (const k of allowed)
+        if (req.body[k] !== undefined) update[k] = req.body[k];
+
+    const product = await Product.findByIdAndUpdate(
+        req.params.id,
+        { $set: update },
+        { new: true }
+    );
+    if (!product) return res.status(404).json({ message: "Product not found" });
+
+    res.json(product);
 });
 
 // @route DELETE /api/admin/products/:id

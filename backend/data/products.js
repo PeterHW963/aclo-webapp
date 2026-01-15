@@ -89,6 +89,7 @@ Yes. If you need express shipping, please WhatsApp **+62 821-2852-8968** before 
             height: 102,
         },
         weight: 7500,
+        isListed: true,
     },
     {
         name: "FALCON - Strong & Foldable Learning Tower",
@@ -181,6 +182,7 @@ Yes. If you need express shipping, please WhatsApp **+62 821-2852-8968** before 
             height: 100,
         },
         weight: 7500,
+        isListed: true,
     },
     {
         name: "SPARROW - Mini Foldable Learning Tower",
@@ -270,6 +272,7 @@ Yes. If you need express shipping, please WhatsApp **+62 821-2852-8968** before 
             height: 58,
         },
         weight: 4000,
+        isListed: true,
     },
     {
         name: "QUILL - Premium Kid-size Mini Kitchen Utensils",
@@ -369,6 +372,7 @@ Yes. If you need express shipping, please WhatsApp **+62 821-2852-8968** before 
             height: 8,
         },
         weight: 30,
+        isListed: true,
     },
     {
         name: "Mini Oven Mitt for Kids (QUILL)",
@@ -454,6 +458,7 @@ Yes. If you need express shipping, please WhatsApp **+62 821-2852-8968** before 
             height: 8,
         },
         weight: 30,
+        isListed: true,
     },
     {
         name: "BEAK - Wooden Cutting Board & Knife for Kids",
@@ -534,6 +539,7 @@ Yes. If you need express shipping, please WhatsApp **+62 821-2852-8968** before 
             height: 3,
         },
         weight: 200,
+        isListed: true,
     },
     {
         name: "TALON - Stabiliser for Learning Tower",
@@ -605,6 +611,7 @@ Yes. If you need express shipping, please WhatsApp **+62 821-2852-8968** before 
             height: 8,
         },
         weight: 30,
+        isListed: true,
     },
 ];
 
