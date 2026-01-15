@@ -46,8 +46,9 @@ const ProductManagement = () => {
       return;
     }
     const loadData = async () => {
-      if (products.length > 0 && Object.keys(productVariants).length > 0)
+      if (products.length > 0 && Object.keys(productVariants).length > 0) {
         return;
+      }
       try {
         const products = await dispatch(fetchProducts()).unwrap();
         const ids = products.map((p) => p._id);
@@ -73,7 +74,8 @@ const ProductManagement = () => {
 
   // prevent double "Loading..."
   const isFullyLoaded =
-    products.length > 0 && Object.keys(productVariants).length > 0;
+    products.length > 0 &&
+    products.every((p) => (productVariants[p._id]?.length ?? 0) > 0);
   const showLoading = loading || !isFullyLoaded;
   if (showLoading) return <p>Loading...</p>;
   if (error) return <p>Error: {error}</p>;
