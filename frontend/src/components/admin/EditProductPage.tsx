@@ -224,29 +224,9 @@ const EditProductPage = () => {
     id && productVariants[id] ? productVariants[id] : [];
 
   return (
-    <div className="max-w-5xl mx-auto p-6 shadow-md rounded-md">
+    <div className="max-w-6xl mx-auto p-6 shadow-md rounded-md">
       <h2 className="text-3xl font-bold mb-6">Edit Product</h2>
-      <div className="mb-8 p-4 bg-gray-50 border border-blue-200 rounded-md">
-        <label className="block font-bold text-gray-700 mb-2">
-          Switch to a different variant:
-        </label>
-        <select
-          value={productVariantData.variantId}
-          onChange={handleSwitchVariant}
-          className="w-full p-2 border border-blue-300 rounded-md bg-white shadow-sm"
-        >
-          <option value="" disabled>
-            Select a variant to edit
-          </option>
-          {availableVariants.map((v) => {
-            return (
-              <option key={v._id} value={v._id}>
-                {v.name} (Stock: {v.countInStock})
-              </option>
-            );
-          })}
-        </select>
-      </div>
+
       <form onSubmit={handleSubmit}>
         {/* GLOBAL PRODUCT DETAILS */}
         {/* Name */}
@@ -264,14 +244,6 @@ const EditProductPage = () => {
         {/* Description */}
         <div className="mb-6">
           <label className="block font-semibold mb-2">Description</label>
-          {/* <textarea
-            name="description"
-            value={productData.description}
-            onChange={handleProductChange}
-            className="w-full border border-gray-300 rounded-md p-2"
-            rows={4}
-            required
-          ></textarea> */}
           <div data-color-mode="light">
             <MDEditor
               value={productData.description}
@@ -281,7 +253,7 @@ const EditProductPage = () => {
                   description: val ?? "",
                 }))
               }
-              height={220}
+              height={300}
             />
           </div>
         </div>
@@ -360,6 +332,28 @@ const EditProductPage = () => {
               />
             ))}
           </div>
+        </div>
+
+        <div className="mt-6 p-4 bg-gray-50 border border-blue-200 rounded-md">
+          <label className="block font-bold text-gray-700 mb-2">
+            Switch to a different variant:
+          </label>
+          <select
+            value={productVariantData.variantId}
+            onChange={handleSwitchVariant}
+            className="w-full p-2 border border-blue-300 rounded-md bg-white shadow-sm"
+          >
+            <option value="" disabled>
+              Select a variant to edit
+            </option>
+            {availableVariants.map((v) => {
+              return (
+                <option key={v._id} value={v._id}>
+                  {v.name} (Stock: {v.countInStock})
+                </option>
+              );
+            })}
+          </select>
         </div>
 
         {/* VARIANT SPECIFIC DETAILS */}
