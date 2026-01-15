@@ -29,10 +29,10 @@ const Login = () => {
       if (cart?.products.length > 0 && guestId) {
         // merge guest products with user products
         dispatch(mergeCart({ guestId, user })).then(() => {
-          navigate(isCheckoutRedirect ? "/checkout" : "/");
+          navigate(isCheckoutRedirect ? `/checkout/${cart._id}` : "/");
         });
       } else {
-        navigate(isCheckoutRedirect ? "/checkout" : "/");
+        navigate(isCheckoutRedirect ? `/checkout/${cart._id}` : "/");
       }
     }
   }, [user, guestId, cart, navigate, isCheckoutRedirect, dispatch]);
@@ -95,7 +95,7 @@ const Login = () => {
 
                 <Link
                   to="/forgot-password"
-                  className="text-sm text-acloblue hover:opacity-80"
+                  className="text-sm text-acloblue hover:opacity-80 cursor-pointer"
                 >
                   Forgot password?
                 </Link>
@@ -111,7 +111,7 @@ const Login = () => {
             </div>
             <button
               type="submit"
-              className="w-full bg-acloblue text-white p-2 rounded-lg font-semibold mt-2 hover:opacity-80 transition"
+              className="w-full bg-acloblue text-white p-2 rounded-lg font-semibold mt-2 hover:opacity-80 transition cursor-pointer"
             >
               {loading ? "Loading..." : "Log In"}
             </button>
@@ -126,7 +126,7 @@ const Login = () => {
               Don't have an account?{" "}
               <Link
                 to={`/register?redirect=${encodeURIComponent(redirect)}`}
-                className="text-acloblue hover:opacity-80"
+                className="text-acloblue hover:opacity-80 cursor-pointer"
               >
                 Register
               </Link>{" "}
@@ -135,7 +135,7 @@ const Login = () => {
             <div className="mt-6 flex justify-center">
               <Link
                 to="/"
-                className="inline-flex items-center gap-1.5 text-sm font-medium text-acloblue/90 hover:text-acloblue transition-colors"
+                className="inline-flex items-center gap-1.5 text-sm font-medium text-acloblue/90 hover:text-acloblue transition-colors cursor-pointer"
               >
                 <ChevronLeftIcon className="h-4 w-4" />
                 Back to Home

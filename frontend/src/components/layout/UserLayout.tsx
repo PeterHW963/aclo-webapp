@@ -22,12 +22,14 @@ const UserLayout = () => {
       dispatch(logoutAndReset());
       return;
     }
-    dispatch(
-      fetchCart({
-        userId: user?._id,
-      })
-    );
-  }, [dispatch, user?._id]);
+    if (user) {
+      dispatch(
+        fetchCart({
+          userId: user._id,
+        })
+      );
+    }
+  }, [dispatch, user]);
 
   return (
     <>

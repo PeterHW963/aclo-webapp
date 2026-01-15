@@ -3,7 +3,6 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { registerUser } from "../redux/slices/authSlice";
 import { useAppDispatch, useAppSelector } from "../redux/hooks";
 import type { RegisterPayload } from "../types/auth";
-import { mergeCart } from "../redux/slices/cartSlice";
 import { assets, cloudinaryImageUrl } from "../constants/cloudinary";
 import Navbar from "../components/common/Navbar";
 import { XMarkIcon } from "@heroicons/react/24/solid";
@@ -22,23 +21,20 @@ const Register = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, guestId, loading } = useAppSelector((state) => state.auth);
-  const { cart } = useAppSelector((state) => state.cart);
+  const {
+    user,
+    loading,
+    error: authError,
+  } = useAppSelector((state) => state.auth);
 
   const redirect = new URLSearchParams(location.search).get("redirect") || "/";
-  const isCheckoutRedirect = redirect.includes("checkout");
 
   useEffect(() => {
+    // redirect user to login if they are logged in
     if (user) {
-      if (cart?.products.length > 0 && guestId) {
-        dispatch(mergeCart({ guestId, user })).then(() => {
-          navigate(isCheckoutRedirect ? "/checkout" : "/");
-        });
-      } else {
-        navigate(isCheckoutRedirect ? "/checkout" : "/");
-      }
+      navigate("/");
     }
-  }, [user, guestId, cart, navigate, isCheckoutRedirect, dispatch]);
+  }, []);
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     setError(null);
@@ -69,6 +65,9 @@ const Register = () => {
     setShowEmailDialog(true);
     setFormData({ name: "", email: "", password: "" });
   };
+
+  if (loading) return <p>Loading...</p>;
+  if (authError) return <p>Error: {authError}</p>;
 
   return (
     <>
@@ -186,7 +185,7 @@ const Register = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-acloblue text-white p-2 rounded-lg font-semibold mt-2 hover:opacity-80 transition disabled:opacity-60"
+              className="w-full bg-acloblue text-white p-2 rounded-lg font-semibold mt-2 hover:opacity-80 transition disabled:opacity-60 cursor-pointer"
             >
               {loading ? "Loading..." : "Sign Up"}
             </button>
@@ -212,7 +211,7 @@ const Register = () => {
             <img
               src={cloudinaryImageUrl(assets.register.publicId)}
               alt={assets.register.alt}
-              className="h-[750px] w-full object-cover"
+              className="h-187.5 w-full object-cover"
             />
           </div>
         </div>
