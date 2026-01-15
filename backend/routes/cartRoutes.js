@@ -81,7 +81,6 @@ router.post("/", async (req, res) => {
                     quantity,
                 });
             }
-            // TODO: calculate based on the bundle prices
             // Recalculate total price
             cart.totalPrice = cart.products.reduce(
                 (acc, item) => acc + item.price * item.quantity,
@@ -203,13 +202,10 @@ router.delete("/", async (req, res) => {
 // @access Public
 router.get("/", async (req, res) => {
     const { userId, guestId } = req.query;
-
     try {
         const cart = await getCart(userId, guestId);
         if (cart) {
             res.json(cart);
-        } else {
-            res.status(404).json({ message: "Cart Not Found" });
         }
     } catch (error) {
         console.error(error);
@@ -222,7 +218,6 @@ router.get("/", async (req, res) => {
 // @access Private
 router.get("/:cartId", protect, async (req, res) => {
     const { cartId } = req.params;
-
     const cart = await Cart.findById(cartId);
     if (!cart) return res.status(404).json({ message: "Cart Not Found" });
 

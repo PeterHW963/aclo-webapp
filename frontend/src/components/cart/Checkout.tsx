@@ -51,6 +51,23 @@ const Checkout = () => {
     );
   };
 
+  useEffect(() => {
+    if (!cartId) {
+      navigate("/");
+      return;
+    }
+
+    if (!cart?._id || cart._id !== cartId) {
+      dispatch(fetchCartById({ cartId }));
+      return;
+    }
+
+    if (!loading && (!cart.products || cart.products.length === 0)) {
+      navigate("/");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cartId, cart?._id, cart?.products?.length, loading, dispatch, navigate]);
+
   // Auto-fill shipping details + calculate shipping if user has saved addresses
   useEffect(() => {
     if (!cart?.products || cart.products.length === 0) {
@@ -107,22 +124,6 @@ const Checkout = () => {
     }
   }, [user, cart?.products, cart?._id, cart?.totalPrice, shippingDetails, dispatch]);
 
-  useEffect(() => {
-    if (!cartId) {
-      navigate("/");
-      return;
-    }
-
-    if (!cart?._id || cart._id !== cartId) {
-      dispatch(fetchCartById({ cartId }));
-      return;
-    }
-
-    if (!loading && (!cart.products || cart.products.length === 0)) {
-      navigate("/");
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cartId, cart?._id, cart?.products?.length, loading, dispatch, navigate]);
 
   // Clear ref when component unmounts
   useEffect(() => {
