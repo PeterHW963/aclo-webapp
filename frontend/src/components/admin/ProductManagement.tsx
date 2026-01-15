@@ -63,7 +63,7 @@ const ProductManagement = () => {
     if (!loading) {
       loadData();
     }
-  }, [dispatch, user, navigate, products, loading, productVariants, error]);
+  }, []);
 
   const handleDelete = (productId: string) => {
     if (window.confirm("Are you sure you want to delete the Product?")) {
@@ -119,13 +119,13 @@ const ProductManagement = () => {
                     <td className="p-4">
                       <Link
                         to={`/admin/products/${product._id}/edit/${defaultVariant._id}`}
-                        className="bg-yellow-500 text-white px-2 py-1 rounded mr-2 hover:bg-yellow-600"
+                        className="bg-yellow-500 text-white px-4 py-2 rounded mr-2 hover:bg-yellow-600"
                       >
                         Edit
                       </Link>
                       <button
                         onClick={() => handleDelete(product._id)}
-                        className="bg-red-500 text-white px-2 py-1 rounded mr-2 hover:bg-red-600"
+                        className="bg-red-500 text-white px-4 py-2 rounded mr-2 hover:bg-red-600"
                       >
                         Delete
                       </button>
@@ -139,7 +139,7 @@ const ProductManagement = () => {
                             allVariants
                           );
                         }}
-                        className="bg-acloblue text-white px-2 py-1 rounded mr-2 hover:opacity-90"
+                        className="bg-acloblue text-white px-4 py-2 rounded mr-2 hover:opacity-90"
                       >
                         Change Price
                       </button>
