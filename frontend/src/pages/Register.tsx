@@ -32,10 +32,10 @@ const Register = () => {
     if (user) {
       if (cart?.products.length > 0 && guestId) {
         dispatch(mergeCart({ guestId, user })).then(() => {
-          navigate(isCheckoutRedirect ? "/checkout" : "/");
+          navigate(isCheckoutRedirect ? `/checkout/${cart._id}` : "/");
         });
       } else {
-        navigate(isCheckoutRedirect ? "/checkout" : "/");
+        navigate(isCheckoutRedirect ? `/checkout/${cart._id}` : "/");
       }
     }
   }, [user, guestId, cart, navigate, isCheckoutRedirect, dispatch]);
