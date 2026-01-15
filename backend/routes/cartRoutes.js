@@ -81,7 +81,6 @@ router.post("/", async (req, res) => {
                     quantity,
                 });
             }
-            // TODO: calculate based on the bundle prices
             // Recalculate total price
             cart.totalPrice = cart.products.reduce(
                 (acc, item) => acc + item.price * item.quantity,
