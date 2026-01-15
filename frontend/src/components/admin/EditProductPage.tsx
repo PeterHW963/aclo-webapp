@@ -280,7 +280,7 @@ const EditProductPage = () => {
                 placeholder="Length"
                 type="number"
                 name="length"
-                value={productData.dimensions?.length}
+                value={productData.dimensions?.length ?? ""}
                 onChange={handleDimensionChange}
                 className="w-full border border-gray-300 p-2 rounded"
               />
@@ -288,7 +288,7 @@ const EditProductPage = () => {
                 placeholder="Width"
                 type="number"
                 name="width"
-                value={productData.dimensions?.width}
+                value={productData.dimensions?.width ?? ""}
                 onChange={handleDimensionChange}
                 className="w-full border border-gray-300 p-2 rounded"
               />
@@ -296,7 +296,7 @@ const EditProductPage = () => {
                 placeholder="Height"
                 type="number"
                 name="height"
-                value={productData.dimensions?.height}
+                value={productData.dimensions?.height ?? ""}
                 onChange={handleDimensionChange}
                 className="w-full border border-gray-300 p-2 rounded"
               />
@@ -308,7 +308,7 @@ const EditProductPage = () => {
             <input
               type="number"
               name="weight"
-              value={productData.weight}
+              value={productData.weight ?? ""}
               onChange={handleProductChange}
               className="w-full border border-gray-300 rounded-md p-2"
             />
@@ -459,7 +459,7 @@ const EditProductPage = () => {
                 type="text"
                 name="color"
                 placeholder="e.g. Blue"
-                value={productVariantData.color}
+                value={productVariantData.color ?? ""}
                 onChange={handleVariantChange}
                 className="w-full border border-gray-300 rounded-md p-2"
               />
@@ -472,7 +472,7 @@ const EditProductPage = () => {
                 type="text"
                 name="variant"
                 placeholder="e.g. Falcon"
-                value={productVariantData.variant}
+                value={productVariantData.variant ?? ""}
                 onChange={handleVariantChange}
                 className="w-full border border-gray-300 rounded-md p-2"
               />
