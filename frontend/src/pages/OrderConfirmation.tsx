@@ -25,7 +25,7 @@ const OrderConfirmation = () => {
       setLoading(true);
       try {
         // Fetch if missing OR wrong checkout currently in redux
-        if (!orderDetails?._id || orderDetails._id !== orderId) {
+        if (!orderDetails?.orderId || orderDetails.orderId !== orderId) {
           await dispatch(fetchOrderDetails({ orderId })).unwrap();
         }
       } catch (err) {
@@ -48,7 +48,7 @@ const OrderConfirmation = () => {
     if (!orderId) return;
     if (loading) return;
 
-    if (!orderDetails || orderDetails._id !== orderId) {
+    if (!orderDetails || orderDetails.orderId !== orderId) {
       return;
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -63,7 +63,7 @@ const OrderConfirmation = () => {
   if (loading) return <LoadingOverlay show />;
   if (error) return <p>Error: {error}</p>;
 
-  if (!orderDetails || orderDetails._id !== orderId) return null;
+  if (!orderDetails || orderDetails.orderId !== orderId) return null;
 
   return (
     <>
@@ -94,7 +94,7 @@ const OrderConfirmation = () => {
             {/* Order Id and Date */}
             <div>
               <h2 className="text-xl font-semibold">
-                Order ID: {orderDetails._id}
+                Order ID: {orderDetails.orderId}
               </h2>
               <p className="text-gray-500">
                 Order date:{" "}

@@ -76,8 +76,8 @@ const OrderManagement = () => {
     }
   }, [dispatch, user, activeTab, navigate, page]);
 
-  const handleGenerateLabel = (orderId: string) => {
-    dispatch(generateShippingLabel(orderId));
+  const handleGenerateLabel = (order: Order) => {
+    dispatch(generateShippingLabel({ id: order._id, orderId: order.orderId }));
   };
 
   const handleOpenOrderDetails = async (orderId: string) => {
@@ -244,7 +244,7 @@ const OrderManagement = () => {
         return (
           <>
             <button
-              onClick={() => handleGenerateLabel(order._id)}
+              onClick={() => handleGenerateLabel(order)}
               disabled={generatingLabelForOrder === order._id}
               className={`${baseBtn} ${actionBtn.infoOutline}`}
             >
@@ -525,7 +525,7 @@ const OrderManagement = () => {
               orders.map((order) => (
                 <tr key={order._id} className="border-b">
                   <td className="py-4 px-4 font-medium text-gray-900 whitespace-nowrap">
-                    {order._id}
+                    #{order.orderId}
                   </td>
                   <td className="p-4">
                     {typeof order.user === "string"

@@ -2,6 +2,13 @@ const express = require("express");
 const Order = require("../models/Order");
 const { protect } = require("../middleware/authMiddleware");
 
+const mongoose = require("mongoose");
+
+function findOrderByIdOrOrderId(id) {
+    if (mongoose.Types.ObjectId.isValid(id)) return Order.findById(id);
+    return Order.findOne({ orderId: id });
+}
+
 const router = express.Router();
 
 // @route GET /api/orders/my-orders
@@ -25,7 +32,7 @@ router.get("/my-orders", protect, async (req, res) => {
 // @access Private
 router.get("/:id", protect, async (req, res) => {
     try {
-        const order = await Order.findById(req.params.id).select(
+        const order = await findOrderByIdOrOrderId(req.params.id).select(
             "-adminRemarks"
         );
         if (!order) {

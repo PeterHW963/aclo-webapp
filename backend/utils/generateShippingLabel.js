@@ -32,7 +32,7 @@ const generateShippingLabelHTML = (order) => {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Shipping Label - Order ${order._id}</title>
+    <title>Shipping Label - Order ${order.orderId}</title>
     <style>
         * {
             margin: 0;
@@ -202,7 +202,7 @@ const generateShippingLabelHTML = (order) => {
         <div class="order-info">
             <div class="order-info-item">
                 <span><strong>Order ID:</strong></span>
-                <span>${order._id}</span>
+                <span>${order.orderId}</span>
             </div>
             <div class="order-info-item">
                 <span><strong>Order Date:</strong></span>
@@ -277,7 +277,7 @@ const generateShippingLabelHTML = (order) => {
         
         <!-- Tracking Number -->
         <div class="tracking-number">
-            Order #: ${order._id}
+            Order #: ${order.orderId}
         </div>
         
         <!-- Footer -->

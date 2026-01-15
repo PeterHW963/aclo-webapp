@@ -204,39 +204,42 @@ export const deleteOrder = createAsyncThunk<
 // async thunk to generate shipping label PDF (admin only)
 export const generateShippingLabel = createAsyncThunk<
   void,
-  string,
+  { id: string; orderId: string },
   { rejectValue: AppError }
->("adminOrders/generateShippingLabel", async (id, { rejectWithValue }) => {
-  try {
-    const response = await axios.get(
-      `${API_URL}/api/admin/orders/${id}/shipping-label`,
-      {
-        headers: getAuthHeader(),
-        responseType: "blob",
+>(
+  "adminOrders/generateShippingLabel",
+  async ({ id, orderId }, { rejectWithValue }) => {
+    try {
+      const response = await axios.get(
+        `${API_URL}/api/admin/orders/${id}/shipping-label`,
+        {
+          headers: getAuthHeader(),
+          responseType: "blob",
+        }
+      );
+
+      // create blob and trigger download
+      const blob = new Blob([response.data], { type: "application/pdf" });
+      const url = window.URL.createObjectURL(blob);
+
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `shipping-label-${orderId}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+
+      // clean up
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      const error = err as AxiosError<AppError>;
+      if (error.response && error.response.data) {
+        return rejectWithValue(error.response.data);
       }
-    );
-
-    // create blob and trigger download
-    const blob = new Blob([response.data], { type: "application/pdf" });
-    const url = window.URL.createObjectURL(blob);
-
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `shipping-label-${id}.pdf`;
-    document.body.appendChild(link);
-    link.click();
-
-    // clean up
-    document.body.removeChild(link);
-    window.URL.revokeObjectURL(url);
-  } catch (err) {
-    const error = err as AxiosError<AppError>;
-    if (error.response && error.response.data) {
-      return rejectWithValue(error.response.data);
+      return rejectWithValue({ message: "Failed to generate shipping label" });
     }
-    return rejectWithValue({ message: "Failed to generate shipping label" });
   }
-});
+);
 
 const adminOrderSlice = createSlice({
   name: "adminOrders",
@@ -252,20 +255,22 @@ const adminOrderSlice = createSlice({
       .addCase(
         fetchAllOrders.fulfilled,
         (state, action: PayloadAction<FetchOrdersResponse>) => {
-          state.orders = action.payload.orders;
-          state.totalOrders = action.payload.total;
-          state.page = action.payload.page;
-          state.limit = action.payload.limit;
-          state.totalPages = action.payload.totalPages;
+          const orders = action.payload.orders ?? [];
 
-          // calculate total sales
-          const totalSales = action.payload.orders.reduce((acc, order) => {
-            return acc + order.totalPrice;
+          state.orders = orders;
+          state.totalOrders = action.payload.total ?? orders.length;
+          state.page = action.payload.page ?? 1;
+          state.limit = action.payload.limit ?? 25;
+          state.totalPages = action.payload.totalPages ?? 1;
+
+          state.totalSales = orders.reduce((acc, order) => {
+            return acc + (order.totalPrice ?? 0);
           }, 0);
-          state.totalSales = totalSales;
+
           state.loading = false;
         }
       )
+
       .addCase(fetchAllOrders.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload?.message || "Failed to fetch orders admin";
@@ -384,7 +389,7 @@ const adminOrderSlice = createSlice({
       })
       // generate shipping label
       .addCase(generateShippingLabel.pending, (state, action) => {
-        state.generatingLabelForOrder = action.meta.arg;
+        state.generatingLabelForOrder = action.meta.arg.id;
         state.error = null;
       })
       .addCase(generateShippingLabel.fulfilled, (state) => {

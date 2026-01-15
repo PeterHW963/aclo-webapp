@@ -27,7 +27,7 @@ const OrderDetailsPage = () => {
 
       try {
         // fetch if missing OR wrong order currently in redux
-        if (!orderDetails?._id || orderDetails._id !== id) {
+        if (!orderDetails?.orderId || orderDetails.orderId !== id) {
           await dispatch(fetchOrderDetails({ orderId: id })).unwrap();
         }
       } catch (err) {
@@ -60,7 +60,7 @@ const OrderDetailsPage = () => {
             <div className="flex flex-col sm:flex-row justify-between mb-6">
               <div>
                 <h3 className="text-lg md:text-xl font-semibold">
-                  Order ID: #{orderDetails._id}
+                  Order ID: #{orderDetails.orderId}
                 </h3>
                 <p className="text-gray-600">
                   {new Date(orderDetails.createdAt).toLocaleDateString()}

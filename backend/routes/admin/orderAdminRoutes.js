@@ -5,12 +5,26 @@ const {
     generateShippingLabelPDF,
 } = require("../../utils/generateShippingLabel");
 
+const mongoose = require("mongoose");
+
+function findOrderByIdOrOrderId(id) {
+    if (mongoose.Types.ObjectId.isValid(id)) return Order.findById(id);
+    return Order.findOne({ orderId: id });
+}
+
 const router = express.Router();
 
 // @route GET /api/admin/orders?category=pending_action&page=1&limit=25
 // @desc Get all orders (Admin only)
 // @access Private/Admin
 router.get("/", protect, admin, async (req, res) => {
+    // try {
+    //     const orders = await Order.find({}).populate("user", "name email");
+    //     res.json(orders);
+    // } catch (error) {
+    //     console.error(error);
+    //     res.status(500).json({ message: "Server Error" });
+    // }
     try {
         const { category = "all", status, page = 1, limit = 25 } = req.query;
         const categoryMap = {
@@ -68,7 +82,7 @@ router.get("/", protect, admin, async (req, res) => {
 // @access Private
 router.get("/:id", protect, admin, async (req, res) => {
     try {
-        const order = await Order.findById(req.params.id);
+        const order = await findOrderByIdOrOrderId(req.params.id);
         if (!order) {
             res.status(404).json({ message: "Order Not Found" });
         }
@@ -88,7 +102,7 @@ router.put("/:id/remarks", protect, admin, async (req, res) => {
     try {
         const { adminRemarks } = req.body;
 
-        const order = await Order.findById(req.params.id);
+        const order = await findOrderByIdOrOrderId(req.params.id);
         if (!order) return res.status(404).json({ message: "Order Not Found" });
 
         order.adminRemarks = adminRemarks ?? order.adminRemarks;
@@ -108,7 +122,7 @@ router.put("/:id/trackingLink", protect, admin, async (req, res) => {
     try {
         const { trackingLink } = req.body;
 
-        const order = await Order.findById(req.params.id);
+        const order = await findOrderByIdOrOrderId(req.params.id);
         if (!order) return res.status(404).json({ message: "Order Not Found" });
 
         order.trackingLink = trackingLink ?? order.trackingLink;
@@ -126,7 +140,7 @@ router.put("/:id/trackingLink", protect, admin, async (req, res) => {
 // @access Private/Admin
 router.put("/:id", protect, admin, async (req, res) => {
     try {
-        const order = await Order.findById(req.params.id).populate(
+        const order = await findOrderByIdOrOrderId(req.params.id).populate(
             "user",
             "name"
         );
@@ -155,7 +169,7 @@ router.put("/:id", protect, admin, async (req, res) => {
 // @access Private/Admin
 router.delete("/:id", protect, admin, async (req, res) => {
     try {
-        const order = await Order.findById(req.params.id);
+        const order = await findOrderByIdOrOrderId(req.params.id);
         if (order) {
             await order.deleteOne();
             res.json({ message: "Order Removed" });
@@ -173,7 +187,7 @@ router.delete("/:id", protect, admin, async (req, res) => {
 // @access Private/Admin
 router.get("/:id/shipping-label", protect, admin, async (req, res) => {
     try {
-        const order = await Order.findById(req.params.id)
+        const order = await findOrderByIdOrOrderId(req.params.id)
             .populate("user", "name email")
             .populate("orderItems.productVariantId");
 
@@ -186,7 +200,7 @@ router.get("/:id/shipping-label", protect, admin, async (req, res) => {
         res.setHeader("Content-Type", "application/pdf");
         res.setHeader(
             "Content-Disposition",
-            `inline; filename=shipping-label-${order._id}.pdf`
+            `inline; filename=shipping-label-${order.orderId}.pdf`
         );
         res.setHeader("Content-Length", pdfBuffer.length);
 

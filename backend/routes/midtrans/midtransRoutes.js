@@ -53,6 +53,8 @@ router.post("/token", protect, async (req, res) => {
         }
 
         const orderId = checkout._id.toString();
+        if (!orderId)
+            return res.status(400).json({ message: "Missing orderId" });
         const item_details = checkout.checkoutItems.map((item) => ({
             id: String(item.productVariantId),
             price: Number(item.price),
