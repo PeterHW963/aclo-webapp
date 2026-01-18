@@ -9,7 +9,6 @@ import {
 } from "../../redux/slices/authSlice";
 
 interface ShippingDetailsModalProps {
-  isOpen: boolean;
   onClose: () => void;
   onSubmit: (details: ShippingDetails) => Promise<void>;
   userEmail?: string;
@@ -18,7 +17,6 @@ interface ShippingDetailsModalProps {
 }
 
 const ShippingDetailsModal = ({
-  isOpen,
   onClose,
   onSubmit,
   isCalculating,
@@ -170,14 +168,12 @@ const ShippingDetailsModal = ({
     }
   };
 
-  if (!isOpen) return null;
-
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center px-6"
       role="dialog"
     >
-      <div className="absolute inset-0 bg-black/30" onClick={onClose} />
+      <div className="absolute inset-0 bg-black/30" />
       <div className="relative w-full max-w-2xl rounded-xl bg-white shadow-lg border max-h-[80vh] overflow-hidden flex flex-col">
         <button
           onClick={onClose}

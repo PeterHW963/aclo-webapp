@@ -79,3 +79,31 @@ p {
   color: #991b1b;
   border: 1px solid #fecaca;
 }
+
+/* Product Editor */
+.md-big-toolbar .w-md-editor-toolbar li > button {
+  height: 36px;
+  padding: 6px 10px;
+}
+
+.md-big-toolbar .w-md-editor-toolbar li > button svg {
+  width: 20px;
+  height: 20px;
+}
+
+.md-big-toolbar .w-md-editor-text-pre,
+.md-big-toolbar .w-md-editor-text-pre code {
+  font-size: 16px !important;
+  line-height: 1.6 !important;
+}
+
+.md-big-toolbar textarea.w-md-editor-text-input {
+  font-size: 16px !important;
+  line-height: 1.6 !important;
+}
+
+.md-big-toolbar .w-md-editor-preview,
+.md-big-toolbar .w-md-editor-preview .wmde-markdown {
+  font-size: 16px !important;
+  line-height: 1.6 !important;
+}

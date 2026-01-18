@@ -33,7 +33,7 @@ const ActionConfirmationModal = ({
       role="dialog"
     >
       <div className="absolute inset-0 bg-black/30" />
-      <div className="relative w-full max-w-2xl rounded-xl bg-white p-6 shadow-lg border max-h-[80vh] overflow-y-auto">
+      <div className="relative w-full max-w-2xl rounded-xl bg-white p-6 shadow-lg max-h-[80vh] overflow-y-auto">
         <button
           onClick={onClose}
           className="absolute right-4 top-5 inline-flex h-9 w-9 items-center justify-center rounded-full text-gray-500"
@@ -41,7 +41,7 @@ const ActionConfirmationModal = ({
           <IoMdClose className="h-8 w-8 hover:text-gray-600 cursor-pointer" />
         </button>
 
-        <h2 className="text-2xl mb-4 uppercase">{title}</h2>
+        <h2 className="text-2xl text-acloblue font-semibold mb-4 ">{title}</h2>
         <div className="text-gray-700 whitespace-pre-line">
           <ReactMarkdown>{message}</ReactMarkdown>
         </div>
