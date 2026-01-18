@@ -4,6 +4,8 @@ import { assets, cloudinaryImageUrl } from "../constants/cloudinary";
 import type { ForgotPasswordPayload } from "../types/auth";
 import Navbar from "../components/common/Navbar";
 import { ChevronLeftIcon } from "@heroicons/react/24/solid";
+import axios from "axios";
+import { API_URL } from "../constants/api";
 
 const ForgotPassword = () => {
   const [formData, setFormData] = useState<ForgotPasswordPayload>({
@@ -28,7 +30,9 @@ const ForgotPassword = () => {
     setSuccess(null);
 
     try {
-      // SEND EMAIL API HERE
+      await axios.post(`${API_URL}/api/users/forgot-password`, {
+        email: formData.email,
+      });
 
       setSuccess(
         "If an account exists for this email, we've sent a reset email."
@@ -38,8 +42,12 @@ const ForgotPassword = () => {
       setTimeout(() => {
         navigate(`/login?redirect=${encodeURIComponent(redirect)}`);
       }, 20000);
-    } catch {
-      setError("Something went wrong. Please try again.");
+    } catch (err: any) {
+      const errorMessage =
+        err.response?.data?.message ||
+        err.message ||
+        "Something went wrong. Please try again.";
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }

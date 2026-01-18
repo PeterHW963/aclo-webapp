@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
+const crypto = require("crypto");
 
 const shippingAddressSchema = new mongoose.Schema({
 	name: {
@@ -54,6 +55,8 @@ const userSchema = new mongoose.Schema(
 			default: "customer",
 		},
 		shippingAddresses: [shippingAddressSchema],
+		resetPasswordToken: String,
+		resetPasswordExpire: Date,
 	},
 	{ timestamps: true }
 );
@@ -74,5 +77,13 @@ userSchema.pre("save", async function () {
 userSchema.methods.matchPassword = async function (enteredPassword) {
 	return await bcrypt.compare(enteredPassword, this.password);
 };
+
+// Token generation method with expiry time
+userSchema.methods.getResetPasswordToken = function () {
+	const resetToken = crypto.randomBytes(20).toString("hex");
+	this.resetPasswordToken = crypto.createHash("sha256").update(resetToken).digest("hex");
+	this.resetPasswordExpire = Date.now() + 2 * 60 * 1000; // 2 minutes expiry time (can be adjusted)
+	return resetToken;
+}
 
 module.exports = mongoose.model("User", userSchema);

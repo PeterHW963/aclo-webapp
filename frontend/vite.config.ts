@@ -16,7 +16,6 @@ export default defineConfig({
     sourcemap: true,
   },
   server: {
-    allowedHosts: ["subfossorial-leisa-graceful.ngrok-free.dev"],
     host: true,
   },
 });

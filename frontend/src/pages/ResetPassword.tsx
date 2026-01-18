@@ -1,8 +1,10 @@
-import { useState, type ChangeEvent, type FormEvent } from "react";
+import { useState, useEffect, type ChangeEvent, type FormEvent } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import Navbar from "../components/common/Navbar";
 import { assets, cloudinaryImageUrl } from "../constants/cloudinary";
 import type { ResetPasswordPayload } from "../types/auth";
+import axios from "axios";
+import { API_URL } from "../constants/api";
 
 const ResetPassword = () => {
   const [formData, setFormData] = useState<ResetPasswordPayload>({
@@ -18,9 +20,14 @@ const ResetPassword = () => {
 
   // /reset-password?token=xxxx&redirect=/checkout
   const params = new URLSearchParams(location.search);
-  const token = "faketoken";
-  // const token = params.get("token");
+  const token = params.get("token");
   const redirect = params.get("redirect") || "/";
+
+  useEffect(() => {
+    if (!token) {
+      navigate("/");
+    }
+  }, [token, navigate]);
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -56,7 +63,9 @@ const ResetPassword = () => {
     }
 
     try {
-      // call API
+      await axios.put(`${API_URL}/api/users/reset-password/${token}`, {
+        password: formData.password,
+      });
 
       setSuccess("Your password is updated!");
 
