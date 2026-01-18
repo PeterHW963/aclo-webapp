@@ -1,6 +1,12 @@
-import { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
+import {
+  useEffect,
+  useState,
+  useRef,
+  type ChangeEvent,
+  type FormEvent,
+} from "react";
 import { useAppDispatch, useAppSelector } from "../../redux/hooks";
-import { useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { fetchProductDetails } from "../../redux/slices/productsSlice";
 // import { updateProduct } from "../../redux/slices/adminProductSlice";
 import { fetchProductVariants } from "../../redux/slices/productsSlice";
@@ -17,6 +23,8 @@ import {
   updateProduct,
   updateProductVariant,
 } from "../../redux/slices/adminProductSlice";
+import { toast } from "sonner";
+import LoadingOverlay from "../common/LoadingOverlay";
 
 type ProductVariantData = {
   variantId: string; // required for variant-specific updates
@@ -38,7 +46,6 @@ type ProductData = {
   isListed: boolean;
   dimensions?: ProductDimensions;
   weight?: number;
-  // options editing (we'll only expose color here like your current page)
 };
 const CATEGORIES: ProductCategory[] = [
   "Learning Tower",
@@ -47,13 +54,23 @@ const CATEGORIES: ProductCategory[] = [
 ];
 
 const EditProductPage = () => {
+  const [loading, setLoading] = useState<boolean>(true);
+  const [uploading, setUploading] = useState<boolean>(false);
+  const showOverlay = loading || uploading;
+
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const { id, variantId } = useParams();
 
-  const { selectedProduct, productVariants, loading, error } = useAppSelector(
+  const { selectedProduct, productVariants, error } = useAppSelector(
     (state) => state.products
   );
+
+  const productFileInputRef = useRef<HTMLInputElement | null>(null);
+  const variantFileInputRef = useRef<HTMLInputElement | null>(null);
+
+  const [productUploadedFileName, setProductUploadedFileName] = useState("");
+  const [variantUploadedFileName, setVariantUploadedFileName] = useState("");
 
   const [productData, setProductData] = useState<ProductData>({
     name: "",
@@ -78,13 +95,28 @@ const EditProductPage = () => {
       variantImages: [],
     });
 
-  const [uploading, setUploading] = useState<boolean>(false);
   // fetch product details
   useEffect(() => {
-    if (id) {
-      dispatch(fetchProductDetails({ id }));
-      dispatch(fetchProductVariants({ productIds: [id] }));
-    }
+    let cancelled = false;
+
+    const loadData = async () => {
+      if (!id) return;
+
+      setLoading(true);
+      try {
+        await dispatch(fetchProductDetails({ id })).unwrap();
+        await dispatch(fetchProductVariants({ productIds: [id] })).unwrap();
+      } catch (err) {
+        console.error("EditProductPage initial load failed:", err);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+
+    loadData();
+    return () => {
+      cancelled = true;
+    };
   }, [dispatch, id]);
 
   // map selectedProduct -> ProductData
@@ -148,6 +180,7 @@ const EditProductPage = () => {
 
     setProductData((prev) => ({ ...prev, [name]: value }));
   };
+
   // Specific Dimensions Handler
   const handleDimensionChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -159,6 +192,7 @@ const EditProductPage = () => {
       },
     }));
   };
+
   // Generic Variant Handler
   const handleVariantChange = (
     e: ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -179,6 +213,12 @@ const EditProductPage = () => {
   ) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    if (target === "product") {
+      setProductUploadedFileName(file.name);
+    } else {
+      setVariantUploadedFileName(file.name);
+    }
 
     const formData = new FormData();
     formData.append("image", file);
@@ -206,33 +246,54 @@ const EditProductPage = () => {
       console.error(error);
     } finally {
       setUploading(false);
+      e.target.value = "";
     }
   };
-  const handleUpdateProduct = (e: FormEvent<HTMLFormElement>) => {
+  const handleUpdateProduct = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!id) return;
 
-    console.log("Submitting Product:", productData);
+    setLoading(true);
+    try {
+      // console.log("Submitting Product:", productData);
+      await dispatch(updateProduct({ id, productData })).unwrap();
 
-    dispatch(updateProduct({ id, productData }));
-    navigate("/admin/products");
+      // refresh product details to reflect saved state
+      await dispatch(fetchProductDetails({ id })).unwrap();
+
+      toast.success("Product updated successfully");
+    } catch (err: any) {
+      toast.error(err?.message ?? "Failed to update product");
+    } finally {
+      setLoading(false);
+    }
   };
-  const handleUpdateProductVariant = (e: FormEvent<HTMLFormElement>) => {
+  const handleUpdateProductVariant = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!id || !variantId) return;
+    setLoading(true);
 
-    console.log("Submitting product variant:", productVariantData);
+    try {
+      // console.log("Submitting product variant:", productVariantData);
+      await dispatch(
+        updateProductVariant({
+          productId: id,
+          variantId,
+          variantData: productVariantData,
+        })
+      ).unwrap();
 
-    dispatch(
-      updateProductVariant({
-        productId: id,
-        variantId: variantId,
-        variantData: productVariantData,
-      })
-    );
-    navigate("/admin/products");
+      // refresh variants so dropdown stock/name etc stays correct
+      await dispatch(fetchProductVariants({ productIds: [id] })).unwrap();
+
+      toast.success("Product variant updated successfully");
+    } catch (err: any) {
+      toast.error(err?.message ?? "Failed to update product variant");
+    } finally {
+      setLoading(false);
+    }
   };
-  if (loading) return <p>Loading...</p>;
+  // if (loading) return <p>Loading...</p>;
   if (error) return <p>Error: {error}</p>;
 
   const availableVariants =
@@ -240,6 +301,15 @@ const EditProductPage = () => {
 
   return (
     <>
+      <LoadingOverlay show={showOverlay} />
+      <div className="mb-2">
+        <Link
+          to="/admin/products"
+          className="inline-flex items-center gap-2 text-md font-semibold text-gray-700 hover:text-blue-600"
+        >
+          ← Back to Product Management
+        </Link>
+      </div>
       <div className="max-w-6xl mx-auto p-6 shadow-md rounded-md">
         <h2 className="text-3xl font-bold mb-6">Edit Product</h2>
         {/* GLOBAL PRODUCT DETAILS */}
@@ -330,20 +400,39 @@ const EditProductPage = () => {
           {/* Product Images */}
           <div className="col-span-2">
             <label className="block font-semibold mb-2 mt-6">
-              Global Product Images
+              Product Images
             </label>
             {uploading && <p>Uploading image...</p>}
-            <input
-              type="file"
-              onChange={(e) => handleImageUpload(e, "product")}
-              className="mb-2"
-            />
+            <div className="flex items-center gap-3 mb-4">
+              <button
+                type="button"
+                onClick={() => productFileInputRef.current?.click()}
+                className="bg-acloblue/80 text-white py-2 px-4 rounded hover:bg-acloblue cursor-pointer"
+                disabled={uploading}
+              >
+                Choose file
+              </button>
+
+              <span className="text-sm text-gray-600">
+                {productUploadedFileName
+                  ? productUploadedFileName
+                  : "No file selected"}
+              </span>
+
+              <input
+                ref={productFileInputRef}
+                type="file"
+                className="hidden"
+                onChange={(e) => handleImageUpload(e, "product")}
+                accept="image/*"
+              />
+            </div>
             <div className="flex gap-2 flex-wrap">
               {productData.images.map((img, i) => (
                 <img
                   key={i}
                   src={cloudinaryImageUrl(img.publicId)}
-                  className="w-16 h-16 object-cover rounded border"
+                  className="w-16 h-16 object-cover rounded border border-blue-300"
                 />
               ))}
             </div>
@@ -480,15 +569,32 @@ const EditProductPage = () => {
           </div>
           {/* Variant Images */}
           <div className="col-span-2">
-            <label className="block font-semibold mb-2">
-              Variant Specific Images
-            </label>
+            <label className="block font-semibold mb-2">Variant Images</label>
             {uploading && <p>Uploading image...</p>}
-            <input
-              type="file"
-              onChange={(e) => handleImageUpload(e, "variant")}
-              className="mb-2"
-            />
+            <div className="flex items-center gap-3 mb-4">
+              <button
+                type="button"
+                onClick={() => variantFileInputRef.current?.click()}
+                className="bg-acloblue/80 text-white py-2 px-4 rounded hover:bg-acloblue cursor-pointer"
+                disabled={uploading}
+              >
+                Choose file
+              </button>
+
+              <span className="text-sm text-gray-600">
+                {variantUploadedFileName
+                  ? variantUploadedFileName
+                  : "No file selected"}
+              </span>
+
+              <input
+                ref={variantFileInputRef}
+                type="file"
+                className="hidden"
+                onChange={(e) => handleImageUpload(e, "variant")}
+                accept="image/*"
+              />
+            </div>
             <div className="flex gap-2 flex-wrap">
               {productVariantData.variantImages.map((img, i) => (
                 <img
