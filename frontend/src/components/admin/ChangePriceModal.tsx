@@ -11,7 +11,6 @@ type VariantOption = {
 };
 
 type ChangePriceModalProps = {
-  isOpen: boolean;
   productName: string;
 
   variants: VariantOption[];
@@ -30,7 +29,6 @@ const formatVariantLabel = (v: VariantOption) => {
 };
 
 const ChangePriceModal = ({
-  isOpen,
   productName,
   variants,
   initialVariantId,
@@ -50,18 +48,15 @@ const ChangePriceModal = ({
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (!isOpen) return;
-
     setSelectedVariantId(initialVariantId);
 
     const v = variants.find((x) => x._id === initialVariantId);
     setPriceInput(v?.price != null ? String(v.price) : "");
     setDiscountInput(v?.discountPrice != null ? String(v.discountPrice) : "");
     setSaving(false);
-  }, [isOpen, initialVariantId, variants]);
+  }, [initialVariantId, variants]);
 
   useEffect(() => {
-    if (!isOpen) return;
     if (!selectedVariant) return;
 
     setPriceInput(
@@ -72,7 +67,7 @@ const ChangePriceModal = ({
         ? String(selectedVariant.discountPrice)
         : ""
     );
-  }, [selectedVariantId, selectedVariant, isOpen]);
+  }, [selectedVariantId, selectedVariant]);
 
   const parsed = useMemo(() => {
     const price = Number(priceInput);
@@ -90,6 +85,7 @@ const ChangePriceModal = ({
   const canSave = parsed.priceOk && parsed.discountOk && !saving;
 
   const handleSave = async () => {
+    console.log("save clicked");
     if (!canSave) return;
     setSaving(true);
     try {
@@ -106,21 +102,15 @@ const ChangePriceModal = ({
 
   // esc to close
   useEffect(() => {
-    if (!isOpen) return;
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [isOpen, onClose]);
-
-  if (!isOpen) return null;
+  }, [onClose]);
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4"
-      onClick={onClose}
-    >
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
       <div
         className="w-full max-w-md rounded-2xl bg-white p-6 shadow-lg border border-gray-100"
         onClick={(e) => e.stopPropagation()}
@@ -191,7 +181,7 @@ const ChangePriceModal = ({
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 rounded-xl border border-acloblue/30 text-acloblue py-2 hover:bg-acloblue/5 transition disabled:opacity-60"
+            className="flex-1 rounded-xl border border-acloblue/30 text-acloblue py-2 hover:bg-acloblue/5 transition disabled:opacity-60 cursor-pointer"
             disabled={saving}
           >
             Cancel
@@ -199,7 +189,7 @@ const ChangePriceModal = ({
           <button
             type="button"
             onClick={handleSave}
-            className="flex-1 rounded-xl bg-acloblue text-white py-2 font-semibold hover:opacity-90 transition disabled:opacity-60"
+            className="flex-1 rounded-xl bg-acloblue text-white py-2 font-semibold hover:opacity-90 transition disabled:opacity-60 cursor-pointer"
             disabled={!canSave}
           >
             {saving ? "Saving..." : "Save"}

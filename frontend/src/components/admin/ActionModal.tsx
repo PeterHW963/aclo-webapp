@@ -29,7 +29,7 @@ const ActionModal = ({
       role="dialog"
     >
       <div className="absolute inset-0 bg-black/30" />
-      <div className="relative w-full max-w-xl rounded-xl bg-white p-6 shadow-lg border max-h-[80vh] overflow-y-auto">
+      <div className="relative w-full max-w-xl rounded-xl bg-white p-6 shadow-lg max-h-[80vh] overflow-y-auto">
         <button
           onClick={onClose}
           className="absolute right-4 top-5 inline-flex h-9 w-9 items-center justify-center rounded-full text-gray-500"
@@ -37,7 +37,7 @@ const ActionModal = ({
           <IoMdClose className="h-8 w-8 hover:text-gray-600 cursor-pointer" />
         </button>
 
-        <h2 className="text-2xl uppercase">
+        <h2 className="text-2xl text-acloblue font-semibold">
           {type === "paymentProof" ? "Payment Proof" : "Cancellation Request"}
         </h2>
         {type === "paymentProof" && "publicId" in data && (

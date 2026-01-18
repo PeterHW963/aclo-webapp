@@ -25,7 +25,8 @@ const ShopPage = () => {
       setLoading(true);
       try {
         const products = await dispatch(fetchProducts()).unwrap();
-        const ids = products.map((product) => product._id);
+        const listed = products.filter((p) => p.isListed);
+        const ids = listed.map((p) => p._id);
 
         if (ids.length > 0) {
           await dispatch(fetchProductVariants({ productIds: ids })).unwrap();
@@ -43,9 +44,11 @@ const ShopPage = () => {
     };
   }, [dispatch]);
 
-  const towers = products.filter((p) => p.category === "Learning Tower");
+  const listed = products.filter((p) => p.isListed);
 
-  const others = products.filter(
+  const towers = listed.filter((p) => p.category === "Learning Tower");
+
+  const others = listed.filter(
     (p) => p.category === "Utensils" || p.category === "Accessories"
   );
 

@@ -31,7 +31,7 @@ type ProductVariantData = {
   sku: string;
   name: string;
   price: number;
-  discountPrice?: number;
+  discountPrice?: number | null;
   countInStock: number;
   category: ProductCategory;
   color?: string;
@@ -198,12 +198,23 @@ const EditProductPage = () => {
     e: ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
-    setProductVariantData((prev) => ({
-      ...prev,
-      [name]: ["price", "discountPrice", "countInStock"].includes(name)
-        ? Number(value)
-        : value,
-    }));
+    setProductVariantData((prev) => {
+      // special case: discountPrice empty => null
+      if (name === "discountPrice") {
+        return {
+          ...prev,
+          discountPrice: value.trim() === "" ? null : Number(value),
+        };
+      }
+
+      // other numeric fields
+      if (name === "price" || name === "countInStock") {
+        return { ...prev, [name]: Number(value) };
+      }
+
+      // everything else
+      return { ...prev, [name]: value };
+    });
   };
 
   // Image Upload (Shared Logic)
@@ -274,12 +285,17 @@ const EditProductPage = () => {
     setLoading(true);
 
     try {
+      const { variantImages, ...rest } = productVariantData;
       // console.log("Submitting product variant:", productVariantData);
       await dispatch(
         updateProductVariant({
           productId: id,
           variantId,
-          variantData: productVariantData,
+          variantData: {
+            ...rest,
+            images: variantImages,
+            discountPrice: rest.discountPrice ?? null, // keep null if removing
+          },
         })
       ).unwrap();
 
@@ -329,7 +345,7 @@ const EditProductPage = () => {
           {/* Description */}
           <div className="mb-6">
             <label className="block font-semibold mb-2">Description</label>
-            <div data-color-mode="light">
+            <div data-color-mode="light" className="md-big-toolbar">
               <MDEditor
                 value={productData.description}
                 onChange={(val) =>
@@ -338,7 +354,7 @@ const EditProductPage = () => {
                     description: val ?? "",
                   }))
                 }
-                height={300}
+                height={360}
               />
             </div>
           </div>

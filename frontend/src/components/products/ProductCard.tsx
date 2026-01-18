@@ -48,14 +48,13 @@ const ProductCard = ({ product, variants }: ProductCardProps) => {
   // determine image to display
   // If an option is selected, show the image of selected variant
   // But if no option is selected, show image of the product
-  // TODO: allow to show multiple images by carousel
   const displayImageId =
     selectedVariant?.images?.[0]?.publicId || product.images[0]?.publicId;
   const displayAlt =
     selectedVariant?.images?.[0]?.alt || product.images[0]?.alt || product.name;
 
   // determine price to display
-  let discountPrice = defaultVariant?.discountPrice ?? defaultVariant?.price;
+  let discountPrice = defaultVariant?.discountPrice ?? null;
   if (selectedVariant) {
     discountPrice = selectedVariant.discountPrice ?? selectedVariant.price;
   }
@@ -150,20 +149,30 @@ const ProductCard = ({ product, variants }: ProductCardProps) => {
 
       <p className="px-4 text-center">
         <span className="inline-flex items-center justify-center gap-2 flex-wrap">
-          {/* original price */}
-          {originalPrice && (
-            <span className="text-xs text-gray-400 line-through">
-              IDR {originalPrice.toLocaleString()}
-            </span>
-          )}
+          {/* If discount exists: show original price crossed out */}
+          {discountPrice != null ? (
+            <>
+              {originalPrice != null && (
+                <span className="text-xs text-gray-400 line-through">
+                  IDR {originalPrice.toLocaleString()}
+                </span>
+              )}
 
-          {/* discounted price */}
-          {discountPrice ? (
-            <span className="text-base font-semibold text-acloblue">
-              IDR {discountPrice.toLocaleString()}
-            </span>
+              <span className="text-base font-semibold text-acloblue">
+                IDR {discountPrice.toLocaleString()}
+              </span>
+            </>
           ) : (
-            <span className="text-sm text-gray-400">Price not found</span>
+            <>
+              {/* No discount: original price should be blue */}
+              {originalPrice != null ? (
+                <span className="text-base font-semibold text-acloblue">
+                  IDR {originalPrice.toLocaleString()}
+                </span>
+              ) : (
+                <span className="text-sm text-gray-400">Price not found</span>
+              )}
+            </>
           )}
         </span>
       </p>

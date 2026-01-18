@@ -24,9 +24,12 @@ const Checkout = () => {
   const { cart, loading, error } = useAppSelector((state) => state.cart);
   const { cartId } = useParams<{ cartId: string }>();
   const { user } = useAppSelector((state) => state.auth);
-  const { shippingOptions, selectedShipping, shippingLoading, shippingDetails } = useAppSelector(
-    (state) => state.checkout
-  );
+  const {
+    shippingOptions,
+    selectedShipping,
+    shippingLoading,
+    shippingDetails,
+  } = useAppSelector((state) => state.checkout);
 
   const [showShippingModal, setShowShippingModal] = useState(false);
   const [showShippingDetailsModal, setShowShippingDetailsModal] =
@@ -41,9 +44,13 @@ const Checkout = () => {
   } | null>(null);
 
   // Only calculate shipping if postal code or cart changed
-  const shouldCalculateShipping = (postalCode: string, currentCartId: string, totalPrice: number): boolean => {
+  const shouldCalculateShipping = (
+    postalCode: string,
+    currentCartId: string,
+    totalPrice: number
+  ): boolean => {
     if (!lastCalculatedRef.current) return true;
-    
+
     return (
       lastCalculatedRef.current.postalCode !== postalCode ||
       lastCalculatedRef.current.cartId !== currentCartId ||
@@ -75,7 +82,7 @@ const Checkout = () => {
     }
 
     let detailsToUse: ShippingDetails | null = null;
-    
+
     if (shippingDetails?.postalCode) {
       detailsToUse = shippingDetails;
     } else if (user?.shippingAddresses && user.shippingAddresses.length > 0) {
@@ -91,7 +98,13 @@ const Checkout = () => {
     }
 
     if (detailsToUse) {
-      if (shouldCalculateShipping(detailsToUse.postalCode, cart._id, cart.totalPrice)) {
+      if (
+        shouldCalculateShipping(
+          detailsToUse.postalCode,
+          cart._id,
+          cart.totalPrice
+        )
+      ) {
         dispatch(
           calculateShippingCost({
             destinationPostalCode: detailsToUse.postalCode,
@@ -101,7 +114,8 @@ const Checkout = () => {
               quantity: p.quantity,
             })),
           })
-        ).unwrap()
+        )
+          .unwrap()
           .then(() => {
             lastCalculatedRef.current = {
               postalCode: detailsToUse!.postalCode,
@@ -112,7 +126,8 @@ const Checkout = () => {
           .catch((error: any) => {
             dispatch(clearShipping());
             toast.error(
-              error?.message || "Something went wrong. Please check your address and try again.",
+              error?.message ||
+                "Something went wrong. Please check your address and try again.",
               { duration: 3000 }
             );
           });
@@ -122,8 +137,14 @@ const Checkout = () => {
       setModalMode("form");
       setShowShippingDetailsModal(true);
     }
-  }, [user, cart?.products, cart?._id, cart?.totalPrice, shippingDetails, dispatch]);
-
+  }, [
+    user,
+    cart?.products,
+    cart?._id,
+    cart?.totalPrice,
+    shippingDetails,
+    dispatch,
+  ]);
 
   // Clear ref when component unmounts
   useEffect(() => {
@@ -139,7 +160,13 @@ const Checkout = () => {
       return;
     }
 
-    if (!shouldCalculateShipping(shippingDetails.postalCode, cart._id, cart.totalPrice)) {
+    if (
+      !shouldCalculateShipping(
+        shippingDetails.postalCode,
+        cart._id,
+        cart.totalPrice
+      )
+    ) {
       dispatch(setShippingDetails(shippingDetails));
       setShowShippingDetailsModal(false);
       return;
@@ -156,18 +183,19 @@ const Checkout = () => {
           })),
         })
       ).unwrap();
-      
+
       lastCalculatedRef.current = {
         postalCode: shippingDetails.postalCode,
         cartId: cart._id,
         totalPrice: cart.totalPrice,
       };
-      
+
       dispatch(setShippingDetails(shippingDetails));
       setShowShippingDetailsModal(false);
     } catch (error: any) {
       toast.error(
-        error?.message || "Something went wrong. Please check your address and try again.",
+        error?.message ||
+          "Something went wrong. Please check your address and try again.",
         { duration: 3000 }
       );
       console.error("Error in handleShippingDetails:", error);
@@ -223,59 +251,63 @@ const Checkout = () => {
 
   return (
     <>
-      {shippingLoading && <LoadingOverlay show/> }
-      
+      {shippingLoading && <LoadingOverlay show />}
+
       <Navbar />
       <div className="max-w-4xl mx-auto py-10 px-6 tracking-tighter">
-        <ShippingDetailsModal
-          isOpen={showShippingDetailsModal}
-          onClose={() => {
-            setShowShippingDetailsModal(false);
-            const hasNoSavedAddresses = !user?.shippingAddresses || user.shippingAddresses.length === 0;
-            const hasNoShippingDetails = !shippingDetails?.postalCode;
-            
-            if (hasNoSavedAddresses && hasNoShippingDetails) {
-              navigate("/");
-            }
-          }}
-          onSubmit={handleShippingDetailsSubmit}
-          userEmail={user?.email}
-          isCalculating={shippingLoading}
-          initialMode={modalMode}
-        />
+        {showShippingDetailsModal && (
+          <ShippingDetailsModal
+            onClose={() => {
+              setShowShippingDetailsModal(false);
+              const hasNoSavedAddresses =
+                !user?.shippingAddresses || user.shippingAddresses.length === 0;
+              const hasNoShippingDetails = !shippingDetails?.postalCode;
 
-      {/* Order Summary Section */}
-      <div className="bg-white rounded-lg p-6 shadow-sm">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl uppercase text-acloblue">Order Summary</h2>
-          <button
-            type="button"
-            onClick={() => {
-              setModalMode("selection");
-              setShowShippingDetailsModal(true);
+              if (hasNoSavedAddresses && hasNoShippingDetails) {
+                navigate("/");
+              }
             }}
-            className="text-sm text-acloblue hover:underline"
-          >
-            Edit Shipping Details
-          </button>
-        </div>
-
-        {/* Shipping Details Display */}
-        {shippingDetails?.name && (
-          <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-            <h3 className="text-sm font-semibold text-gray-700 mb-2">
-              Shipping To:
-            </h3>
-            <p className="text-sm text-gray-800">{shippingDetails?.name}</p>
-            <p className="text-sm text-gray-600">{shippingDetails?.address}</p>
-            <p className="text-sm text-gray-600">
-              {shippingDetails?.city}, {shippingDetails?.postalCode}
-            </p>
-            <p className="text-sm text-gray-600">{shippingDetails?.phone}</p>
-          </div>
+            onSubmit={handleShippingDetailsSubmit}
+            userEmail={user?.email}
+            isCalculating={shippingLoading}
+            initialMode={modalMode}
+          />
         )}
 
-        {/* Products List */}
+        {/* Order Summary Section */}
+        <div className="bg-white rounded-lg p-6 shadow-sm">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl uppercase text-acloblue">Order Summary</h2>
+            <button
+              type="button"
+              onClick={() => {
+                setModalMode("selection");
+                setShowShippingDetailsModal(true);
+              }}
+              className="text-sm text-acloblue hover:underline"
+            >
+              Edit Shipping Details
+            </button>
+          </div>
+
+          {/* Shipping Details Display */}
+          {shippingDetails?.name && (
+            <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+              <h3 className="text-sm font-semibold text-gray-700 mb-2">
+                Shipping To:
+              </h3>
+              <p className="text-sm text-gray-800">{shippingDetails?.name}</p>
+              <p className="text-sm text-gray-600">
+                {shippingDetails?.address}
+              </p>
+              <p className="text-sm text-gray-600">
+                {shippingDetails?.city}, {shippingDetails?.postalCode}
+              </p>
+              <p className="text-sm text-gray-600">{shippingDetails?.phone}</p>
+            </div>
+          )}
+
+          {/* Products List */}
           <div className="mt-2 rounded-2xl border border-gray-100 overflow-hidden bg-white">
             <div className="divide-y divide-gray-100">
               {cart.products.map((product, index) => (
