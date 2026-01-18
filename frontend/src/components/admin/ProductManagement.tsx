@@ -127,7 +127,7 @@ const ProductManagement = () => {
                       </Link>
                       <button
                         onClick={() => handleDelete(product._id)}
-                        className="bg-red-500 text-white px-4 py-2 rounded mr-2 hover:bg-red-600"
+                        className="bg-red-500 text-white px-4 py-2 rounded mr-2 hover:bg-red-600 cursor-pointer"
                       >
                         Delete
                       </button>
@@ -141,7 +141,7 @@ const ProductManagement = () => {
                             allVariants
                           );
                         }}
-                        className="bg-acloblue text-white px-4 py-2 rounded mr-2 hover:opacity-90"
+                        className="bg-acloblue text-white px-4 py-2 rounded mr-2 hover:opacity-90 cursor-pointer"
                       >
                         Change Price
                       </button>
