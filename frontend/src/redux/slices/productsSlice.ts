@@ -8,6 +8,7 @@ import type { Product } from "../../types/product";
 import type { ProductVariant } from "../../types/productVariant";
 import type { AppError } from "../../types/error";
 import { API_URL } from "../../constants/api";
+import { updateProduct } from "./adminProductSlice";
 
 interface ProductState {
   products: Product[];
@@ -245,7 +246,10 @@ const productSlice = createSlice({
           newMap[variant.productId].push(variant);
         });
 
-        state.productVariants = newMap;
+        state.productVariants = {
+          ...state.productVariants,
+          ...newMap,
+        };
       })
       .addCase(fetchProductVariants.rejected, (state, action) => {
         state.loading = false;
@@ -292,6 +296,15 @@ const productSlice = createSlice({
         state.variantLoading = false;
         state.error =
           action.payload?.message || "Failed to fetch product variant";
+      })
+      // listener for update product
+      .addCase(updateProduct.fulfilled, (state, action) => {
+        const updated = action.payload;
+        const idx = state.products.findIndex((p) => p._id === updated._id);
+        if (idx !== -1) state.products[idx] = updated;
+        if (state.selectedProduct?._id === updated._id) {
+          state.selectedProduct = updated;
+        }
       });
   },
 });

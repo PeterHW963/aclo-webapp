@@ -7,7 +7,7 @@ export interface ProductVariant {
   adminName: string;
   name: string;
   price: number;
-  discountPrice?: number;
+  discountPrice?: number | null;
   countInStock: number;
   category: ProductCategory;
   // option picks for this variant
@@ -35,6 +35,7 @@ export interface CreateProductVariantPayload {
 }
 
 export interface UpdateProductVariantPayload {
-  id: string;
-  variantData: Partial<CreateProductVariantPayload>;
+  productId: string;
+  variantId: string;
+  variantData: Partial<ProductVariant>;
 }

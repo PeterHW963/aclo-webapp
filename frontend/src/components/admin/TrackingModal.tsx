@@ -39,7 +39,7 @@ const TrackingModal = ({
         >
           <IoMdClose className="h-8 w-8 hover:text-gray-600 cursor-pointer" />
         </button>
-        <h4 className="text-lg text-acloblue font-semibold mb-4">
+        <h4 className="text-2xl text-acloblue font-semibold mb-4">
           {action === "add" ? "Add" : "Edit"} Tracking Link
         </h4>
 
@@ -52,12 +52,12 @@ const TrackingModal = ({
           placeholder="Paste courier tracking link here..."
         />
 
-        <div className="flex justify-end gap-2">
+        <div className="flex justify-end mt-2 gap-2">
           <button
             type="button"
             onClick={onCancel}
             disabled={loading}
-            className="px-4 py-2 rounded-lg border text-sm hover:bg-gray-50 cursor-pointer disabled:opacity-60"
+            className="px-4 py-2 rounded-lg text-sm bg-slate-200 text-slate-700 hover:bg-slate-300 cursor-pointer disabled:opacity-60"
           >
             Cancel
           </button>

@@ -30,7 +30,7 @@ const productVariantSchema = new mongoose.Schema(
         },
         discountPrice: {
             type: Number,
-            required: false,
+            default: null,
             min: 0,
         },
         countInStock: {
