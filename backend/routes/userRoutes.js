@@ -2,11 +2,9 @@ const express = require("express");
 const User = require("../models/User");
 const jwt = require("jsonwebtoken");
 const { protect } = require("../middleware/authMiddleware");
-const dotenv = require("dotenv");
 const crypto = require("crypto");
 const { sendEmail } = require("../utils/emailService.js");
 
-dotenv.config();
 const router = express.Router();
 
 // @route POST /api/users/register

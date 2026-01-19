@@ -3,6 +3,8 @@ const cors = require("cors");
 const dotenv = require("dotenv");
 const connectDB = require("./config/db");
 
+dotenv.config();
+
 const userRoutes = require("./routes/userRoutes");
 const productRoutes = require("./routes/productRoutes");
 const cartRoutes = require("./routes/cartRoutes");
@@ -26,8 +28,6 @@ const { sendEmail } = require("./utils/emailService");
 const app = express();
 app.use(express.json());
 app.use(cors());
-
-dotenv.config();
 
 const PORT = process.env.PORT || 3000;
 

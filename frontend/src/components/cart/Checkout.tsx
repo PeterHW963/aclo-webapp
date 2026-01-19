@@ -31,7 +31,8 @@ const Checkout = () => {
     shippingDetails,
   } = useAppSelector((state) => state.checkout);
 
-  const [showShippingModal, setShowShippingModal] = useState(false);
+  const [creatingCheckout, setCreatingCheckout] = useState<boolean>(false); // prevent double-clicking
+  const [showShippingModal, setShowShippingModal] = useState<boolean>(false);
   const [showShippingDetailsModal, setShowShippingDetailsModal] =
     useState(false);
   const [modalMode, setModalMode] = useState<"selection" | "form">("form");
@@ -204,6 +205,7 @@ const Checkout = () => {
   };
 
   const handleCreateCheckout = async () => {
+    setCreatingCheckout(true);
     if (!cart || !cart.products || cart.products.length === 0) {
       return;
     }
@@ -223,10 +225,11 @@ const Checkout = () => {
 
       const createdCheckout: Checkout = await dispatch(
         createCheckout({
-          checkoutItems: cart.products.map((p) => ({
-            ...p,
-            options: p.options ?? {},
-          })),
+          cartId: cart._id,
+          // checkoutItems: cart.products.map((p) => ({
+          //   ...p,
+          //   options: p.options ?? {},
+          // })),
           shippingDetails,
           paymentMethod: "BankTransfer",
           totalPrice: totalWithShipping,
@@ -240,6 +243,8 @@ const Checkout = () => {
       return createdCheckout._id ?? null;
     } catch (error) {
       console.error("Failed to create checkout: ", error);
+    } finally {
+      setCreatingCheckout(false);
     }
   };
 
@@ -404,7 +409,7 @@ const Checkout = () => {
                 const id = await handleCreateCheckout(); // return checkout
                 if (id) navigate(`/payment/${id}`);
               }}
-              disabled={!selectedShipping}
+              disabled={creatingCheckout || !selectedShipping}
               className="w-full bg-acloblue text-white py-3 rounded disabled:bg-gray-400 disabled:cursor-not-allowed hover:opacity-80 transition cursor-pointer"
             >
               Continue to Payment
