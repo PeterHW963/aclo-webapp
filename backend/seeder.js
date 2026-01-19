@@ -13,6 +13,8 @@ const reviews = require("./data/reviews");
 const orders = require("./data/orders");
 const checkouts = require("./data/checkouts");
 
+import { generateCartSnapshotHash } from "./utils/generateCartSnapshotHash";
+
 dotenv.config();
 
 // HELPERS
@@ -76,6 +78,16 @@ function injectCheckoutItemIds(checkoutTemplate, { product, variant }) {
             },
         ],
     };
+}
+
+function injectCartSnapshotHash(checkoutTemplate) {
+    if (!checkoutTemplate.checkoutItems || checkoutTemplate.checkoutItems.length === 0) {
+        throw new Error("Cannot generate snapshot hash: no checkout items found");
+    }
+    return {
+        ...checkoutTemplate,
+        cartSnapshotHash: generateCartSnapshotHash(checkoutTemplate.checkoutItems),
+    }
 }
 
 function buildOrderFromCheckout(orderTemplate, createdCheckout) {
@@ -211,16 +223,16 @@ const seedData = async () => {
             "exchanged",
         ];
 
-        const paidStatuses = new Set([
-            "processing",
-            "shipping",
-            "cancelling",
-            "delivered",
-            "cancelled",
-            "returned",
-            "refunded",
-            "exchanged",
-        ]);
+        // const paidStatuses = new Set([
+        //     "processing",
+        //     "shipping",
+        //     "cancelling",
+        //     "delivered",
+        //     "cancelled",
+        //     "returned",
+        //     "refunded",
+        //     "exchanged",
+        // ]);
 
         for (let i = 0; i < STATUSES.length; i++) {
             const status = STATUSES[i];
@@ -230,9 +242,14 @@ const seedData = async () => {
                 variant: sparrowVariant,
             });
 
-            const createdCheckout = await Checkout.create({
+            const checkoutWithHash = injectCartSnapshotHash({
                 ...checkoutPayload,
-                user: userId, // inject user
+                user: userId,
+            });
+
+            const createdCheckout = await Checkout.create({
+                ...checkoutWithHash,
+                cartId: "dummyCartId",
             });
 
             const orderPayload = buildOrderFromCheckout(
@@ -240,13 +257,12 @@ const seedData = async () => {
                 createdCheckout
             );
 
-            const isPaid = paidStatuses.has(status);
+            // const isPaid = paidStatuses.has(status); // irrelevant until midtrans implemented
 
             await Order.create({
                 ...orderPayload,
                 user: userId, // inject user
                 status,
-                isPaid,
             });
         }
 
