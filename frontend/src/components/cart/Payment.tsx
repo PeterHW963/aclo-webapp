@@ -11,12 +11,6 @@ import Navbar from "../common/Navbar";
 
 const REDIRECT_AFTER_MS = 2000;
 
-// payment countdown
-const TEST_MODE = true;
-const COUNTDOWN_MS = TEST_MODE
-  ? 1 * 60 * 1000 // testing
-  : 6 * 60 * 60 * 1000; // prod
-
 const Payment = () => {
   const { checkoutId } = useParams<{ checkoutId: string }>();
   const dispatch = useAppDispatch();
@@ -159,10 +153,9 @@ const Payment = () => {
   };
 
   useEffect(() => {
-    if (!checkout?.createdAt) return;
+    if (!checkout?.expiresAt) return;
 
-    const createdAtMs = new Date(checkout.createdAt).getTime();
-    const expiresAtMs = createdAtMs + COUNTDOWN_MS;
+    const expiresAtMs = new Date(checkout.expiresAt).getTime();
 
     const tick = () => {
       const now = Date.now();
