@@ -154,12 +154,12 @@ const ProductCard = ({ product, variants }: ProductCardProps) => {
             <>
               {originalPrice != null && (
                 <span className="text-xs text-gray-400 line-through">
-                  IDR {originalPrice.toLocaleString()}
+                  IDR {originalPrice.toLocaleString("id-ID")}
                 </span>
               )}
 
               <span className="text-base font-semibold text-acloblue">
-                IDR {discountPrice.toLocaleString()}
+                IDR {discountPrice.toLocaleString("id-ID")}
               </span>
             </>
           ) : (
@@ -167,7 +167,7 @@ const ProductCard = ({ product, variants }: ProductCardProps) => {
               {/* No discount: original price should be blue */}
               {originalPrice != null ? (
                 <span className="text-base font-semibold text-acloblue">
-                  IDR {originalPrice.toLocaleString()}
+                  IDR {originalPrice.toLocaleString("id-ID")}
                 </span>
               ) : (
                 <span className="text-sm text-gray-400">Price not found</span>

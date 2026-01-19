@@ -178,7 +178,7 @@ const ProductManagement = () => {
                         {product.name}
                       </td>
                       <td className="p-4">
-                        {displayPrice ? displayPrice.toLocaleString() : ""}
+                        {displayPrice ? displayPrice.toLocaleString("id-ID") : ""}
                       </td>
                       <td className="p-4">
                         {defaultVariant && (
