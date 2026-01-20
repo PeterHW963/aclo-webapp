@@ -27,10 +27,12 @@ import RemarksModal from "./RemarksModal";
 import Box from "@mui/material/Box";
 import Tabs from "@mui/material/Tabs";
 import Tab from "@mui/material/Tab";
+import useMediaQuery from "@mui/material/useMediaQuery";
 
 const OrderManagement = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
+  const isMobile = useMediaQuery("(max-width: 640px)");
 
   const { user } = useAppSelector((state) => state.auth);
   const {
@@ -366,8 +368,64 @@ const OrderManagement = () => {
 
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error: {error}</p>;
+
+  const MobileOrderCard = ({
+    order,
+    onView,
+  }: {
+    order: Order;
+    onView: () => void;
+  }) => {
+    const badge = getStatusBadge(order.status);
+
+    return (
+      <div className="rounded-xl border bg-white p-4 shadow-sm">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p className="text-sm text-gray-500">Order ID</p>
+            <p className="font-semibold text-gray-900">#{order.orderId}</p>
+
+            <p className="mt-2 text-xs text-gray-500">Customer</p>
+            <p className="text-sm text-gray-900">
+              {typeof order.user === "string" ? order.user : order.user.name}
+            </p>
+          </div>
+
+          <span
+            className={`${badge.className} inline-flex items-center rounded-full px-2 py-1 text-xs font-medium`}
+          >
+            {badge.label}
+          </span>
+        </div>
+
+        <div className="mt-3 flex items-center justify-between">
+          <p className="text-sm text-gray-600">
+            {new Date(order.createdAt).toLocaleDateString()}
+          </p>
+
+          <p className="text-sm font-semibold text-acloblue">
+            IDR {order.totalPrice.toLocaleString("id-ID")}
+          </p>
+        </div>
+
+        <div className="mt-4 flex flex-wrap gap-2">
+          {renderActionButtons(order)}
+
+          <button
+            type="button"
+            onClick={onView}
+            className="ml-auto inline-flex h-10 w-10 items-center justify-center rounded hover:bg-gray-100 cursor-pointer"
+            title="View details"
+          >
+            <FaEye className="h-6 w-6" />
+          </button>
+        </div>
+      </div>
+    );
+  };
+
   return (
-    <div className="max-w-8xl mx-auto p-6">
+    <div className="max-w-8xl mx-auto px-3 sm:px-6 py-4 sm:py-6">
       {selectedPaymentProof && paymentProofOpen && selectedOrderId && (
         <ActionModal
           onClose={handleClosePaymentProof}
@@ -492,7 +550,7 @@ const OrderManagement = () => {
         />
       )}
 
-      <h2 className="text-2xl font-bold mb-8 text-acloblue">
+      <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-8 text-acloblue">
         Order Management
       </h2>
       <Box
@@ -500,6 +558,7 @@ const OrderManagement = () => {
           borderBottom: 1,
           borderColor: "divider",
           mb: 3,
+          overflowX: "auto",
         }}
       >
         <Tabs
@@ -521,12 +580,16 @@ const OrderManagement = () => {
               fontSize: 14,
               minHeight: 44,
               paddingX: 2,
+              minWidth: "auto",
+              borderRadius: 999,
             },
             "& .Mui-selected": {
               color: "#00b7e8",
             },
             "& .MuiTabs-indicator": {
               backgroundColor: "#00b7e8",
+              height: 3,
+              borderRadius: 3,
             },
           }}
         >
@@ -536,76 +599,92 @@ const OrderManagement = () => {
         </Tabs>
       </Box>
 
-      <div className="overflow-x-auto shadow-md sm:rounded-lg">
-        <table className="min-w-full text-left text-gray-500">
-          <thead className="bg-gray-100 text-xs uppercase text-gray-700">
-            <tr>
-              <th className="py-3 px-4">Order ID</th>
-              <th className="py-3 px-4">Customer</th>
-              <th className="py-3 px-4">Created At</th>
-              <th className="py-3 px-4">Total Price (IDR)</th>
-              <th className="py-3 px-4">Status</th>
-              <th className="py-3 px-4">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {orders.length > 0 ? (
-              orders.map((order) => (
-                <tr key={order._id} className="border-b">
-                  <td className="py-4 px-4 font-medium text-gray-900 whitespace-nowrap">
-                    #{order.orderId}
-                  </td>
-                  <td className="p-4">
-                    {typeof order.user === "string"
-                      ? order.user
-                      : order.user.name}
-                  </td>
-                  <td className="p-4">
-                    {new Date(order.createdAt).toLocaleString()}
-                  </td>
-                  <td className="p-4">
-                    {order.totalPrice.toLocaleString("id-ID")}
-                  </td>
-                  <td className="p-4">
-                    <div className="flex flex-col items-start mt-4 sm:mt-0">
-                      {(() => {
-                        const badge = getStatusBadge(order.status);
-                        return (
-                          <span
-                            className={`${badge.className} inline-flex items-center rounded-full px-2 py-1 text-xs sm:text-sm font-medium`}
-                          >
-                            {badge.label}
-                          </span>
-                        );
-                      })()}
-                    </div>
-                  </td>
-                  <td className="p-4">
-                    <div className="flex flex-wrap gap-2">
-                      {renderActionButtons(order)}
-                      {/* Details button */}
-                      <button
-                        type="button"
-                        onClick={() => handleOpenOrderDetails(order._id)}
-                        className="inline-flex h-10 w-10 items-center justify-center rounded hover:bg-gray-100 cursor-pointer ml-auto"
-                        title="View details"
-                      >
-                        <FaEye className="h-6 w-6" />
-                      </button>
-                    </div>
+      {isMobile ? (
+        <div className="space-y-3">
+          {orders.length > 0 ? (
+            orders.map((order) => (
+              <MobileOrderCard
+                key={order._id}
+                order={order}
+                onView={() => handleOpenOrderDetails(order._id)}
+              />
+            ))
+          ) : (
+            <p className="text-center text-gray-500 py-6">No Orders found</p>
+          )}
+        </div>
+      ) : (
+        <div className="overflow-x-auto shadow-md sm:rounded-lg">
+          <table className="min-w-full text-left text-gray-500">
+            <thead className="bg-gray-100 text-xs uppercase text-gray-700">
+              <tr>
+                <th className="py-3 px-4">Order ID</th>
+                <th className="py-3 px-4">Customer</th>
+                <th className="py-3 px-4">Created At</th>
+                <th className="py-3 px-4">Total Price (IDR)</th>
+                <th className="py-3 px-4">Status</th>
+                <th className="py-3 px-4">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {orders.length > 0 ? (
+                orders.map((order) => (
+                  <tr key={order._id} className="border-b">
+                    <td className="py-4 px-4 font-medium text-gray-900 whitespace-nowrap">
+                      #{order.orderId}
+                    </td>
+                    <td className="p-4">
+                      {typeof order.user === "string"
+                        ? order.user
+                        : order.user.name}
+                    </td>
+                    <td className="p-4">
+                      {new Date(order.createdAt).toLocaleString()}
+                    </td>
+                    <td className="p-4">
+                      {order.totalPrice.toLocaleString("id-ID")}
+                    </td>
+                    <td className="p-4">
+                      <div className="flex flex-col items-start mt-4 sm:mt-0">
+                        {(() => {
+                          const badge = getStatusBadge(order.status);
+                          return (
+                            <span
+                              className={`${badge.className} inline-flex items-center rounded-full px-2 py-1 text-xs sm:text-sm font-medium`}
+                            >
+                              {badge.label}
+                            </span>
+                          );
+                        })()}
+                      </div>
+                    </td>
+                    <td className="p-4">
+                      <div className="flex flex-wrap gap-2">
+                        {renderActionButtons(order)}
+                        {/* Details button */}
+                        <button
+                          type="button"
+                          onClick={() => handleOpenOrderDetails(order._id)}
+                          className="inline-flex h-10 w-10 items-center justify-center rounded hover:bg-gray-100 cursor-pointer ml-auto"
+                          title="View details"
+                        >
+                          <FaEye className="h-6 w-6" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={5} className="p-4 text-center text-gray-500">
+                    No Orders found
                   </td>
                 </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan={5} className="p-4 text-center text-gray-500">
-                  No Orders found
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
       <div className="flex items-center justify-end gap-3 mt-4">
         <button
           disabled={loading || page <= 1}
