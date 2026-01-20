@@ -10,13 +10,9 @@ const { sendEmail } = require("../utils/emailService");
 const {
     generateCartSnapshotHash,
 } = require("../utils/generateCartSnapshotHash");
+const { CHECKOUT_EXPIRATION_TIME } = require("../config/checkoutConfig");
 
 const router = express.Router();
-
-const CHECKOUT_EXPIRATION_TIME =
-    process.env.IS_PRODUCTION === "true"
-        ? 6 * 60 * 60 * 1000 // prod
-        : 1 * 60 * 1000; // testing
 
 // @route POST /api/checkout
 // @desc Get or create an active checkout for a cart

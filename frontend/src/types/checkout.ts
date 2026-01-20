@@ -24,7 +24,7 @@ export interface PaymentProof {
 
 export interface Checkout {
   _id: string;
-  user: string; // userId
+  user: string | { name: string; email: string };
   checkoutItems: CheckoutItem[];
   shippingDetails: ShippingDetails;
   paymentMethod: string;
@@ -83,3 +83,16 @@ export interface CreateCheckoutPayload {
   shippingCourier?: string;
   shippingDuration?: string;
 }
+
+export type FetchCheckoutsParams = {
+  page?: number;
+  limit?: number;
+};
+
+export type FetchCheckoutsResponse = {
+  checkouts: Checkout[];
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+};

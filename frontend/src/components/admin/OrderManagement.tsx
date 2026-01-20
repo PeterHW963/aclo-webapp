@@ -10,10 +10,10 @@ import {
   updateTrackingLink,
 } from "../../redux/slices/adminOrderSlice";
 import type {
-  OrdersCategory,
   CancelRequest,
   Order,
   OrderStatus,
+  AdminTab,
 } from "../../types/order";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { getStatusBadge } from "../../constants/orderStatus";
@@ -24,6 +24,7 @@ import OrderDetailsModal from "./OrderDetailsModal";
 import TrackingModal from "./TrackingModal";
 import ActionConfirmationModal from "./ActionConfirmationModal";
 import RemarksModal from "./RemarksModal";
+import { fetchValidCheckouts } from "../../redux/slices/adminCheckoutSlice";
 
 const OrderManagement = () => {
   const dispatch = useAppDispatch();
@@ -32,15 +33,21 @@ const OrderManagement = () => {
   const { user } = useAppSelector((state) => state.auth);
   const {
     orders,
-    loading,
+    loading: orderLoading,
     orderDetailsLoading,
     trackingLinkLoading,
-    error,
+    error: orderError,
     generatingLabelForOrder,
     orderDetails,
-    totalPages,
+    totalPages: orderTotalPages,
   } = useAppSelector((state) => state.adminOrders);
-  const [activeTab, setActiveTab] = useState<OrdersCategory>("pending_action");
+  const {
+    checkouts,
+    loading: checkoutLoading,
+    error: checkoutError,
+    totalPages: checkoutTotalPages,
+  } = useAppSelector((state) => state.adminCheckouts);
+  const [activeTab, setActiveTab] = useState<AdminTab>("pending_action");
   const [page, setPage] = useState(1);
   const limit = 25;
 
@@ -71,6 +78,10 @@ const OrderManagement = () => {
   useEffect(() => {
     if (!user || user.role !== "admin") {
       navigate("/");
+      return;
+    }
+    if (activeTab === "valid_checkouts") {
+      dispatch(fetchValidCheckouts({ page, limit }));
     } else {
       dispatch(fetchAllOrders({ category: activeTab, page, limit }));
     }
@@ -175,6 +186,7 @@ const OrderManagement = () => {
 
   const handleConfirmActionConfirmation = async () => {
     if (!pendingAction) return;
+    if (activeTab === "valid_checkouts") return;
     if (pendingAction.customConfirm) {
       await pendingAction.customConfirm();
     } else {
@@ -352,6 +364,12 @@ const OrderManagement = () => {
     }
   };
 
+  const loading =
+    activeTab === "valid_checkouts" ? checkoutLoading : orderLoading;
+  const error = activeTab === "valid_checkouts" ? checkoutError : orderError;
+  const totalPages =
+    activeTab === "valid_checkouts" ? checkoutTotalPages : orderTotalPages;
+
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error: {error}</p>;
   return (
@@ -379,7 +397,7 @@ const OrderManagement = () => {
               handleClosePaymentProof
             )
           }
-          loading={loading}
+          loading={orderLoading}
         />
       )}
       {selectedCancelRequest && cancelRequestOpen && selectedOrderId && (
@@ -405,7 +423,7 @@ const OrderManagement = () => {
               handleCloseCancelRequest
             )
           }
-          loading={loading}
+          loading={orderLoading}
         />
       )}
       {orderDetails && orderDetailsOpen && (
@@ -466,6 +484,8 @@ const OrderManagement = () => {
               })
             ).unwrap();
             handleCloseRemarksModal();
+
+            if (activeTab === "valid_checkouts") return;
             dispatch(fetchAllOrders({ category: activeTab, page, limit }));
           }}
         />
@@ -489,6 +509,7 @@ const OrderManagement = () => {
             ["resolved", "Resolved"],
             ["failed", "Failed"],
             ["all", "All Orders"],
+            ["valid_checkouts", "Unfinished Checkouts"],
           ] as const
         ).map(([key, label]) => (
           <button
@@ -509,74 +530,127 @@ const OrderManagement = () => {
         ))}
       </div>
       <div className="overflow-x-auto shadow-md sm:rounded-lg">
-        <table className="min-w-full text-left text-gray-500">
-          <thead className="bg-gray-100 text-xs uppercase text-gray-700">
-            <tr>
-              <th className="py-3 px-4">Order ID</th>
-              <th className="py-3 px-4">Customer</th>
-              <th className="py-3 px-4">Created At</th>
-              <th className="py-3 px-4">Total Price (IDR)</th>
-              <th className="py-3 px-4">Status</th>
-              <th className="py-3 px-4">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {orders.length > 0 ? (
-              orders.map((order) => (
-                <tr key={order._id} className="border-b">
-                  <td className="py-4 px-4 font-medium text-gray-900 whitespace-nowrap">
-                    #{order.orderId}
-                  </td>
-                  <td className="p-4">
-                    {typeof order.user === "string"
-                      ? order.user
-                      : order.user.name}
-                  </td>
-                  <td className="p-4">
-                    {new Date(order.createdAt).toLocaleString()}
-                  </td>
-                  <td className="p-4">
-                    {order.totalPrice.toLocaleString("id-ID")}
-                  </td>
-                  <td className="p-4">
-                    <div className="flex flex-col items-start mt-4 sm:mt-0">
-                      {(() => {
-                        const badge = getStatusBadge(order.status);
-                        return (
-                          <span
-                            className={`${badge.className} inline-flex items-center rounded-full px-2 py-1 text-xs sm:text-sm font-medium`}
-                          >
-                            {badge.label}
-                          </span>
-                        );
-                      })()}
-                    </div>
-                  </td>
-                  <td className="p-4">
-                    <div className="flex flex-wrap gap-2">
-                      {renderActionButtons(order)}
-                      {/* Details button */}
-                      <button
-                        type="button"
-                        onClick={() => handleOpenOrderDetails(order._id)}
-                        className="inline-flex h-10 w-10 items-center justify-center rounded hover:bg-gray-100 cursor-pointer ml-auto"
-                        title="View details"
-                      >
-                        <FaEye className="h-6 w-6" />
-                      </button>
-                    </div>
+        {activeTab === "valid_checkouts" ? (
+          <table className="min-w-full text-left text-gray-500">
+            <thead className="bg-gray-100 text-xs uppercase text-gray-700">
+              <tr>
+                <th className="py-3 px-4">Checkout ID</th>
+                <th className="py-3 px-4">Customer</th>
+                <th className="py-3 px-4">Created At</th>
+                <th className="py-3 px-4">Expires At</th>
+                <th className="py-3 px-4">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {checkouts.length > 0 ? (
+                checkouts.map((c) => (
+                  <tr key={c._id} className="border-b">
+                    <td className="py-4 px-4 font-medium text-gray-900 whitespace-nowrap">
+                      {c._id}
+                    </td>
+                    <td className="p-4">
+                      {typeof c.user === "string" ? c.user : c.user?.name}
+                    </td>
+                    <td className="p-4">
+                      {new Date(c.createdAt).toLocaleString()}
+                    </td>
+                    <td className="p-4">
+                      {new Date(c.expiresAt).toLocaleString()}
+                    </td>
+                    <td className="p-4">
+                      <div className="flex flex-wrap gap-2">
+                        {/* Details button */}
+                        <button
+                          type="button"
+                          onClick={() => handleOpenCheckoutDetails(c._id)}
+                          className="inline-flex h-10 w-10 items-center justify-center rounded hover:bg-gray-100 cursor-pointer ml-auto"
+                          title="View details"
+                        >
+                          <FaEye className="h-6 w-6" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={5} className="p-4 text-center text-gray-500">
+                    No valid checkouts found
                   </td>
                 </tr>
-              ))
-            ) : (
+              )}
+            </tbody>
+          </table>
+        ) : (
+          <table className="min-w-full text-left text-gray-500">
+            <thead className="bg-gray-100 text-xs uppercase text-gray-700">
               <tr>
-                <td colSpan={5} className="p-4 text-center text-gray-500">
-                  No Orders found
-                </td>
+                <th className="py-3 px-4">Order ID</th>
+                <th className="py-3 px-4">Customer</th>
+                <th className="py-3 px-4">Created At</th>
+                <th className="py-3 px-4">Total Price (IDR)</th>
+                <th className="py-3 px-4">Status</th>
+                <th className="py-3 px-4">Actions</th>
               </tr>
-            )}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {orders.length > 0 ? (
+                orders.map((order) => (
+                  <tr key={order._id} className="border-b">
+                    <td className="py-4 px-4 font-medium text-gray-900 whitespace-nowrap">
+                      #{order.orderId}
+                    </td>
+                    <td className="p-4">
+                      {typeof order.user === "string"
+                        ? order.user
+                        : order.user.name}
+                    </td>
+                    <td className="p-4">
+                      {new Date(order.createdAt).toLocaleString()}
+                    </td>
+                    <td className="p-4">
+                      {order.totalPrice.toLocaleString("id-ID")}
+                    </td>
+                    <td className="p-4">
+                      <div className="flex flex-col items-start mt-4 sm:mt-0">
+                        {(() => {
+                          const badge = getStatusBadge(order.status);
+                          return (
+                            <span
+                              className={`${badge.className} inline-flex items-center rounded-full px-2 py-1 text-xs sm:text-sm font-medium`}
+                            >
+                              {badge.label}
+                            </span>
+                          );
+                        })()}
+                      </div>
+                    </td>
+                    <td className="p-4">
+                      <div className="flex flex-wrap gap-2">
+                        {renderActionButtons(order)}
+                        {/* Details button */}
+                        <button
+                          type="button"
+                          onClick={() => handleOpenOrderDetails(order._id)}
+                          className="inline-flex h-10 w-10 items-center justify-center rounded hover:bg-gray-100 cursor-pointer ml-auto"
+                          title="View details"
+                        >
+                          <FaEye className="h-6 w-6" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={5} className="p-4 text-center text-gray-500">
+                    No Orders found
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        )}
       </div>
       <div className="flex items-center justify-end gap-3 mt-4">
         <button
