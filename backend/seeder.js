@@ -49,12 +49,12 @@ function findByContains(allProducts, keyword) {
 
 function getVariantAndProduct(insertedProducts, insertedVariants, keyword) {
     const product = insertedProducts.find((p) =>
-        p.name?.toLowerCase().includes(keyword.toLowerCase())
+        p.name?.toLowerCase().includes(keyword.toLowerCase()),
     );
     if (!product) throw new Error(`Product not found for keyword: ${keyword}`);
 
     const variant = insertedVariants.find(
-        (pv) => pv.productId.toString() === product._id.toString()
+        (pv) => pv.productId.toString() === product._id.toString(),
     );
     if (!variant)
         throw new Error(`Variant not found for product: ${product.name}`);
@@ -78,21 +78,31 @@ function injectCheckoutItemIds(checkoutTemplate, { product, variant }) {
     };
 }
 
-function buildOrderFromCheckout(orderTemplate, createdCheckout) {
+function buildOrderFromCheckout(
+    orderTemplate,
+    createdCheckout,
+    insertedProducts,
+) {
     return {
         ...orderTemplate,
         checkout: createdCheckout._id,
 
-        orderItems: createdCheckout.checkoutItems.map((item) => ({
-            productId: item.productId,
-            productVariantId: item.productVariantId,
-            name: item.name,
-            image: item.image,
-            price: item.price,
-            options: item.options,
-            quantity: item.quantity,
-            weight: 0,
-        })),
+        orderItems: createdCheckout.checkoutItems.map((item) => {
+            const product = insertedProducts.find(
+                (p) => p._id.toString() === item.productId.toString(),
+            );
+
+            return {
+                productId: item.productId,
+                productVariantId: item.productVariantId,
+                name: item.name,
+                image: item.image,
+                price: item.price,
+                options: item.options,
+                quantity: item.quantity,
+                weight: product?.weight || 0,
+            };
+        }),
     };
 }
 
@@ -131,7 +141,7 @@ const seedData = async () => {
             !beak
         ) {
             throw new Error(
-                "One or more products not found by name. Check your seed product names exactly."
+                "One or more products not found by name. Check your seed product names exactly.",
             );
         }
 
@@ -184,7 +194,7 @@ const seedData = async () => {
         });
 
         const insertedVariants = await ProductVariant.insertMany(
-            variantsWithProductId
+            variantsWithProductId,
         );
 
         const checkoutTemp = checkouts[0];
@@ -237,7 +247,8 @@ const seedData = async () => {
 
             const orderPayload = buildOrderFromCheckout(
                 orderTemp,
-                createdCheckout
+                createdCheckout,
+                insertedProducts,
             );
 
             const isPaid = paidStatuses.has(status);

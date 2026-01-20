@@ -57,7 +57,7 @@ const generateShippingLabelHTML = (order) => {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 2px dotted #000;
+            border-bottom: 1px solid #000;
             padding-bottom: 15px;
             margin-bottom: 20px;
         }
@@ -167,7 +167,7 @@ const generateShippingLabelHTML = (order) => {
         }
         
         .footer {
-            border-top: 2px dotted #000;
+            border-top: 1px solid #000;
             padding-top: 10px;
             font-size: 11px;
             text-align: center;
@@ -231,8 +231,8 @@ const generateShippingLabelHTML = (order) => {
                     <p>${order.shippingDetails.phone}</p>
                     <p>${order.shippingDetails.address}</p>
                     <p>${order.shippingDetails.city}, ${
-        order.shippingDetails.postalCode
-    }</p>
+                        order.shippingDetails.postalCode
+                    }</p>
                 </div>
             </div>
         </div>
@@ -284,11 +284,11 @@ const generateShippingLabelHTML = (order) => {
         <div class="footer">
             <p>Weight: ${order.orderItems.reduce(
                 (total, item) => total + (item.weight || 0) * item.quantity,
-                0
+                0,
             )}g | Total Items: ${order.orderItems.reduce(
-        (total, item) => total + item.quantity,
-        0
-    )}</p>
+                (total, item) => total + item.quantity,
+                0,
+            )}</p>
             <p>This is an automated shipping label. Handle with care.</p>
         </div>
     </div>
