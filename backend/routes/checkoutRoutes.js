@@ -14,74 +14,75 @@ const router = express.Router();
 // @desc Create a new checkout session
 // @access Private
 router.post("/", protect, async (req, res) => {
-    const {
-        checkoutItems,
-        shippingDetails,
-        paymentMethod,
-        totalPrice,
-        shippingCost,
-        shippingMethod,
-        shippingCourier,
-        shippingDuration,
-    } = req.body;
-    if (!checkoutItems || checkoutItems.length === 0) {
-        return res.status(400).json({ message: "No Items in Checkout" });
-    }
-
     try {
-        // VALIDATION FOR CHECKOUT, can modify/remove
-        for (const item of checkoutItems) {
-            const { productId, productVariantId, options, quantity } = item;
-            if (
-                !productId ||
-                !productVariantId ||
-                !quantity ||
-                !options ||
-                quantity < 1
-            ) {
-                return res
-                    .status(400)
-                    .json({ message: "Invalid checkout item payload" });
-            }
-
-            const product = await Product.findById(productId).select("name");
-            if (!product)
-                return res.status(404).json({ message: "Product Not Found" });
-
-            const pv = await ProductVariant.findOne({
-                _id: productVariantId,
-                productId: productId,
-            });
-            if (!pv)
-                return res
-                    .status(404)
-                    .json({ message: "ProductVariant Not Found" });
-
-            // don’t reserve stock here, only validate basic availability
-            if (pv.countInStock < quantity) {
-                return res.status(400).json({
-                    message: `Insufficient stock for SKU ${pv.sku}. Available: ${pv.countInStock}`,
-                });
-            }
-        }
-
-        // Create a new checkout session
-        const newCheckout = await Checkout.create({
-            user: req.user._id,
-            checkoutItems: checkoutItems,
-            shippingDetails: shippingDetails,
+        const {
+            checkoutItems,
+            shippingDetails,
             paymentMethod,
             totalPrice,
-            isPaid: false,
             shippingCost,
             shippingMethod,
             shippingCourier,
             shippingDuration,
+            noteToSeller,
+        } = req.body;
+
+        if (!checkoutItems || checkoutItems.length === 0) {
+            return res
+                .status(400)
+                .json({ message: "No checkout items provided" });
+        }
+
+        if (!shippingDetails?.postalCode) {
+            return res
+                .status(400)
+                .json({ message: "Shipping details missing" });
+        }
+
+        const checkoutItemsWithWeight = [];
+
+        for (const item of checkoutItems) {
+            const product = await Product.findById(item.productId);
+
+            if (!product) {
+                return res.status(404).json({
+                    message: `Product not found: ${item.productId}`,
+                });
+            }
+
+            checkoutItemsWithWeight.push({
+                productId: item.productId,
+                productVariantId: item.productVariantId,
+                name: item.name,
+                image: item.image,
+                price: item.price,
+                options: item.options || {},
+                quantity: item.quantity,
+
+                weight: product.weight || 0,
+            });
+        }
+
+        const createdCheckout = await Checkout.create({
+            user: req.user._id,
+            checkoutItems: checkoutItemsWithWeight,
+            shippingDetails,
+            paymentMethod,
+            totalPrice,
+            noteToSeller: noteToSeller || "",
+
+            shippingCost: shippingCost || 0,
+            shippingMethod: shippingMethod || "",
+            shippingCourier: shippingCourier || "",
+            shippingDuration: shippingDuration || "",
+
+            isFinalized: true,
+            finalizedAt: new Date(),
         });
 
-        res.status(201).json(newCheckout);
-    } catch (error) {
-        console.error("Error creating checkout session: ", error);
+        res.status(201).json(createdCheckout);
+    } catch (err) {
+        console.error("createCheckout error:", err);
         res.status(500).json({ message: "Server Error" });
     }
 });
@@ -103,7 +104,7 @@ router.post("/:id/submit-proof", protect, async (req, res) => {
 
         await session.withTransaction(async () => {
             const checkout = await Checkout.findById(req.params.id).session(
-                session
+                session,
             );
             if (!checkout) {
                 return res.status(404).json({ message: "checkout not found" });
@@ -138,7 +139,7 @@ router.post("/:id/submit-proof", protect, async (req, res) => {
                         status: "pending",
                     },
                 ],
-                { session }
+                { session },
             ).then((r) => r[0]);
 
             checkout.isFinalized = true;
@@ -146,7 +147,7 @@ router.post("/:id/submit-proof", protect, async (req, res) => {
             await checkout.save({ session });
 
             await Cart.findOneAndDelete({ user: checkout.user }).session(
-                session
+                session,
             );
         });
         // if (createdOrder) {

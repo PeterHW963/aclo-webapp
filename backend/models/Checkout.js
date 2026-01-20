@@ -32,8 +32,12 @@ const checkoutItemSchema = new mongoose.Schema(
             type: Number,
             required: true,
         },
+        weight: {
+            type: Number,
+            default: 0,
+        },
     },
-    { _id: false }
+    { _id: false },
 );
 
 const checkoutSchema = new mongoose.Schema(
@@ -113,7 +117,7 @@ const checkoutSchema = new mongoose.Schema(
             required: false,
         },
     },
-    { timestamps: true }
+    { timestamps: true },
 );
 
 module.exports = mongoose.model("Checkout", checkoutSchema);

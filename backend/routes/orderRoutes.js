@@ -33,7 +33,7 @@ router.get("/my-orders", protect, async (req, res) => {
 router.get("/:id", protect, async (req, res) => {
     try {
         const order = await findOrderByIdOrOrderId(req.params.id).select(
-            "-adminRemarks"
+            "-adminRemarks",
         );
         if (!order) {
             res.status(404).json({ message: "Order Not Found" });
@@ -48,3 +48,55 @@ router.get("/:id", protect, async (req, res) => {
 });
 
 module.exports = router;
+
+// @route POST /api/orders/from-checkout/:checkoutId
+// @desc Create order from a checkout
+// @access Private
+router.post("/from-checkout/:checkoutId", protect, async (req, res) => {
+    try {
+        const { checkoutId } = req.params;
+
+        const checkout = await Checkout.findById(checkoutId);
+
+        if (!checkout) {
+            return res.status(404).json({ message: "Checkout not found" });
+        }
+
+        const orderItems = checkout.checkoutItems.map((item) => ({
+            productId: item.productId,
+            productVariantId: item.productVariantId,
+            name: item.name,
+            image: item.image,
+            price: item.price,
+            options: item.options || {},
+            quantity: item.quantity,
+            weight: item.weight || 0,
+        }));
+
+        const createdOrder = await Order.create({
+            user: checkout.user,
+            checkout: checkout._id,
+
+            orderItems,
+            shippingDetails: checkout.shippingDetails,
+
+            shippingCost: checkout.shippingCost || 0,
+            shippingMethod: checkout.shippingMethod || "N/A",
+            shippingCourier: checkout.shippingCourier || "N/A",
+            shippingDuration: checkout.shippingDuration || "N/A",
+
+            paymentMethod: checkout.paymentMethod,
+            paymentProof: checkout.paymentProof,
+            noteToSeller: checkout.noteToSeller || "",
+
+            totalPrice: checkout.totalPrice,
+            isPaid: checkout.isPaid,
+            paidAt: checkout.paidAt,
+        });
+
+        res.status(201).json(createdOrder);
+    } catch (err) {
+        console.error("createOrder from checkout error:", err);
+        res.status(500).json({ message: "Server Error" });
+    }
+});
