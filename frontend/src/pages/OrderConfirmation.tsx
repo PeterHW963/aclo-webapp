@@ -201,6 +201,25 @@ const OrderConfirmation = () => {
               </p>
             </div>
           </div>
+          <div className="mt-8 rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+            <p className="text-sm font-semibold text-acloblue uppercase tracking-wide">
+              Need help?
+            </p>
+
+            <p className="mt-2 text-sm text-gray-700">
+              If there are any issues with your order, feel free to contact ACLO
+              on WhatsApp and we'll assist you.
+            </p>
+
+            <a
+              href="https://wa.me/6282128528968"
+              target="_blank"
+              rel="noreferrer"
+              className="mt-4 inline-flex items-center justify-center rounded-xl bg-acloblue px-4 py-2 text-sm font-semibold text-white hover:opacity-90 transition"
+            >
+              Contact ACLO on WhatsApp
+            </a>
+          </div>
         </div>
       </div>
     </>
