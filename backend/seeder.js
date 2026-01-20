@@ -13,7 +13,9 @@ const reviews = require("./data/reviews");
 const orders = require("./data/orders");
 const checkouts = require("./data/checkouts");
 
-import { generateCartSnapshotHash } from "./utils/generateCartSnapshotHash";
+const {
+    generateCartSnapshotHash,
+} = require("./utils/generateCartSnapshotHash.js");
 
 dotenv.config();
 
@@ -81,13 +83,20 @@ function injectCheckoutItemIds(checkoutTemplate, { product, variant }) {
 }
 
 function injectCartSnapshotHash(checkoutTemplate) {
-    if (!checkoutTemplate.checkoutItems || checkoutTemplate.checkoutItems.length === 0) {
-        throw new Error("Cannot generate snapshot hash: no checkout items found");
+    if (
+        !checkoutTemplate.checkoutItems ||
+        checkoutTemplate.checkoutItems.length === 0
+    ) {
+        throw new Error(
+            "Cannot generate snapshot hash: no checkout items found"
+        );
     }
     return {
         ...checkoutTemplate,
-        cartSnapshotHash: generateCartSnapshotHash(checkoutTemplate.checkoutItems),
-    }
+        cartSnapshotHash: generateCartSnapshotHash(
+            checkoutTemplate.checkoutItems
+        ),
+    };
 }
 
 function buildOrderFromCheckout(orderTemplate, createdCheckout) {
@@ -249,7 +258,8 @@ const seedData = async () => {
 
             const createdCheckout = await Checkout.create({
                 ...checkoutWithHash,
-                cartId: "dummyCartId",
+                cartId: new mongoose.Types.ObjectId(),
+                expiresAt: Date.now(),
             });
 
             const orderPayload = buildOrderFromCheckout(

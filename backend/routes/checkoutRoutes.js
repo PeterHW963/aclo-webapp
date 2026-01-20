@@ -7,13 +7,16 @@ const ProductVariant = require("../models/ProductVariant");
 const Order = require("../models/Order");
 const { protect } = require("../middleware/authMiddleware");
 const { sendEmail } = require("../utils/emailService");
-const { generateCartSnapshotHash } = require("../utils/generateCartSnapshotHash");
+const {
+    generateCartSnapshotHash,
+} = require("../utils/generateCartSnapshotHash");
 
 const router = express.Router();
 
-const CHECKOUT_EXPIRATION_TIME = process.env.IS_PRODUCTION === "true"
-    ? 6 * 60 * 60 * 1000 // prod
-    : 1 * 60 * 1000; // testing
+const CHECKOUT_EXPIRATION_TIME =
+    process.env.IS_PRODUCTION === "true"
+        ? 6 * 60 * 60 * 1000 // prod
+        : 1 * 60 * 1000; // testing
 
 // @route POST /api/checkout
 // @desc Get or create an active checkout for a cart
@@ -34,12 +37,14 @@ router.post("/", protect, async (req, res) => {
     }
 
     try {
-        const cart = await Cart.findOne({_id: cartId, user: req.user._id});
+        const cart = await Cart.findOne({ _id: cartId, user: req.user._id });
         if (!cart || cart.products.length === 0) {
-            return res.status(400).json({ message: "Cart is empty or not found" });
+            return res
+                .status(400)
+                .json({ message: "Cart is empty or not found" });
         }
         const cartSnapshotHash = generateCartSnapshotHash(cart.products);
-        
+
         // check for existing checkout with same cart (id & contents) and same user
         const existingCheckout = await Checkout.findOne({
             cartId: cartId,
@@ -87,7 +92,6 @@ router.post("/", protect, async (req, res) => {
                 });
             }
         }
-
         // Create a new checkout session
         const newCheckout = await Checkout.create({
             user: req.user._id,
@@ -139,8 +143,8 @@ router.post("/:id/submit-proof", protect, async (req, res) => {
             }
             if (checkout.expiresAt < new Date()) {
                 return res.status(400).json({
-                    message: "checkout expired."
-                })
+                    message: "checkout expired.",
+                });
             }
             // set proof on checkout
             checkout.paymentProof = {

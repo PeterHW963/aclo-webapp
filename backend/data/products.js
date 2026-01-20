@@ -88,7 +88,7 @@ Yes. If you need express shipping, please WhatsApp **+62 821-2852-8968** before 
             width: 12,
             height: 102,
         },
-        weight: 7500,
+        weight: 8500,
         isListed: true,
     },
     {
