@@ -42,13 +42,31 @@ router.post("/", protect, async (req, res) => {
         const checkoutItemsWithWeight = [];
 
         for (const item of checkoutItems) {
-            const product = await Product.findById(item.productId);
-
-            if (!product) {
-                return res.status(404).json({
-                    message: `Product not found: ${item.productId}`,
-                });
+            const { productId, productVariantId, options, quantity } = item;
+            if (
+                !productId ||
+                !productVariantId ||
+                !quantity ||
+                !options ||
+                quantity < 1
+            ) {
+                return res
+                    .status(400)
+                    .json({ message: "Invalid checkout item payload" });
             }
+
+            const product = await Product.findById(item.productId);
+            if (!product)
+                return res.status(404).json({ message: "Product Not Found" });
+
+            const pv = await ProductVariant.findOne({
+                _id: productVariantId,
+                productId: productId,
+            });
+            if (!pv)
+                return res
+                    .status(404)
+                    .json({ message: "ProductVariant Not Found" });
 
             checkoutItemsWithWeight.push({
                 productId: item.productId,
