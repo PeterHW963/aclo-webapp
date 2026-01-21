@@ -51,7 +51,9 @@ const OrderDetailsPage = () => {
       <Navbar />
       <LoadingOverlay show={loading} />
       <div className="max-w-7xl mx-auto p-4 sm:p-6">
-        <h2 className="text-2xl md:text-3xl font-bold mb-6">Order Details</h2>
+        <h2 className="text-2xl md:text-3xl font-bold mb-6 text-acloblue">
+          Order Details
+        </h2>
         {!orderDetails ? (
           <p>No Order details found</p>
         ) : (
@@ -119,7 +121,7 @@ const OrderDetailsPage = () => {
                           />
                           <Link
                             to={`/product/${item.productId}`}
-                            className="text-blue-500 hover:underline"
+                            className="text-acloblue hover:underline"
                           >
                             {item.name}
                           </Link>
@@ -150,8 +152,31 @@ const OrderDetailsPage = () => {
                 )}
               </div>
             </div>
+            <div className="mb-8 rounded-2xl border border-acloblue/10 bg-acloblue/5 p-5">
+              <p className="text-sm font-semibold text-acloblue uppercase tracking-wide">
+                Need help with this order?
+              </p>
+
+              <p className="mt-2 text-sm text-gray-700">
+                If there are any issues (payment verification, delivery, missing
+                items, or changes), feel free to contact ACLO on WhatsApp and
+                we’ll assist you.
+              </p>
+
+              <a
+                href={`https://wa.me/6282128528968?text=${encodeURIComponent(
+                  `Hi ACLO! I need help with my order (${orderDetails.orderId}).`,
+                )}`}
+                target="_blank"
+                rel="noreferrer"
+                className="mt-4 inline-flex items-center justify-center rounded-xl bg-acloblue px-4 py-2 text-sm font-semibold text-white hover:opacity-90 transition"
+              >
+                Contact ACLO on WhatsApp
+              </a>
+            </div>
+
             {/* Back to Orders link */}
-            <Link to="/my-orders" className="text-blue-500 hover:underline">
+            <Link to="/my-orders" className="text-acloblue hover:underline">
               Back to My Orders
             </Link>
           </div>

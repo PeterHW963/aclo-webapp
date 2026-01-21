@@ -6,6 +6,7 @@ export interface CheckoutItem {
   price: number;
   options?: Record<string, any>;
   quantity: number;
+  weight?: number;
 }
 
 export interface ShippingDetails {

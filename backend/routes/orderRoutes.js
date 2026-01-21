@@ -33,7 +33,7 @@ router.get("/my-orders", protect, async (req, res) => {
 router.get("/:id", protect, async (req, res) => {
     try {
         const order = await findOrderByIdOrOrderId(req.params.id).select(
-            "-adminRemarks"
+            "-adminRemarks",
         );
         if (!order) {
             res.status(404).json({ message: "Order Not Found" });
