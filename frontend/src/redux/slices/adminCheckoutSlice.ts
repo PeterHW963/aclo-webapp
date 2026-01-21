@@ -20,6 +20,8 @@ interface AdminCheckoutState {
   totalPages: number;
   loading: boolean;
   error: string | null;
+  checkoutDetails: Checkout | null;
+  checkoutDetailsLoading: boolean;
 }
 
 const initialState: AdminCheckoutState = {
@@ -30,6 +32,8 @@ const initialState: AdminCheckoutState = {
   totalPages: 1,
   loading: false,
   error: null,
+  checkoutDetails: null,
+  checkoutDetailsLoading: false,
 };
 
 // async thunk to fetch all valid checkouts (admin only)
@@ -60,6 +64,30 @@ export const fetchValidCheckouts = createAsyncThunk<
   }
 });
 
+// TODO: check on how to differentiate between the admin and normal user routes
+export const fetchAdminCheckoutById = createAsyncThunk<
+  Checkout,
+  { checkoutId: string },
+  { rejectValue: AppError }
+>(
+  "adminCheckouts/fetchAdminCheckoutById",
+  async ({ checkoutId }, { rejectWithValue }) => {
+    try {
+      const res = await axios.get<Checkout>(
+        `${API_URL}/api/admin/checkouts/${checkoutId}`,
+        { headers: getAuthHeader() }
+      );
+      return res.data;
+    } catch (err) {
+      const error = err as AxiosError<AppError>;
+      if (error.response?.data) return rejectWithValue(error.response.data);
+      return rejectWithValue({
+        message: "Failed to fetch admin checkout details",
+      });
+    }
+  }
+);
+
 const adminCheckoutSlice = createSlice({
   name: "adminCheckouts",
   initialState,
@@ -84,11 +112,27 @@ const adminCheckoutSlice = createSlice({
           state.loading = false;
         }
       )
-
+      // fetch checkout details
       .addCase(fetchValidCheckouts.rejected, (state, action) => {
         state.loading = false;
         state.error =
           action.payload?.message || "Failed to fetch checkouts admin";
+      })
+      .addCase(fetchAdminCheckoutById.pending, (state) => {
+        state.checkoutDetailsLoading = true;
+        state.error = null;
+      })
+      .addCase(
+        fetchAdminCheckoutById.fulfilled,
+        (state, action: PayloadAction<Checkout>) => {
+          state.checkoutDetailsLoading = false;
+          state.checkoutDetails = action.payload;
+        }
+      )
+      .addCase(fetchAdminCheckoutById.rejected, (state, action) => {
+        state.checkoutDetailsLoading = false;
+        state.error =
+          action.payload?.message || "Failed to fetch admin checkout details";
       });
   },
 });

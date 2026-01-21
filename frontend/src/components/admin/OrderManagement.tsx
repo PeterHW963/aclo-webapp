@@ -24,7 +24,11 @@ import OrderDetailsModal from "./OrderDetailsModal";
 import TrackingModal from "./TrackingModal";
 import ActionConfirmationModal from "./ActionConfirmationModal";
 import RemarksModal from "./RemarksModal";
-import { fetchValidCheckouts } from "../../redux/slices/adminCheckoutSlice";
+import {
+  fetchAdminCheckoutById,
+  fetchValidCheckouts,
+} from "../../redux/slices/adminCheckoutSlice";
+import CheckoutDetailsModal from "./CheckoutDetailsModal";
 
 const OrderManagement = () => {
   const dispatch = useAppDispatch();
@@ -46,6 +50,8 @@ const OrderManagement = () => {
     loading: checkoutLoading,
     error: checkoutError,
     totalPages: checkoutTotalPages,
+    checkoutDetails,
+    checkoutDetailsLoading,
   } = useAppSelector((state) => state.adminCheckouts);
   const [activeTab, setActiveTab] = useState<AdminTab>("pending_action");
   const [page, setPage] = useState(1);
@@ -54,6 +60,8 @@ const OrderManagement = () => {
   const [paymentProofOpen, setPaymentProofOpen] = useState<boolean>(false);
   const [cancelRequestOpen, setCancelRequestOpen] = useState<boolean>(false);
   const [orderDetailsOpen, setOrderDetailsOpen] = useState<boolean>(false);
+  const [checkoutDetailsOpen, setCheckoutDetailsOpen] =
+    useState<boolean>(false);
   const [trackingModalOpen, setTrackingModalOpen] = useState<boolean>(false);
   const [remarksModalOpen, setRemarksModalOpen] = useState<boolean>(false);
   const [actionConfirmationModalOpen, setActionConfirmationModalOpen] =
@@ -100,6 +108,15 @@ const OrderManagement = () => {
   const handleCloseOrderDetails = () => {
     setOrderDetailsOpen(false);
     setSelectedOrderId(null);
+  };
+
+  const handleOpenCheckoutDetails = async (checkoutId: string) => {
+    setCheckoutDetailsOpen(true);
+    dispatch(fetchAdminCheckoutById({ checkoutId: checkoutId }));
+  };
+
+  const handleCloseCheckoutDetails = async () => {
+    setCheckoutDetailsOpen(false);
   };
 
   const handleOpenPaymentProof = (order: Order) => {
@@ -372,6 +389,7 @@ const OrderManagement = () => {
 
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error: {error}</p>;
+
   return (
     <div className="max-w-8xl mx-auto p-6">
       {selectedPaymentProof && paymentProofOpen && selectedOrderId && (
@@ -497,6 +515,14 @@ const OrderManagement = () => {
           title={pendingAction.title}
           message={pendingAction.message}
           loading={loading}
+        />
+      )}
+
+      {checkoutDetailsOpen && (
+        <CheckoutDetailsModal
+          onClose={handleCloseCheckoutDetails}
+          checkoutDetails={checkoutDetails}
+          loading={checkoutDetailsLoading}
         />
       )}
 

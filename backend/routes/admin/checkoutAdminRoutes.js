@@ -1,4 +1,5 @@
 const express = require("express");
+const mongoose = require("mongoose");
 const Checkout = require("../../models/Checkout");
 const { protect, admin } = require("../../middleware/authMiddleware");
 
@@ -37,6 +38,34 @@ router.get("/valid-checkouts", protect, admin, async (req, res) => {
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: "Server Error" });
+    }
+});
+
+// @router GET /api/admin/checkouts/:id
+// @desc Fetch checkout info by id
+// @access Private/Admin
+router.get("/:id", protect, admin, async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({ message: "Invalid checkout id" });
+        }
+
+        const checkout = await Checkout.findById(id).populate(
+            "user",
+            "name email"
+        );
+
+        if (!checkout) {
+            return res.status(404).json({ message: "Checkout Not Found" });
+        }
+
+        // respond with exactly what frontend needs
+        return res.status(200).json(checkout);
+    } catch (err) {
+        console.error("GET /api/checkout/:id error:", err);
+        return res.status(500).json({ message: "Server Error" });
     }
 });
 
