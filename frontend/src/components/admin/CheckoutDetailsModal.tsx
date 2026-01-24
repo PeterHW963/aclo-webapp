@@ -147,7 +147,7 @@ const CheckoutDetailsModal = ({
                 </tbody>
               </table>
 
-              {/* Optional: show totals if you want (from schema you have totalPrice + shippingCost) */}
+              {/* Cost excluding shipping */}
               <div className="mt-4 flex justify-end">
                 <div className="text-right text-sm text-gray-700">
                   <div className="font-semibold">

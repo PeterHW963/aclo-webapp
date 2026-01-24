@@ -434,6 +434,8 @@ const OrderManagement = () => {
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error: {error}</p>;
 
+  // TODO: Refactor this out of this .jsx file
+  // TODO: Use this component for unfinished checkouts page as well
   const MobileOrderCard = ({
     order,
     onView,
@@ -574,7 +576,6 @@ const OrderManagement = () => {
               message,
               handleCloseTrackingModal, // after confirm cleanup
               async () => {
-                // custom confirm logic
                 await dispatch(
                   updateTrackingLink({ id: selectedOrderId, trackingLink })
                 ).unwrap();
