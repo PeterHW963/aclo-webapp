@@ -18,21 +18,21 @@ const router = express.Router();
 // @desc Get or create an active checkout for a cart
 // @access Private
 router.post("/", protect, async (req, res) => {
-    const {
-        cartId,
-        shippingDetails,
-        paymentMethod,
-        totalPrice,
-        shippingCost,
-        shippingMethod,
-        shippingCourier,
-        shippingDuration,
-    } = req.body;
-    if (!cartId) {
-        return res.status(400).json({ message: "cartId is required" });
-    }
-
     try {
+        const {
+            cartId,
+            shippingDetails,
+            paymentMethod,
+            totalPrice,
+            shippingCost,
+            shippingMethod,
+            shippingCourier,
+            shippingDuration,
+            noteToSeller,
+        } = req.body;
+        if (!cartId) {
+            return res.status(400).json({ message: "cartId is required" });
+        }
         const cart = await Cart.findOne({ _id: cartId, user: req.user._id });
         if (!cart || cart.products.length === 0) {
             return res
@@ -54,6 +54,14 @@ router.post("/", protect, async (req, res) => {
             return res.status(200).json(existingCheckout);
         }
 
+        if (!shippingDetails?.postalCode) {
+            return res
+                .status(400)
+                .json({ message: "Shipping details missing" });
+        }
+
+        const checkoutItemsWithWeight = [];
+
         for (const item of cart.products) {
             const { productId, productVariantId, options, quantity } = item;
             if (
@@ -68,7 +76,7 @@ router.post("/", protect, async (req, res) => {
                     .json({ message: "Invalid checkout item payload" });
             }
 
-            const product = await Product.findById(productId).select("name");
+            const product = await Product.findById(item.productId);
             if (!product)
                 return res.status(404).json({ message: "Product Not Found" });
 
@@ -81,33 +89,42 @@ router.post("/", protect, async (req, res) => {
                     .status(404)
                     .json({ message: "ProductVariant Not Found" });
 
-            // don’t reserve stock here, only validate basic availability
-            if (pv.countInStock < quantity) {
-                return res.status(400).json({
-                    message: `Insufficient stock for SKU ${pv.sku}. Available: ${pv.countInStock}`,
-                });
-            }
+            checkoutItemsWithWeight.push({
+                productId: item.productId,
+                productVariantId: item.productVariantId,
+                name: item.name,
+                image: item.image,
+                price: item.price,
+                options: item.options || {},
+                quantity: item.quantity,
+
+                weight: product.weight || 0,
+            });
         }
-        // Create a new checkout session
-        const newCheckout = await Checkout.create({
+
+        const createdCheckout = await Checkout.create({
             user: req.user._id,
             cartId,
             cartSnapshotHash,
-            checkoutItems: cart.products,
-            shippingDetails: shippingDetails,
+            checkoutItems: checkoutItemsWithWeight,
+            shippingDetails,
             paymentMethod,
             totalPrice,
-            isPaid: false,
-            shippingCost,
-            shippingMethod,
-            shippingCourier,
-            shippingDuration,
+            noteToSeller: noteToSeller || "",
+
+            shippingCost: shippingCost || 0,
+            shippingMethod: shippingMethod || "",
+            shippingCourier: shippingCourier || "",
+            shippingDuration: shippingDuration || "",
+
+            isFinalized: true,
+            finalizedAt: new Date(),
             expiresAt: new Date(Date.now() + CHECKOUT_EXPIRATION_TIME),
         });
 
-        res.status(201).json(newCheckout);
-    } catch (error) {
-        console.error("Error creating checkout session: ", error);
+        res.status(201).json(createdCheckout);
+    } catch (err) {
+        console.error("createCheckout error:", err);
         res.status(500).json({ message: "Server Error" });
     }
 });

@@ -30,10 +30,15 @@ import {
 } from "../../redux/slices/adminCheckoutSlice";
 import CheckoutDetailsModal from "./CheckoutDetailsModal";
 import CheckoutsTable from "./CheckoutsTable";
+import Box from "@mui/material/Box";
+import Tabs from "@mui/material/Tabs";
+import Tab from "@mui/material/Tab";
+import useMediaQuery from "@mui/material/useMediaQuery";
 
 const OrderManagement = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
+  const isMobile = useMediaQuery("(max-width: 640px)");
 
   const { user } = useAppSelector((state) => state.auth);
   const {
@@ -89,6 +94,16 @@ const OrderManagement = () => {
     onAfterConfirm?: () => void;
     customConfirm?: () => Promise<void>;
   } | null>(null);
+  const TABS: Array<{ key: AdminTab; label: string }> = [
+    { key: "pending_action", label: "Pending Action" },
+    { key: "ongoing", label: "Ongoing" },
+    { key: "resolved", label: "Resolved" },
+    { key: "failed", label: "Failed" },
+    { key: "all", label: "All Orders" },
+    { key: "incomplete_checkouts", label: "Unfinished Checkouts" },
+  ];
+
+  const activeTabIndex = TABS.findIndex((t) => t.key === activeTab);
 
   useEffect(() => {
     if (!user || user.role !== "admin") {
@@ -211,7 +226,7 @@ const OrderManagement = () => {
     title: string,
     message: string,
     onAfterConfirm?: () => void,
-    customConfirm?: () => Promise<void>
+    customConfirm?: () => Promise<void>,
   ) => {
     setPendingAction({
       orderId,
@@ -239,7 +254,7 @@ const OrderManagement = () => {
         updateOrderStatus({
           id: pendingAction.orderId,
           status: pendingAction.targetStatus,
-        })
+        }),
       ).unwrap();
     }
     pendingAction.onAfterConfirm?.();
@@ -288,7 +303,7 @@ const OrderManagement = () => {
                   order._id,
                   "pending",
                   "Mark as Pending",
-                  `Are you sure you want to mark this order as **Pending**?`
+                  `Are you sure you want to mark this order as **Pending**?`,
                 );
               }}
               className={`${baseBtn} ${actionBtn.neutralOutline}`}
@@ -331,7 +346,7 @@ const OrderManagement = () => {
                   order._id,
                   "delivered",
                   "Mark as Delivered",
-                  `Are you sure you want to mark this order as **Delivered**?\nThe user will be notified that the order has arrived.`
+                  `Are you sure you want to mark this order as **Delivered**?\nThe user will be notified that the order has arrived.`,
                 );
               }}
               className={`${baseBtn} ${actionBtn.success}`}
@@ -356,7 +371,7 @@ const OrderManagement = () => {
                   "returned",
                   "Mark as Returned",
                   `Are you sure you want to mark this order as **Returned**?`,
-                  () => handleOpenRemarksModal(order)
+                  () => handleOpenRemarksModal(order),
                 );
               }}
               className={`${baseBtn} ${actionBtn.neutralOutline}`}
@@ -370,7 +385,7 @@ const OrderManagement = () => {
                   "refunded",
                   "Mark as Refunded",
                   `Are you sure you want to mark this order as **Refunded**?`,
-                  () => handleOpenRemarksModal(order)
+                  () => handleOpenRemarksModal(order),
                 );
               }}
               className={`${baseBtn} ${actionBtn.dangerOutline}`}
@@ -384,7 +399,7 @@ const OrderManagement = () => {
                   "exchanged",
                   "Mark as Exchanged",
                   `Are you sure you want to mark this order as **Exchanged**?`,
-                  () => handleOpenRemarksModal(order)
+                  () => handleOpenRemarksModal(order),
                 );
               }}
               className={`${baseBtn} ${actionBtn.infoOutline}`}
@@ -419,8 +434,63 @@ const OrderManagement = () => {
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error: {error}</p>;
 
+  const MobileOrderCard = ({
+    order,
+    onView,
+  }: {
+    order: Order;
+    onView: () => void;
+  }) => {
+    const badge = getStatusBadge(order.status);
+
+    return (
+      <div className="rounded-xl border bg-white p-4 shadow-sm">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p className="text-sm text-gray-500">Order ID</p>
+            <p className="font-semibold text-gray-900">#{order.orderId}</p>
+
+            <p className="mt-2 text-xs text-gray-500">Customer</p>
+            <p className="text-sm text-gray-900">
+              {typeof order.user === "string" ? order.user : order.user.name}
+            </p>
+          </div>
+
+          <span
+            className={`${badge.className} inline-flex items-center rounded-full px-2 py-1 text-xs font-medium`}
+          >
+            {badge.label}
+          </span>
+        </div>
+
+        <div className="mt-3 flex items-center justify-between">
+          <p className="text-sm text-gray-600">
+            {new Date(order.createdAt).toLocaleDateString()}
+          </p>
+
+          <p className="text-sm font-semibold text-acloblue">
+            IDR {order.totalPrice.toLocaleString("id-ID")}
+          </p>
+        </div>
+
+        <div className="mt-4 flex flex-wrap gap-2">
+          {renderActionButtons(order)}
+
+          <button
+            type="button"
+            onClick={onView}
+            className="ml-auto inline-flex h-10 w-10 items-center justify-center rounded hover:bg-gray-100 cursor-pointer"
+            title="View details"
+          >
+            <FaEye className="h-6 w-6" />
+          </button>
+        </div>
+      </div>
+    );
+  };
+
   return (
-    <div className="max-w-8xl mx-auto p-6">
+    <div className="max-w-8xl mx-auto px-3 sm:px-6 py-4 sm:py-6">
       {selectedPaymentProof && paymentProofOpen && selectedOrderId && (
         <ActionModal
           onClose={handleClosePaymentProof}
@@ -432,7 +502,7 @@ const OrderManagement = () => {
               "processing",
               "Accept Payment Proof",
               `Are you sure you want to accept this payment proof?\nThis will mark the order as **Processing**.`,
-              handleClosePaymentProof
+              handleClosePaymentProof,
             )
           }
           onReject={() =>
@@ -441,7 +511,7 @@ const OrderManagement = () => {
               "rejected",
               "Reject Payment Proof",
               `Are you sure you want to reject this payment proof?\nThis will mark the order as **Rejected**.`,
-              handleClosePaymentProof
+              handleClosePaymentProof,
             )
           }
           loading={orderLoading}
@@ -458,7 +528,7 @@ const OrderManagement = () => {
               "cancelled",
               "Accept Cancel Request",
               `Are you sure you want to accept this cancel request?\nThis will mark the order as **Cancelled**.`,
-              handleCloseCancelRequest
+              handleCloseCancelRequest,
             )
           }
           onReject={() =>
@@ -467,7 +537,7 @@ const OrderManagement = () => {
               "pending",
               "Reject Cancel Request",
               `Are you sure you want to reject this cancel request?\nThis will revert the order status to **Pending**.`,
-              handleCloseCancelRequest
+              handleCloseCancelRequest,
             )
           }
           loading={orderLoading}
@@ -480,7 +550,7 @@ const OrderManagement = () => {
           loading={orderDetailsLoading}
           onSaveAdminRemarks={async (orderId, adminRemarks) => {
             await dispatch(
-              updateAdminRemarks({ id: orderId, adminRemarks })
+              updateAdminRemarks({ id: orderId, adminRemarks }),
             ).unwrap();
           }}
         />
@@ -506,15 +576,15 @@ const OrderManagement = () => {
               async () => {
                 // custom confirm logic
                 await dispatch(
-                  updateTrackingLink({ id: selectedOrderId, trackingLink })
+                  updateTrackingLink({ id: selectedOrderId, trackingLink }),
                 ).unwrap();
                 await dispatch(
                   updateOrderStatus({
                     id: selectedOrderId,
                     status: "shipping",
-                  })
+                  }),
                 ).unwrap();
-              }
+              },
             );
           }}
         />
@@ -528,7 +598,7 @@ const OrderManagement = () => {
               updateAdminRemarks({
                 id: selectedOrderId,
                 adminRemarks: adminRemarks,
-              })
+              }),
             ).unwrap();
             handleCloseRemarksModal();
 
@@ -555,40 +625,55 @@ const OrderManagement = () => {
         />
       )}
 
-      <h2 className="text-2xl font-bold mb-8">Order Management</h2>
-      <div className="flex flex-wrap gap-2 mb-6">
-        {(
-          [
-            ["pending_action", "Pending Action"],
-            ["ongoing", "Ongoing"],
-            ["resolved", "Resolved"],
-            ["failed", "Failed"],
-            ["all", "All Orders"],
-            ["incomplete_checkouts", "Unfinished Checkouts"],
-          ] as const
-        ).map(([key, label]) => (
-          <button
-            key={key}
-            onClick={() => {
-              setActiveTab(key);
-              if (key === "incomplete_checkouts") {
-                setValidCheckoutPage(1);
-                setExpiredCheckoutPage(1);
-              } else {
-                setPage(1);
-              }
-            }}
-            className={`px-4 py-2 rounded-md border text-sm font-medium transition
-        ${
-          activeTab === key
-            ? "bg-slate-900 text-white border-slate-900"
-            : "bg-white text-slate-700 border-slate-300 hover:bg-slate-100"
-        }`}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
+      <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-8 text-acloblue">
+        Order Management
+      </h2>
+      <Box
+        sx={{
+          borderBottom: 1,
+          borderColor: "divider",
+          mb: 3,
+          overflowX: "auto",
+        }}
+      >
+        <Tabs
+          value={activeTabIndex === -1 ? 0 : activeTabIndex}
+          onChange={(_, newValue: number) => {
+            const selected = TABS[newValue];
+            if (!selected) return;
+
+            setActiveTab(selected.key);
+            setPage(1);
+          }}
+          variant="scrollable"
+          scrollButtons="auto"
+          aria-label="order management tabs"
+          sx={{
+            "& .MuiTab-root": {
+              textTransform: "none",
+              fontWeight: 600,
+              fontSize: 14,
+              minHeight: 44,
+              paddingX: 2,
+              minWidth: "auto",
+              borderRadius: 999,
+            },
+            "& .Mui-selected": {
+              color: "#00b7e8",
+            },
+            "& .MuiTabs-indicator": {
+              backgroundColor: "#00b7e8",
+              height: 3,
+              borderRadius: 3,
+            },
+          }}
+        >
+          {TABS.map((tab) => (
+            <Tab key={tab.key} label={tab.label} />
+          ))}
+        </Tabs>
+      </Box>
+
       {activeTab === "incomplete_checkouts" ? (
         <div className="space-y-10">
           {/* valid checkouts */}
@@ -667,85 +752,102 @@ const OrderManagement = () => {
         </div>
       ) : (
         <>
-          <div className="overflow-x-auto shadow-md sm:rounded-lg">
-            <table className="min-w-full text-left text-gray-500">
-              <thead className="bg-gray-100 text-xs uppercase text-gray-700">
-                <tr>
-                  <th className="py-3 px-4">Order ID</th>
-                  <th className="py-3 px-4">Customer</th>
-                  <th className="py-3 px-4">Created At</th>
-                  <th className="py-3 px-4">Total Price (IDR)</th>
-                  <th className="py-3 px-4">Status</th>
-                  <th className="py-3 px-4">Actions</th>
-                </tr>
-              </thead>
-
-              <tbody>
-                {orders.length > 0 ? (
-                  orders.map((order) => (
-                    <tr key={order._id} className="border-b">
-                      <td className="py-4 px-4 font-medium text-gray-900 whitespace-nowrap">
-                        #{order.orderId}
-                      </td>
-                      <td className="p-4">
-                        {typeof order.user === "string"
-                          ? order.user
-                          : order.user.name}
-                      </td>
-                      <td className="p-4">
-                        {new Date(order.createdAt).toLocaleString()}
-                      </td>
-                      <td className="p-4">
-                        {order.totalPrice.toLocaleString("id-ID")}
-                      </td>
-                      <td className="p-4">
-                        <div className="flex flex-col items-start mt-4 sm:mt-0">
-                          {(() => {
-                            const badge = getStatusBadge(order.status);
-                            return (
-                              <span
-                                className={`${badge.className} inline-flex items-center rounded-full px-2 py-1 text-xs sm:text-sm font-medium`}
-                              >
-                                {badge.label}
-                              </span>
-                            );
-                          })()}
-                        </div>
-                      </td>
-                      <td className="p-4">
-                        <div className="flex flex-wrap gap-2">
-                          {renderActionButtons(order)}
-                          <button
-                            type="button"
-                            onClick={() => handleOpenOrderDetails(order._id)}
-                            className="inline-flex h-10 w-10 items-center justify-center rounded hover:bg-gray-100 cursor-pointer ml-auto"
-                            title="View details"
-                          >
-                            <FaEye className="h-6 w-6" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={6} className="p-4 text-center text-gray-500">
-                      No Orders found
+      {isMobile ? (
+        <div className="space-y-3">
+          {orders.length > 0 ? (
+            orders.map((order) => (
+              <MobileOrderCard
+                key={order._id}
+                order={order}
+                onView={() => handleOpenOrderDetails(order._id)}
+              />
+            ))
+          ) : (
+            <p className="text-center text-gray-500 py-6">No Orders found</p>
+          )}
+        </div>
+      ) : (
+        <div className="overflow-x-auto shadow-md sm:rounded-lg">
+          <table className="min-w-full text-left text-gray-500">
+            <thead className="bg-gray-100 text-xs uppercase text-gray-700">
+              <tr>
+                <th className="py-3 px-4">Order ID</th>
+                <th className="py-3 px-4">Customer</th>
+                <th className="py-3 px-4">Created At</th>
+                <th className="py-3 px-4">Total Price (IDR)</th>
+                <th className="py-3 px-4">Status</th>
+                <th className="py-3 px-4">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {orders.length > 0 ? (
+                orders.map((order) => (
+                  <tr key={order._id} className="border-b">
+                    <td className="py-4 px-4 font-medium text-gray-900 whitespace-nowrap">
+                      #{order.orderId}
+                    </td>
+                    <td className="p-4">
+                      {typeof order.user === "string"
+                        ? order.user
+                        : order.user.name}
+                    </td>
+                    <td className="p-4">
+                      {new Date(order.createdAt).toLocaleString()}
+                    </td>
+                    <td className="p-4">
+                      {order.totalPrice.toLocaleString("id-ID")}
+                    </td>
+                    <td className="p-4">
+                      <div className="flex flex-col items-start mt-4 sm:mt-0">
+                        {(() => {
+                          const badge = getStatusBadge(order.status);
+                          return (
+                            <span
+                              className={`${badge.className} inline-flex items-center rounded-full px-2 py-1 text-xs sm:text-sm font-medium`}
+                            >
+                              {badge.label}
+                            </span>
+                          );
+                        })()}
+                      </div>
+                    </td>
+                    <td className="p-4">
+                      <div className="flex flex-wrap gap-2">
+                        {renderActionButtons(order)}
+                        {/* Details button */}
+                        <button
+                          type="button"
+                          onClick={() => handleOpenOrderDetails(order._id)}
+                          className="inline-flex h-10 w-10 items-center justify-center rounded hover:bg-gray-100 cursor-pointer ml-auto"
+                          title="View details"
+                        >
+                          <FaEye className="h-6 w-6" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-
-          <div className="flex items-center justify-end gap-3 mt-4">
-            <button
-              disabled={orderLoading || page <= 1}
-              onClick={() => setPage((p) => p - 1)}
-              className="px-3 py-2 border rounded disabled:opacity-50"
-            >
-              Prev
-            </button>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={5} className="p-4 text-center text-gray-500">
+                    No Orders found
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
+      </>
+      )}
+      <div className="flex items-center justify-end gap-3 mt-4">
+        <button
+          disabled={loading || page <= 1}
+          onClick={() => setPage((p) => p - 1)}
+          className="px-3 py-2 border rounded disabled:opacity-50"
+        >
+          Prev
+        </button>
 
             <span className="text-sm text-slate-600">
               Page {page} / {Math.max(1, orderTotalPages)}

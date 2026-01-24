@@ -143,7 +143,7 @@ const OrderDetailsModal = ({
                     >
                       <img
                         src={cloudinaryImageUrl(
-                          orderDetails.paymentProof.publicId
+                          orderDetails.paymentProof.publicId,
                         )}
                         alt="Payment proof"
                         className="w-full h-full object-cover"
@@ -155,7 +155,7 @@ const OrderDetailsModal = ({
                       <p className="text-xs text-gray-600 mt-2">
                         Uploaded:{" "}
                         {new Date(
-                          orderDetails.paymentProof.uploadedAt
+                          orderDetails.paymentProof.uploadedAt,
                         ).toLocaleString()}
                       </p>
                     )}
@@ -196,7 +196,7 @@ const OrderDetailsModal = ({
                           />
                           <Link
                             to={`/product/${item.productId}`}
-                            className="text-blue-500 hover:underline"
+                            className="text-acloblue hover:underline"
                           >
                             {item.name}
                           </Link>

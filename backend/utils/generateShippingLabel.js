@@ -57,7 +57,7 @@ const generateShippingLabelHTML = (order) => {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 2px dotted #000;
+            border-bottom: 1px solid #000;
             padding-bottom: 15px;
             margin-bottom: 20px;
         }
@@ -132,14 +132,12 @@ const generateShippingLabelHTML = (order) => {
             text-align: center;
         }
         
-        .shipping-box-title {
-            font-size: 11px;
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-        
         .shipping-box-content {
-            font-size: 12px;
+            font-size: 22px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            line-height: 1.1;
         }
         
         .items-table {
@@ -167,7 +165,7 @@ const generateShippingLabelHTML = (order) => {
         }
         
         .footer {
-            border-top: 2px dotted #000;
+            border-top: 1px solid #000;
             padding-top: 10px;
             font-size: 11px;
             text-align: center;
@@ -181,6 +179,14 @@ const generateShippingLabelHTML = (order) => {
             padding: 10px;
             border: 2px solid #000;
         }
+
+        .buyer-note-line {
+            margin-top: 15px;
+            margin-bottom: 15px;
+            margin-left: 5px;
+            font-size: 12px;
+            line-height: 1.4;
+        }
     </style>
 </head>
 <body>
@@ -192,21 +198,8 @@ const generateShippingLabelHTML = (order) => {
             </div>
             <div class="shipping-info">
                 <div class="shipping-box">
-                    <div class="shipping-box-title">SHIPPING METHOD</div>
-                    <div class="shipping-box-content">Standard Shipping</div>
+                    <div class="shipping-box-content">${order.shippingCourier} - ${order.shippingMethod}</div>
                 </div>
-            </div>
-        </div>
-        
-        <!-- Order Info -->
-        <div class="order-info">
-            <div class="order-info-item">
-                <span><strong>Order ID:</strong></span>
-                <span>${order.orderId}</span>
-            </div>
-            <div class="order-info-item">
-                <span><strong>Order Date:</strong></span>
-                <span>${orderDate}</span>
             </div>
         </div>
         
@@ -231,8 +224,8 @@ const generateShippingLabelHTML = (order) => {
                     <p>${order.shippingDetails.phone}</p>
                     <p>${order.shippingDetails.address}</p>
                     <p>${order.shippingDetails.city}, ${
-        order.shippingDetails.postalCode
-    }</p>
+                        order.shippingDetails.postalCode
+                    }</p>
                 </div>
             </div>
         </div>
@@ -274,6 +267,15 @@ const generateShippingLabelHTML = (order) => {
                     .join("")}
             </tbody>
         </table>
+
+        <!-- Buyer Note -->
+        <div class="buyer-note-line">
+        <span class="buyer-note-label">Notes: (${order.orderId})</span>
+            <span>
+                ${order.noteToSeller && order.noteToSeller.trim() ? order.noteToSeller : "-"}
+            </span>
+        </div>
+
         
         <!-- Tracking Number -->
         <div class="tracking-number">
@@ -284,11 +286,11 @@ const generateShippingLabelHTML = (order) => {
         <div class="footer">
             <p>Weight: ${order.orderItems.reduce(
                 (total, item) => total + (item.weight || 0) * item.quantity,
-                0
+                0,
             )}g | Total Items: ${order.orderItems.reduce(
-        (total, item) => total + item.quantity,
-        0
-    )}</p>
+                (total, item) => total + item.quantity,
+                0,
+            )}</p>
             <p>This is an automated shipping label. Handle with care.</p>
         </div>
     </div>

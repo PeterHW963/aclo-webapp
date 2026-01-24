@@ -44,7 +44,9 @@ const MyOrdersPage = () => {
       <Navbar />
       <LoadingOverlay show={loading} />
       <div className="max-w-7xl mx-auto p-4 sm:p-6">
-        <h2 className="text-xl sm:text-2xl font-bold mb-6">My Orders</h2>
+        <h2 className="text-xl sm:text-2xl font-bold mb-6 text-acloblue">
+          My Orders
+        </h2>
         <div className="relative shadow-md sm:rounded-lg overflow-hidden">
           <table className="min-w-full text-left text-gray-500">
             <thead className="bg-gray-100 text-xs uppercase text-gray-700">
