@@ -840,29 +840,30 @@ const OrderManagement = () => {
               </table>
             </div>
           )}
+
+          <div className="flex items-center justify-end gap-3 mt-4">
+            <button
+              disabled={loading || page <= 1}
+              onClick={() => setPage((p) => p - 1)}
+              className="px-3 py-2 border rounded disabled:opacity-50"
+            >
+              Prev
+            </button>
+
+            <span className="text-sm text-slate-600">
+              Page {page} / {Math.max(1, orderTotalPages)}
+            </span>
+
+            <button
+              disabled={orderLoading || page >= orderTotalPages}
+              onClick={() => setPage((p) => p + 1)}
+              className="px-3 py-2 border rounded disabled:opacity-50"
+            >
+              Next
+            </button>
+          </div>
         </>
       )}
-      <div className="flex items-center justify-end gap-3 mt-4">
-        <button
-          disabled={loading || page <= 1}
-          onClick={() => setPage((p) => p - 1)}
-          className="px-3 py-2 border rounded disabled:opacity-50"
-        >
-          Prev
-        </button>
-
-        <span className="text-sm text-slate-600">
-          Page {page} / {Math.max(1, orderTotalPages)}
-        </span>
-
-        <button
-          disabled={orderLoading || page >= orderTotalPages}
-          onClick={() => setPage((p) => p + 1)}
-          className="px-3 py-2 border rounded disabled:opacity-50"
-        >
-          Next
-        </button>
-      </div>
     </div>
   );
 };
