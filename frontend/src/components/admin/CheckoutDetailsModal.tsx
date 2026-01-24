@@ -46,7 +46,7 @@ const CheckoutDetailsModal = ({
             <div className="flex flex-col sm:flex-row justify-between mb-6 gap-4">
               <div>
                 <h3 className="text-lg md:text-xl font-semibold">
-                  Checkout ID: #{checkoutDetails._id}
+                  ID: #{checkoutDetails._id}
                 </h3>
                 <p className="text-gray-600">
                   Created:{" "}
@@ -148,12 +148,17 @@ const CheckoutDetailsModal = ({
               </table>
 
               {/* Optional: show totals if you want (from schema you have totalPrice + shippingCost) */}
-              {/* <div className="mt-4 flex justify-end">
+              <div className="mt-4 flex justify-end">
                 <div className="text-right text-sm text-gray-700">
-                  <div>Shipping: IDR {checkoutDetails.shippingCost.toLocaleString("id-ID")}</div>
-                  <div className="font-semibold">Total: IDR {checkoutDetails.totalPrice.toLocaleString("id-ID")}</div>
+                  <div className="font-semibold">
+                    Total: IDR{" "}
+                    {(
+                      checkoutDetails.totalPrice -
+                      (checkoutDetails.shippingCost ?? 0)
+                    ).toLocaleString("id-ID")}
+                  </div>
                 </div>
-              </div> */}
+              </div>
             </div>
           </div>
         )}

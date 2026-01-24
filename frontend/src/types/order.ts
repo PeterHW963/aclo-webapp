@@ -42,7 +42,7 @@ export type OrdersCategory =
   | "failed"
   | "ongoing";
 
-export type AdminTab = OrdersCategory | "valid_checkouts";
+export type AdminTab = OrdersCategory | "incomplete_checkouts";
 
 export type FetchOrdersParams = {
   category?: OrdersCategory;

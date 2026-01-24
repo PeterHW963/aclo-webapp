@@ -5,20 +5,26 @@ const { protect, admin } = require("../../middleware/authMiddleware");
 
 const router = express.Router();
 
-// @route GET /api/admin/checkouts/valid-checkouts?page=1&limit=25
+// @route GET /api/admin/checkouts/incomplete-checkouts?page=1&limit=25
 // @desc Get all valid checkouts (Admin only)
 // @access Private/Admin
-router.get("/valid-checkouts", protect, admin, async (req, res) => {
+router.get("/incomplete-checkouts", protect, admin, async (req, res) => {
     try {
-        const { page = 1, limit = 25 } = req.query;
+        const { page = 1, limit = 25, status = "valid" } = req.query;
         const pageNum = Math.max(1, Number(page)); // guard against invalid API call
         const limitNum = Math.max(1, Number(limit));
         const skip = (pageNum - 1) * limitNum;
 
-        const filter = {
-            isFinalized: false,
-            expiresAt: { $gt: new Date() },
-        };
+        const now = new Date();
+
+        let filter = {};
+        if (status === "valid") {
+            filter = { isFinalized: false, expiresAt: { $gt: now } };
+        } else if (status === "expired") {
+            filter = { isFinalized: false, expiresAt: { $lte: now } };
+        } else {
+            return res.status(400).json({ message: "Invalid status" });
+        }
 
         const [checkouts, total] = await Promise.all([
             Checkout.find(filter)

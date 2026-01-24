@@ -26,9 +26,10 @@ import ActionConfirmationModal from "./ActionConfirmationModal";
 import RemarksModal from "./RemarksModal";
 import {
   fetchAdminCheckoutById,
-  fetchValidCheckouts,
+  fetchIncompleteCheckouts,
 } from "../../redux/slices/adminCheckoutSlice";
 import CheckoutDetailsModal from "./CheckoutDetailsModal";
+import CheckoutsTable from "./CheckoutsTable";
 
 const OrderManagement = () => {
   const dispatch = useAppDispatch();
@@ -46,15 +47,21 @@ const OrderManagement = () => {
     totalPages: orderTotalPages,
   } = useAppSelector((state) => state.adminOrders);
   const {
-    checkouts,
-    loading: checkoutLoading,
+    validCheckouts,
+    expiredCheckouts,
+    validLoading,
+    expiredLoading,
+    validTotalPages,
+    expiredTotalPages,
+
     error: checkoutError,
-    totalPages: checkoutTotalPages,
     checkoutDetails,
     checkoutDetailsLoading,
   } = useAppSelector((state) => state.adminCheckouts);
   const [activeTab, setActiveTab] = useState<AdminTab>("pending_action");
   const [page, setPage] = useState(1);
+  const [validCheckoutPage, setValidCheckoutPage] = useState(1);
+  const [expiredCheckoutPage, setExpiredCheckoutPage] = useState(1);
   const limit = 25;
 
   const [paymentProofOpen, setPaymentProofOpen] = useState<boolean>(false);
@@ -88,12 +95,33 @@ const OrderManagement = () => {
       navigate("/");
       return;
     }
-    if (activeTab === "valid_checkouts") {
-      dispatch(fetchValidCheckouts({ page, limit }));
+    if (activeTab === "incomplete_checkouts") {
+      dispatch(
+        fetchIncompleteCheckouts({
+          status: "valid",
+          page: validCheckoutPage,
+          limit,
+        })
+      );
+      dispatch(
+        fetchIncompleteCheckouts({
+          status: "expired",
+          page: expiredCheckoutPage,
+          limit,
+        })
+      );
     } else {
       dispatch(fetchAllOrders({ category: activeTab, page, limit }));
     }
-  }, [dispatch, user, activeTab, navigate, page]);
+  }, [
+    dispatch,
+    user,
+    activeTab,
+    navigate,
+    validCheckoutPage,
+    expiredCheckoutPage,
+    page,
+  ]);
 
   const handleGenerateLabel = (order: Order) => {
     dispatch(generateShippingLabel({ id: order._id, orderId: order.orderId }));
@@ -203,7 +231,7 @@ const OrderManagement = () => {
 
   const handleConfirmActionConfirmation = async () => {
     if (!pendingAction) return;
-    if (activeTab === "valid_checkouts") return;
+    if (activeTab === "incomplete_checkouts") return;
     if (pendingAction.customConfirm) {
       await pendingAction.customConfirm();
     } else {
@@ -382,10 +410,11 @@ const OrderManagement = () => {
   };
 
   const loading =
-    activeTab === "valid_checkouts" ? checkoutLoading : orderLoading;
-  const error = activeTab === "valid_checkouts" ? checkoutError : orderError;
-  const totalPages =
-    activeTab === "valid_checkouts" ? checkoutTotalPages : orderTotalPages;
+    activeTab === "incomplete_checkouts"
+      ? validLoading || expiredLoading
+      : orderLoading;
+  const error =
+    activeTab === "incomplete_checkouts" ? checkoutError : orderError;
 
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error: {error}</p>;
@@ -503,7 +532,7 @@ const OrderManagement = () => {
             ).unwrap();
             handleCloseRemarksModal();
 
-            if (activeTab === "valid_checkouts") return;
+            if (activeTab === "incomplete_checkouts") return;
             dispatch(fetchAllOrders({ category: activeTab, page, limit }));
           }}
         />
@@ -535,14 +564,19 @@ const OrderManagement = () => {
             ["resolved", "Resolved"],
             ["failed", "Failed"],
             ["all", "All Orders"],
-            ["valid_checkouts", "Unfinished Checkouts"],
+            ["incomplete_checkouts", "Unfinished Checkouts"],
           ] as const
         ).map(([key, label]) => (
           <button
             key={key}
             onClick={() => {
               setActiveTab(key);
-              setPage(1);
+              if (key === "incomplete_checkouts") {
+                setValidCheckoutPage(1);
+                setExpiredCheckoutPage(1);
+              } else {
+                setPage(1);
+              }
             }}
             className={`px-4 py-2 rounded-md border text-sm font-medium transition
         ${
@@ -555,150 +589,178 @@ const OrderManagement = () => {
           </button>
         ))}
       </div>
-      <div className="overflow-x-auto shadow-md sm:rounded-lg">
-        {activeTab === "valid_checkouts" ? (
-          <table className="min-w-full text-left text-gray-500">
-            <thead className="bg-gray-100 text-xs uppercase text-gray-700">
-              <tr>
-                <th className="py-3 px-4">Checkout ID</th>
-                <th className="py-3 px-4">Customer</th>
-                <th className="py-3 px-4">Created At</th>
-                <th className="py-3 px-4">Expires At</th>
-                <th className="py-3 px-4">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {checkouts.length > 0 ? (
-                checkouts.map((c) => (
-                  <tr key={c._id} className="border-b">
-                    <td className="py-4 px-4 font-medium text-gray-900 whitespace-nowrap">
-                      {c._id}
-                    </td>
-                    <td className="p-4">
-                      {typeof c.user === "string" ? c.user : c.user?.name}
-                    </td>
-                    <td className="p-4">
-                      {new Date(c.createdAt).toLocaleString()}
-                    </td>
-                    <td className="p-4">
-                      {new Date(c.expiresAt).toLocaleString()}
-                    </td>
-                    <td className="p-4">
-                      <div className="flex flex-wrap gap-2">
-                        {/* Details button */}
-                        <button
-                          type="button"
-                          onClick={() => handleOpenCheckoutDetails(c._id)}
-                          className="inline-flex h-10 w-10 items-center justify-center rounded hover:bg-gray-100 cursor-pointer ml-auto"
-                          title="View details"
-                        >
-                          <FaEye className="h-6 w-6" />
-                        </button>
-                      </div>
+      {activeTab === "incomplete_checkouts" ? (
+        <div className="space-y-10">
+          {/* valid checkouts */}
+          <section className="space-y-4">
+            {validLoading ? (
+              <div className="p-4 text-gray-500">
+                Loading valid checkouts...
+              </div>
+            ) : (
+              <CheckoutsTable
+                title="Valid Incomplete Checkouts"
+                data={validCheckouts}
+                emptyText="No valid incomplete checkouts found"
+                onViewDetails={handleOpenCheckoutDetails}
+              />
+            )}
+
+            <div className="flex items-center justify-end gap-3">
+              <button
+                disabled={validLoading || validCheckoutPage <= 1}
+                onClick={() => setValidCheckoutPage((p) => p - 1)}
+                className="px-3 py-2 border rounded disabled:opacity-50"
+              >
+                Prev
+              </button>
+              <span className="text-sm text-slate-600">
+                Page {validCheckoutPage} / {Math.max(1, validTotalPages)}
+              </span>
+              <button
+                disabled={validLoading || validCheckoutPage >= validTotalPages}
+                onClick={() => setValidCheckoutPage((p) => p + 1)}
+                className="px-3 py-2 border rounded disabled:opacity-50"
+              >
+                Next
+              </button>
+            </div>
+          </section>
+
+          {/* expired checkouts */}
+          <section className="space-y-4">
+            {expiredLoading ? (
+              <div className="p-4 text-gray-500">
+                Loading expired checkouts...
+              </div>
+            ) : (
+              <CheckoutsTable
+                title="Expired Incomplete Checkouts"
+                data={expiredCheckouts}
+                emptyText="No expired incomplete checkouts found"
+                onViewDetails={handleOpenCheckoutDetails}
+              />
+            )}
+
+            <div className="flex items-center justify-end gap-3">
+              <button
+                disabled={expiredLoading || expiredCheckoutPage <= 1}
+                onClick={() => setExpiredCheckoutPage((p) => p - 1)}
+                className="px-3 py-2 border rounded disabled:opacity-50"
+              >
+                Prev
+              </button>
+              <span className="text-sm text-slate-600">
+                Page {expiredCheckoutPage} / {Math.max(1, expiredTotalPages)}
+              </span>
+              <button
+                disabled={
+                  expiredLoading || expiredCheckoutPage >= expiredTotalPages
+                }
+                onClick={() => setExpiredCheckoutPage((p) => p + 1)}
+                className="px-3 py-2 border rounded disabled:opacity-50"
+              >
+                Next
+              </button>
+            </div>
+          </section>
+        </div>
+      ) : (
+        <>
+          <div className="overflow-x-auto shadow-md sm:rounded-lg">
+            <table className="min-w-full text-left text-gray-500">
+              <thead className="bg-gray-100 text-xs uppercase text-gray-700">
+                <tr>
+                  <th className="py-3 px-4">Order ID</th>
+                  <th className="py-3 px-4">Customer</th>
+                  <th className="py-3 px-4">Created At</th>
+                  <th className="py-3 px-4">Total Price (IDR)</th>
+                  <th className="py-3 px-4">Status</th>
+                  <th className="py-3 px-4">Actions</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {orders.length > 0 ? (
+                  orders.map((order) => (
+                    <tr key={order._id} className="border-b">
+                      <td className="py-4 px-4 font-medium text-gray-900 whitespace-nowrap">
+                        #{order.orderId}
+                      </td>
+                      <td className="p-4">
+                        {typeof order.user === "string"
+                          ? order.user
+                          : order.user.name}
+                      </td>
+                      <td className="p-4">
+                        {new Date(order.createdAt).toLocaleString()}
+                      </td>
+                      <td className="p-4">
+                        {order.totalPrice.toLocaleString("id-ID")}
+                      </td>
+                      <td className="p-4">
+                        <div className="flex flex-col items-start mt-4 sm:mt-0">
+                          {(() => {
+                            const badge = getStatusBadge(order.status);
+                            return (
+                              <span
+                                className={`${badge.className} inline-flex items-center rounded-full px-2 py-1 text-xs sm:text-sm font-medium`}
+                              >
+                                {badge.label}
+                              </span>
+                            );
+                          })()}
+                        </div>
+                      </td>
+                      <td className="p-4">
+                        <div className="flex flex-wrap gap-2">
+                          {renderActionButtons(order)}
+                          <button
+                            type="button"
+                            onClick={() => handleOpenOrderDetails(order._id)}
+                            className="inline-flex h-10 w-10 items-center justify-center rounded hover:bg-gray-100 cursor-pointer ml-auto"
+                            title="View details"
+                          >
+                            <FaEye className="h-6 w-6" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={6} className="p-4 text-center text-gray-500">
+                      No Orders found
                     </td>
                   </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={5} className="p-4 text-center text-gray-500">
-                    No valid checkouts found
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        ) : (
-          <table className="min-w-full text-left text-gray-500">
-            <thead className="bg-gray-100 text-xs uppercase text-gray-700">
-              <tr>
-                <th className="py-3 px-4">Order ID</th>
-                <th className="py-3 px-4">Customer</th>
-                <th className="py-3 px-4">Created At</th>
-                <th className="py-3 px-4">Total Price (IDR)</th>
-                <th className="py-3 px-4">Status</th>
-                <th className="py-3 px-4">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {orders.length > 0 ? (
-                orders.map((order) => (
-                  <tr key={order._id} className="border-b">
-                    <td className="py-4 px-4 font-medium text-gray-900 whitespace-nowrap">
-                      #{order.orderId}
-                    </td>
-                    <td className="p-4">
-                      {typeof order.user === "string"
-                        ? order.user
-                        : order.user.name}
-                    </td>
-                    <td className="p-4">
-                      {new Date(order.createdAt).toLocaleString()}
-                    </td>
-                    <td className="p-4">
-                      {order.totalPrice.toLocaleString("id-ID")}
-                    </td>
-                    <td className="p-4">
-                      <div className="flex flex-col items-start mt-4 sm:mt-0">
-                        {(() => {
-                          const badge = getStatusBadge(order.status);
-                          return (
-                            <span
-                              className={`${badge.className} inline-flex items-center rounded-full px-2 py-1 text-xs sm:text-sm font-medium`}
-                            >
-                              {badge.label}
-                            </span>
-                          );
-                        })()}
-                      </div>
-                    </td>
-                    <td className="p-4">
-                      <div className="flex flex-wrap gap-2">
-                        {renderActionButtons(order)}
-                        {/* Details button */}
-                        <button
-                          type="button"
-                          onClick={() => handleOpenOrderDetails(order._id)}
-                          className="inline-flex h-10 w-10 items-center justify-center rounded hover:bg-gray-100 cursor-pointer ml-auto"
-                          title="View details"
-                        >
-                          <FaEye className="h-6 w-6" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={5} className="p-4 text-center text-gray-500">
-                    No Orders found
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        )}
-      </div>
-      <div className="flex items-center justify-end gap-3 mt-4">
-        <button
-          disabled={loading || page <= 1}
-          onClick={() => setPage((p) => p - 1)}
-          className="px-3 py-2 border rounded disabled:opacity-50"
-        >
-          Prev
-        </button>
+                )}
+              </tbody>
+            </table>
+          </div>
 
-        <span className="text-sm text-slate-600">
-          Page {page} / {totalPages}
-        </span>
+          <div className="flex items-center justify-end gap-3 mt-4">
+            <button
+              disabled={orderLoading || page <= 1}
+              onClick={() => setPage((p) => p - 1)}
+              className="px-3 py-2 border rounded disabled:opacity-50"
+            >
+              Prev
+            </button>
 
-        <button
-          disabled={loading || page >= totalPages}
-          onClick={() => setPage((p) => p + 1)}
-          className="px-3 py-2 border rounded disabled:opacity-50"
-        >
-          Next
-        </button>
-      </div>
+            <span className="text-sm text-slate-600">
+              Page {page} / {Math.max(1, orderTotalPages)}
+            </span>
+
+            <button
+              disabled={orderLoading || page >= orderTotalPages}
+              onClick={() => setPage((p) => p + 1)}
+              className="px-3 py-2 border rounded disabled:opacity-50"
+            >
+              Next
+            </button>
+          </div>
+        </>
+      )}
     </div>
   );
 };

@@ -87,6 +87,7 @@ export interface CreateCheckoutPayload {
 export type FetchCheckoutsParams = {
   page?: number;
   limit?: number;
+  status: "valid" | "expired";
 };
 
 export type FetchCheckoutsResponse = {
