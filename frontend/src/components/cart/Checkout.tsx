@@ -48,7 +48,7 @@ const Checkout = () => {
   const shouldCalculateShipping = (
     postalCode: string,
     currentCartId: string,
-    totalPrice: number
+    totalPrice: number,
   ): boolean => {
     if (!lastCalculatedRef.current) return true;
 
@@ -103,7 +103,7 @@ const Checkout = () => {
         shouldCalculateShipping(
           detailsToUse.postalCode,
           cart._id,
-          cart.totalPrice
+          cart.totalPrice,
         )
       ) {
         dispatch(
@@ -114,7 +114,7 @@ const Checkout = () => {
               price: p.price,
               quantity: p.quantity,
             })),
-          })
+          }),
         )
           .unwrap()
           .then(() => {
@@ -129,7 +129,7 @@ const Checkout = () => {
             toast.error(
               error?.message ||
                 "Something went wrong. Please check your address and try again.",
-              { duration: 3000 }
+              { duration: 3000 },
             );
           });
       }
@@ -155,7 +155,7 @@ const Checkout = () => {
   }, []);
 
   const handleShippingDetailsSubmit = async (
-    shippingDetails: ShippingDetails
+    shippingDetails: ShippingDetails,
   ) => {
     if (!cart || !cart.products || cart.products.length === 0) {
       return;
@@ -165,7 +165,7 @@ const Checkout = () => {
       !shouldCalculateShipping(
         shippingDetails.postalCode,
         cart._id,
-        cart.totalPrice
+        cart.totalPrice,
       )
     ) {
       dispatch(setShippingDetails(shippingDetails));
@@ -182,7 +182,7 @@ const Checkout = () => {
             price: p.price,
             quantity: p.quantity,
           })),
-        })
+        }),
       ).unwrap();
 
       lastCalculatedRef.current = {
@@ -197,7 +197,7 @@ const Checkout = () => {
       toast.error(
         error?.message ||
           "Something went wrong. Please check your address and try again.",
-        { duration: 3000 }
+        { duration: 3000 },
       );
       console.error("Error in handleShippingDetails:", error);
       throw error;
@@ -237,7 +237,7 @@ const Checkout = () => {
           shippingMethod: selectedShipping.courierServiceName,
           shippingCourier: selectedShipping.courierCode,
           shippingDuration: selectedShipping.duration,
-        })
+        }),
       ).unwrap();
 
       return createdCheckout._id ?? null;
@@ -264,13 +264,6 @@ const Checkout = () => {
           <ShippingDetailsModal
             onClose={() => {
               setShowShippingDetailsModal(false);
-              const hasNoSavedAddresses =
-                !user?.shippingAddresses || user.shippingAddresses.length === 0;
-              const hasNoShippingDetails = !shippingDetails?.postalCode;
-
-              if (hasNoSavedAddresses && hasNoShippingDetails) {
-                navigate("/");
-              }
             }}
             onSubmit={handleShippingDetailsSubmit}
             userEmail={user?.email}
@@ -296,19 +289,39 @@ const Checkout = () => {
           </div>
 
           {/* Shipping Details Display */}
-          {shippingDetails?.name && (
+          {shippingDetails?.postalCode ? (
             <div className="mb-6 p-4 bg-gray-50 rounded-lg">
               <h3 className="text-sm font-semibold text-gray-700 mb-2">
                 Shipping To:
               </h3>
-              <p className="text-sm text-gray-800">{shippingDetails?.name}</p>
+              <p className="text-sm text-gray-800">{shippingDetails.name}</p>
+              <p className="text-sm text-gray-600">{shippingDetails.address}</p>
               <p className="text-sm text-gray-600">
-                {shippingDetails?.address}
+                {shippingDetails.city}, {shippingDetails.postalCode}
               </p>
-              <p className="text-sm text-gray-600">
-                {shippingDetails?.city}, {shippingDetails?.postalCode}
-              </p>
-              <p className="text-sm text-gray-600">{shippingDetails?.phone}</p>
+              <p className="text-sm text-gray-600">{shippingDetails.phone}</p>
+            </div>
+          ) : (
+            <div className="mb-6 p-4 bg-gray-50 rounded-lg flex items-center justify-between gap-4">
+              <div>
+                <h3 className="text-sm font-semibold text-gray-700 mb-1">
+                  Shipping details
+                </h3>
+                <p className="text-sm text-gray-600">
+                  No shipping details yet. Add an address to see shipping
+                  options.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setModalMode("form");
+                  setShowShippingDetailsModal(true);
+                }}
+                className="shrink-0 text-sm text-acloblue hover:underline"
+              >
+                Add now
+              </button>
             </div>
           )}
 
@@ -343,7 +356,7 @@ const Checkout = () => {
                                   {key.charAt(0).toUpperCase() + key.slice(1)}:{" "}
                                   {String(value)}
                                 </span>
-                              )
+                              ),
                             )}
                           </div>
                         )}
@@ -396,7 +409,7 @@ const Checkout = () => {
               <p className="text-2xl font-semibold text-acloblue">
                 IDR{" "}
                 {Number(
-                  cart.totalPrice + (selectedShipping?.price || 0)
+                  cart.totalPrice + (selectedShipping?.price || 0),
                 ).toLocaleString("id-ID")}
               </p>
             </div>

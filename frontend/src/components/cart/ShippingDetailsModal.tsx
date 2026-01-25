@@ -25,7 +25,7 @@ const ShippingDetailsModal = ({
   const dispatch = useAppDispatch();
   const { user } = useAppSelector((state) => state.auth);
   const { shippingDetails: reduxShippingDetails } = useAppSelector(
-    (state) => state.checkout
+    (state) => state.checkout,
   );
 
   const [mode, setMode] = useState<"selection" | "form">("form");
@@ -34,6 +34,7 @@ const ShippingDetailsModal = ({
   const [saveAddress, setSaveAddress] = useState(false);
   const [selectedAddressInView, setSelectedAddressInView] =
     useState<string>("");
+  const [phoneError, setPhoneError] = useState<string>("");
 
   const [shippingDetails, setShippingDetails] = useState<ShippingDetails>({
     name: "",
@@ -51,7 +52,7 @@ const ShippingDetailsModal = ({
       let matchingAddress = null;
       if (reduxShippingDetails) {
         matchingAddress = user.shippingAddresses.find(
-          (addr) => addr.postalCode === reduxShippingDetails.postalCode
+          (addr) => addr.postalCode === reduxShippingDetails.postalCode,
         );
       }
 
@@ -123,17 +124,49 @@ const ShippingDetailsModal = ({
     setMode("form");
   };
 
+  const normalizePhone = (raw: string) => raw.replace(/[^\d+]/g, "").trim();
+
+  const isValidIDPhone = (raw: string) => {
+    const p = normalizePhone(raw);
+
+    // +62xxxxxxxxxx or 62xxxxxxxxxx or 08xxxxxxxxxx
+    if (p.startsWith("+62")) {
+      const rest = p.slice(3);
+      return /^\d{8,12}$/.test(rest);
+    }
+    if (p.startsWith("62")) {
+      const rest = p.slice(2);
+      return /^\d{8,12}$/.test(rest);
+    }
+    if (p.startsWith("0")) {
+      const rest = p.slice(1);
+      return /^\d{8,12}$/.test(rest);
+    }
+
+    return false;
+  };
+
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
+    if (!e.currentTarget.checkValidity()) {
+      e.currentTarget.reportValidity();
+      return;
+    }
+
     try {
       await onSubmit(shippingDetails);
+
+      if (!isValidIDPhone(shippingDetails.phone)) {
+        setPhoneError("Enter a valid phone number (08xx or +62xx).");
+        return; // stops submission
+      }
 
       // Only save valid addresses (ie shipping calculation passed)
       if (user) {
         if (isNewAddress && saveAddress) {
           const resultAction = await dispatch(
-            addShippingAddress(shippingDetails)
+            addShippingAddress(shippingDetails),
           );
 
           if (addShippingAddress.fulfilled.match(resultAction)) {
@@ -156,7 +189,7 @@ const ShippingDetailsModal = ({
             updateShippingAddress({
               addressId: editingAddressId,
               updates: shippingDetails,
-            })
+            }),
           );
           if (updateShippingAddress.fulfilled.match(resultAction)) {
             setSelectedAddressInView(editingAddressId);
@@ -324,13 +357,26 @@ const ShippingDetailsModal = ({
                     <label className="block text-gray-700">Postal Code *</label>
                     <input
                       type="text"
+                      inputMode="numeric"
+                      pattern="^\d{5}$"
                       value={shippingDetails.postalCode}
-                      onChange={(e) =>
+                      onChange={(e) => {
+                        const next = e.target.value
+                          .replace(/\D/g, "")
+                          .slice(0, 5);
                         setShippingDetails({
                           ...shippingDetails,
-                          postalCode: e.target.value,
-                        })
-                      }
+                          postalCode: next,
+                        });
+                      }}
+                      onInvalid={(e) => {
+                        e.currentTarget.setCustomValidity(
+                          "Please enter a 5-digit postal code.",
+                        );
+                      }}
+                      onInput={(e) => {
+                        e.currentTarget.setCustomValidity("");
+                      }}
                       className="w-full p-2 border rounded focus:outline-none focus:ring-1 focus:ring-acloblue focus:border-acloblue"
                       required
                       minLength={5}
@@ -353,15 +399,26 @@ const ShippingDetailsModal = ({
                   <input
                     type="tel"
                     value={shippingDetails.phone}
-                    onChange={(e) =>
-                      setShippingDetails({
-                        ...shippingDetails,
-                        phone: e.target.value,
-                      })
-                    }
+                    onChange={(e) => {
+                      const next = e.target.value.replace(/[^\d+]/g, "");
+                      setShippingDetails({ ...shippingDetails, phone: next });
+                    }}
+                    onInvalid={(e) => {
+                      e.currentTarget.setCustomValidity(
+                        "Please enter a valid Indonesian phone number (e.g. 08xxxxxxxxxx or +62xxxxxxxxxx).",
+                      );
+                    }}
+                    onInput={(e) => {
+                      e.currentTarget.setCustomValidity("");
+                    }}
+                    pattern="^(?:\+62|62|0)\d{8,12}$"
+                    placeholder="e.g. 081234567890 or 6281234567890"
                     className="w-full p-2 border rounded focus:outline-none focus:ring-1 focus:ring-acloblue focus:border-acloblue"
                     required
                   />
+                  {phoneError && (
+                    <p className="mt-1 text-sm text-red-600">{phoneError}</p>
+                  )}
                 </div>
 
                 {/* Save Address Checkbox */}
