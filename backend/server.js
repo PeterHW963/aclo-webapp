@@ -3,6 +3,8 @@ const cors = require("cors");
 const dotenv = require("dotenv");
 const connectDB = require("./config/db");
 
+dotenv.config();
+
 const userRoutes = require("./routes/userRoutes");
 const productRoutes = require("./routes/productRoutes");
 const cartRoutes = require("./routes/cartRoutes");
@@ -20,14 +22,13 @@ const biteshipRoutes = require("./routes/biteship/biteshipRoutes");
 const adminRoutes = require("./routes/admin/adminRoutes");
 const productAdminRoutes = require("./routes/admin/productAdminRoutes");
 const orderAdminRoutes = require("./routes/admin/orderAdminRoutes");
+const checkoutAdminRoutes = require("./routes/admin/checkoutAdminRoutes");
 
 const { sendEmail } = require("./utils/emailService");
 
 const app = express();
 app.use(express.json());
 app.use(cors());
-
-dotenv.config();
 
 const PORT = process.env.PORT || 3000;
 
@@ -71,6 +72,7 @@ app.get("/api/test-email", async (req, res) => {
 app.use("/api/admin/users", adminRoutes);
 app.use("/api/admin/products", productAdminRoutes);
 app.use("/api/admin/orders", orderAdminRoutes);
+app.use("/api/admin/checkouts", checkoutAdminRoutes);
 
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);

@@ -7,16 +7,20 @@ const ProductVariant = require("../models/ProductVariant");
 const Order = require("../models/Order");
 const { protect } = require("../middleware/authMiddleware");
 const { sendEmail } = require("../utils/emailService");
+const {
+    generateCartSnapshotHash,
+} = require("../utils/generateCartSnapshotHash");
+const { CHECKOUT_EXPIRATION_TIME } = require("../config/checkoutConfig");
 
 const router = express.Router();
 
 // @route POST /api/checkout
-// @desc Create a new checkout session
+// @desc Get or create an active checkout for a cart
 // @access Private
 router.post("/", protect, async (req, res) => {
     try {
         const {
-            checkoutItems,
+            cartId,
             shippingDetails,
             paymentMethod,
             totalPrice,
@@ -26,11 +30,28 @@ router.post("/", protect, async (req, res) => {
             shippingDuration,
             noteToSeller,
         } = req.body;
-
-        if (!checkoutItems || checkoutItems.length === 0) {
+        if (!cartId) {
+            return res.status(400).json({ message: "cartId is required" });
+        }
+        const cart = await Cart.findOne({ _id: cartId, user: req.user._id });
+        if (!cart || cart.products.length === 0) {
             return res
                 .status(400)
-                .json({ message: "No checkout items provided" });
+                .json({ message: "Cart is empty or not found" });
+        }
+        const cartSnapshotHash = generateCartSnapshotHash(cart.products);
+
+        // check for existing checkout with same cart (id & contents) and same user
+        const existingCheckout = await Checkout.findOne({
+            cartId: cartId,
+            user: req.user._id,
+            cartSnapshotHash: cartSnapshotHash,
+            isFinalized: false,
+            expiresAt: { $gt: new Date() },
+        });
+
+        if (existingCheckout) {
+            return res.status(200).json(existingCheckout);
         }
 
         if (!shippingDetails?.postalCode) {
@@ -41,7 +62,7 @@ router.post("/", protect, async (req, res) => {
 
         const checkoutItemsWithWeight = [];
 
-        for (const item of checkoutItems) {
+        for (const item of cart.products) {
             const { productId, productVariantId, options, quantity } = item;
             if (
                 !productId ||
@@ -83,6 +104,8 @@ router.post("/", protect, async (req, res) => {
 
         const createdCheckout = await Checkout.create({
             user: req.user._id,
+            cartId,
+            cartSnapshotHash,
             checkoutItems: checkoutItemsWithWeight,
             shippingDetails,
             paymentMethod,
@@ -96,6 +119,7 @@ router.post("/", protect, async (req, res) => {
 
             isFinalized: true,
             finalizedAt: new Date(),
+            expiresAt: new Date(Date.now() + CHECKOUT_EXPIRATION_TIME),
         });
 
         res.status(201).json(createdCheckout);
@@ -122,13 +146,18 @@ router.post("/:id/submit-proof", protect, async (req, res) => {
 
         await session.withTransaction(async () => {
             const checkout = await Checkout.findById(req.params.id).session(
-                session,
+                session
             );
             if (!checkout) {
                 return res.status(404).json({ message: "checkout not found" });
             }
             if (checkout.user.toString() !== req.user._id.toString()) {
                 return res.status(403).json({ message: "Not allowed" });
+            }
+            if (checkout.expiresAt < new Date()) {
+                return res.status(400).json({
+                    message: "checkout expired.",
+                });
             }
             // set proof on checkout
             checkout.paymentProof = {
@@ -157,7 +186,7 @@ router.post("/:id/submit-proof", protect, async (req, res) => {
                         status: "pending",
                     },
                 ],
-                { session },
+                { session }
             ).then((r) => r[0]);
 
             checkout.isFinalized = true;
@@ -165,7 +194,7 @@ router.post("/:id/submit-proof", protect, async (req, res) => {
             await checkout.save({ session });
 
             await Cart.findOneAndDelete({ user: checkout.user }).session(
-                session,
+                session
             );
         });
         // if (createdOrder) {

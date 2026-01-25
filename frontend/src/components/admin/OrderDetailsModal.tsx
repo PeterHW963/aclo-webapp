@@ -100,7 +100,7 @@ const OrderDetailsModal = ({
             <div className="flex flex-col sm:flex-row justify-between mb-6 gap-4">
               <div>
                 <h3 className="text-lg md:text-xl font-semibold">
-                  Order ID: #{orderDetails._id}
+                  ID: #{orderDetails._id}
                 </h3>
                 <p className="text-gray-600">
                   {new Date(orderDetails.createdAt).toLocaleDateString()}

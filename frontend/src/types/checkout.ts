@@ -25,7 +25,7 @@ export interface PaymentProof {
 
 export interface Checkout {
   _id: string;
-  user: string; // userId
+  user: string | { name: string; email: string };
   checkoutItems: CheckoutItem[];
   shippingDetails: ShippingDetails;
   paymentMethod: string;
@@ -39,6 +39,7 @@ export interface Checkout {
   shippingMethod?: string;
   shippingCourier?: string;
   shippingDuration?: string;
+  expiresAt: string;
   isFinalized: boolean; // switch to true when user is done placing order
   finalizedAt?: string;
   createdAt: string;
@@ -74,7 +75,7 @@ export interface ShippingCostResponse {
 
 // Payload when calling createCheckout
 export interface CreateCheckoutPayload {
-  checkoutItems: CheckoutItem[];
+  cartId: string;
   shippingDetails: ShippingDetails;
   paymentMethod: string;
   totalPrice: number;
@@ -83,3 +84,17 @@ export interface CreateCheckoutPayload {
   shippingCourier?: string;
   shippingDuration?: string;
 }
+
+export type FetchCheckoutsParams = {
+  page?: number;
+  limit?: number;
+  status: "valid" | "expired";
+};
+
+export type FetchCheckoutsResponse = {
+  checkouts: Checkout[];
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+};

@@ -47,6 +47,15 @@ const checkoutSchema = new mongoose.Schema(
             ref: "User",
             required: true,
         },
+        cartId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Cart",
+            required: true,
+        },
+        cartSnapshotHash: {
+            type: String,
+            required: true,
+        },
         checkoutItems: [checkoutItemSchema],
         shippingDetails: {
             name: { type: String, required: true },
@@ -78,19 +87,6 @@ const checkoutSchema = new mongoose.Schema(
             type: Number,
             required: true,
         },
-        isPaid: {
-            type: Boolean,
-            default: false,
-        },
-        paidAt: {
-            // timestamp when payment was made
-            type: Date,
-            required: false,
-        },
-        paymentDetails: {
-            type: mongoose.Schema.Types.Mixed, // stores payment related details (transactionID, response from payment gateway)
-            required: false,
-        },
         shippingCost: {
             type: Number,
             default: 0,
@@ -107,6 +103,10 @@ const checkoutSchema = new mongoose.Schema(
             type: String,
             required: false,
         },
+        expiresAt: {
+            type: Date,
+            required: true,
+        },
         isFinalized: {
             type: Boolean,
             default: false,
@@ -116,6 +116,23 @@ const checkoutSchema = new mongoose.Schema(
             type: Date,
             required: false,
         },
+
+
+        // ------ UNUSED FOR NOW ---------
+        isPaid: {
+            type: Boolean,
+            default: false,
+        },
+        paidAt: {
+            // timestamp when payment was made
+            type: Date,
+            required: false,
+        },
+        paymentDetails: {
+            type: mongoose.Schema.Types.Mixed, // stores payment related details (transactionID, response from payment gateway)
+            required: false,
+        },
+        // -------------------------------
     },
     { timestamps: true },
 );

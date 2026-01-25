@@ -48,8 +48,8 @@ router.get("/", protect, admin, async (req, res) => {
             filter.status = { $in: categoryMap[category] };
         }
 
-        const pageNum = Number(page);
-        const limitNum = Number(limit);
+        const pageNum = Math.max(1, Number(page)); // guard against invalid API call
+        const limitNum = Math.max(1, Number(limit));
         const skip = (pageNum - 1) * limitNum;
 
         const [orders, total] = await Promise.all([

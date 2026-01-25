@@ -10,10 +10,10 @@ import {
   updateTrackingLink,
 } from "../../redux/slices/adminOrderSlice";
 import type {
-  OrdersCategory,
   CancelRequest,
   Order,
   OrderStatus,
+  AdminTab,
 } from "../../types/order";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { getStatusBadge } from "../../constants/orderStatus";
@@ -24,6 +24,12 @@ import OrderDetailsModal from "./OrderDetailsModal";
 import TrackingModal from "./TrackingModal";
 import ActionConfirmationModal from "./ActionConfirmationModal";
 import RemarksModal from "./RemarksModal";
+import {
+  fetchAdminCheckoutById,
+  fetchIncompleteCheckouts,
+} from "../../redux/slices/adminCheckoutSlice";
+import CheckoutDetailsModal from "./CheckoutDetailsModal";
+import CheckoutsTable from "./CheckoutsTable";
 import Box from "@mui/material/Box";
 import Tabs from "@mui/material/Tabs";
 import Tab from "@mui/material/Tab";
@@ -37,21 +43,37 @@ const OrderManagement = () => {
   const { user } = useAppSelector((state) => state.auth);
   const {
     orders,
-    loading,
+    loading: orderLoading,
     orderDetailsLoading,
     trackingLinkLoading,
-    error,
+    error: orderError,
     generatingLabelForOrder,
     orderDetails,
-    totalPages,
+    totalPages: orderTotalPages,
   } = useAppSelector((state) => state.adminOrders);
-  const [activeTab, setActiveTab] = useState<OrdersCategory>("pending_action");
+  const {
+    validCheckouts,
+    expiredCheckouts,
+    validLoading,
+    expiredLoading,
+    validTotalPages,
+    expiredTotalPages,
+
+    error: checkoutError,
+    checkoutDetails,
+    checkoutDetailsLoading,
+  } = useAppSelector((state) => state.adminCheckouts);
+  const [activeTab, setActiveTab] = useState<AdminTab>("pending_action");
   const [page, setPage] = useState(1);
+  const [validCheckoutPage, setValidCheckoutPage] = useState(1);
+  const [expiredCheckoutPage, setExpiredCheckoutPage] = useState(1);
   const limit = 25;
 
   const [paymentProofOpen, setPaymentProofOpen] = useState<boolean>(false);
   const [cancelRequestOpen, setCancelRequestOpen] = useState<boolean>(false);
   const [orderDetailsOpen, setOrderDetailsOpen] = useState<boolean>(false);
+  const [checkoutDetailsOpen, setCheckoutDetailsOpen] =
+    useState<boolean>(false);
   const [trackingModalOpen, setTrackingModalOpen] = useState<boolean>(false);
   const [remarksModalOpen, setRemarksModalOpen] = useState<boolean>(false);
   const [actionConfirmationModalOpen, setActionConfirmationModalOpen] =
@@ -72,12 +94,13 @@ const OrderManagement = () => {
     onAfterConfirm?: () => void;
     customConfirm?: () => Promise<void>;
   } | null>(null);
-  const TABS: Array<{ key: OrdersCategory; label: string }> = [
+  const TABS: Array<{ key: AdminTab; label: string }> = [
     { key: "pending_action", label: "Pending Action" },
     { key: "ongoing", label: "Ongoing" },
     { key: "resolved", label: "Resolved" },
     { key: "failed", label: "Failed" },
     { key: "all", label: "All Orders" },
+    { key: "incomplete_checkouts", label: "Unfinished Checkouts" },
   ];
 
   const activeTabIndex = TABS.findIndex((t) => t.key === activeTab);
@@ -85,10 +108,35 @@ const OrderManagement = () => {
   useEffect(() => {
     if (!user || user.role !== "admin") {
       navigate("/");
+      return;
+    }
+    if (activeTab === "incomplete_checkouts") {
+      dispatch(
+        fetchIncompleteCheckouts({
+          status: "valid",
+          page: validCheckoutPage,
+          limit,
+        })
+      );
+      dispatch(
+        fetchIncompleteCheckouts({
+          status: "expired",
+          page: expiredCheckoutPage,
+          limit,
+        })
+      );
     } else {
       dispatch(fetchAllOrders({ category: activeTab, page, limit }));
     }
-  }, [dispatch, user, activeTab, navigate, page]);
+  }, [
+    dispatch,
+    user,
+    activeTab,
+    navigate,
+    validCheckoutPage,
+    expiredCheckoutPage,
+    page,
+  ]);
 
   const handleGenerateLabel = (order: Order) => {
     dispatch(generateShippingLabel({ id: order._id, orderId: order.orderId }));
@@ -103,6 +151,15 @@ const OrderManagement = () => {
   const handleCloseOrderDetails = () => {
     setOrderDetailsOpen(false);
     setSelectedOrderId(null);
+  };
+
+  const handleOpenCheckoutDetails = async (checkoutId: string) => {
+    setCheckoutDetailsOpen(true);
+    dispatch(fetchAdminCheckoutById({ checkoutId: checkoutId }));
+  };
+
+  const handleCloseCheckoutDetails = async () => {
+    setCheckoutDetailsOpen(false);
   };
 
   const handleOpenPaymentProof = (order: Order) => {
@@ -169,7 +226,7 @@ const OrderManagement = () => {
     title: string,
     message: string,
     onAfterConfirm?: () => void,
-    customConfirm?: () => Promise<void>,
+    customConfirm?: () => Promise<void>
   ) => {
     setPendingAction({
       orderId,
@@ -189,6 +246,7 @@ const OrderManagement = () => {
 
   const handleConfirmActionConfirmation = async () => {
     if (!pendingAction) return;
+    if (activeTab === "incomplete_checkouts") return;
     if (pendingAction.customConfirm) {
       await pendingAction.customConfirm();
     } else {
@@ -196,7 +254,7 @@ const OrderManagement = () => {
         updateOrderStatus({
           id: pendingAction.orderId,
           status: pendingAction.targetStatus,
-        }),
+        })
       ).unwrap();
     }
     pendingAction.onAfterConfirm?.();
@@ -245,7 +303,7 @@ const OrderManagement = () => {
                   order._id,
                   "pending",
                   "Mark as Pending",
-                  `Are you sure you want to mark this order as **Pending**?`,
+                  `Are you sure you want to mark this order as **Pending**?`
                 );
               }}
               className={`${baseBtn} ${actionBtn.neutralOutline}`}
@@ -288,7 +346,7 @@ const OrderManagement = () => {
                   order._id,
                   "delivered",
                   "Mark as Delivered",
-                  `Are you sure you want to mark this order as **Delivered**?\nThe user will be notified that the order has arrived.`,
+                  `Are you sure you want to mark this order as **Delivered**?\nThe user will be notified that the order has arrived.`
                 );
               }}
               className={`${baseBtn} ${actionBtn.success}`}
@@ -313,7 +371,7 @@ const OrderManagement = () => {
                   "returned",
                   "Mark as Returned",
                   `Are you sure you want to mark this order as **Returned**?`,
-                  () => handleOpenRemarksModal(order),
+                  () => handleOpenRemarksModal(order)
                 );
               }}
               className={`${baseBtn} ${actionBtn.neutralOutline}`}
@@ -327,7 +385,7 @@ const OrderManagement = () => {
                   "refunded",
                   "Mark as Refunded",
                   `Are you sure you want to mark this order as **Refunded**?`,
-                  () => handleOpenRemarksModal(order),
+                  () => handleOpenRemarksModal(order)
                 );
               }}
               className={`${baseBtn} ${actionBtn.dangerOutline}`}
@@ -341,7 +399,7 @@ const OrderManagement = () => {
                   "exchanged",
                   "Mark as Exchanged",
                   `Are you sure you want to mark this order as **Exchanged**?`,
-                  () => handleOpenRemarksModal(order),
+                  () => handleOpenRemarksModal(order)
                 );
               }}
               className={`${baseBtn} ${actionBtn.infoOutline}`}
@@ -366,9 +424,18 @@ const OrderManagement = () => {
     }
   };
 
+  const loading =
+    activeTab === "incomplete_checkouts"
+      ? validLoading || expiredLoading
+      : orderLoading;
+  const error =
+    activeTab === "incomplete_checkouts" ? checkoutError : orderError;
+
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error: {error}</p>;
 
+  // TODO: Refactor this out of this .jsx file
+  // TODO: Use this component for unfinished checkouts page as well
   const MobileOrderCard = ({
     order,
     onView,
@@ -437,7 +504,7 @@ const OrderManagement = () => {
               "processing",
               "Accept Payment Proof",
               `Are you sure you want to accept this payment proof?\nThis will mark the order as **Processing**.`,
-              handleClosePaymentProof,
+              handleClosePaymentProof
             )
           }
           onReject={() =>
@@ -446,10 +513,10 @@ const OrderManagement = () => {
               "rejected",
               "Reject Payment Proof",
               `Are you sure you want to reject this payment proof?\nThis will mark the order as **Rejected**.`,
-              handleClosePaymentProof,
+              handleClosePaymentProof
             )
           }
-          loading={loading}
+          loading={orderLoading}
         />
       )}
       {selectedCancelRequest && cancelRequestOpen && selectedOrderId && (
@@ -463,7 +530,7 @@ const OrderManagement = () => {
               "cancelled",
               "Accept Cancel Request",
               `Are you sure you want to accept this cancel request?\nThis will mark the order as **Cancelled**.`,
-              handleCloseCancelRequest,
+              handleCloseCancelRequest
             )
           }
           onReject={() =>
@@ -472,10 +539,10 @@ const OrderManagement = () => {
               "pending",
               "Reject Cancel Request",
               `Are you sure you want to reject this cancel request?\nThis will revert the order status to **Pending**.`,
-              handleCloseCancelRequest,
+              handleCloseCancelRequest
             )
           }
-          loading={loading}
+          loading={orderLoading}
         />
       )}
       {orderDetails && orderDetailsOpen && (
@@ -485,7 +552,7 @@ const OrderManagement = () => {
           loading={orderDetailsLoading}
           onSaveAdminRemarks={async (orderId, adminRemarks) => {
             await dispatch(
-              updateAdminRemarks({ id: orderId, adminRemarks }),
+              updateAdminRemarks({ id: orderId, adminRemarks })
             ).unwrap();
           }}
         />
@@ -509,17 +576,16 @@ const OrderManagement = () => {
               message,
               handleCloseTrackingModal, // after confirm cleanup
               async () => {
-                // custom confirm logic
                 await dispatch(
-                  updateTrackingLink({ id: selectedOrderId, trackingLink }),
+                  updateTrackingLink({ id: selectedOrderId, trackingLink })
                 ).unwrap();
                 await dispatch(
                   updateOrderStatus({
                     id: selectedOrderId,
                     status: "shipping",
-                  }),
+                  })
                 ).unwrap();
-              },
+              }
             );
           }}
         />
@@ -533,9 +599,11 @@ const OrderManagement = () => {
               updateAdminRemarks({
                 id: selectedOrderId,
                 adminRemarks: adminRemarks,
-              }),
+              })
             ).unwrap();
             handleCloseRemarksModal();
+
+            if (activeTab === "incomplete_checkouts") return;
             dispatch(fetchAllOrders({ category: activeTab, page, limit }));
           }}
         />
@@ -547,6 +615,14 @@ const OrderManagement = () => {
           title={pendingAction.title}
           message={pendingAction.message}
           loading={loading}
+        />
+      )}
+
+      {checkoutDetailsOpen && (
+        <CheckoutDetailsModal
+          onClose={handleCloseCheckoutDetails}
+          checkoutDetails={checkoutDetails}
+          loading={checkoutDetailsLoading}
         />
       )}
 
@@ -599,113 +675,196 @@ const OrderManagement = () => {
         </Tabs>
       </Box>
 
-      {isMobile ? (
-        <div className="space-y-3">
-          {orders.length > 0 ? (
-            orders.map((order) => (
-              <MobileOrderCard
-                key={order._id}
-                order={order}
-                onView={() => handleOpenOrderDetails(order._id)}
+      {activeTab === "incomplete_checkouts" ? (
+        <div className="space-y-10">
+          {/* valid checkouts */}
+          <section className="space-y-4">
+            {validLoading ? (
+              <div className="p-4 text-gray-500">
+                Loading valid checkouts...
+              </div>
+            ) : (
+              <CheckoutsTable
+                title="Valid Incomplete Checkouts"
+                data={validCheckouts}
+                emptyText="No valid incomplete checkouts found"
+                onViewDetails={handleOpenCheckoutDetails}
               />
-            ))
-          ) : (
-            <p className="text-center text-gray-500 py-6">No Orders found</p>
-          )}
+            )}
+
+            <div className="flex items-center justify-end gap-3">
+              <button
+                disabled={validLoading || validCheckoutPage <= 1}
+                onClick={() => setValidCheckoutPage((p) => p - 1)}
+                className="px-3 py-2 border rounded disabled:opacity-50"
+              >
+                Prev
+              </button>
+              <span className="text-sm text-slate-600">
+                Page {validCheckoutPage} / {Math.max(1, validTotalPages)}
+              </span>
+              <button
+                disabled={validLoading || validCheckoutPage >= validTotalPages}
+                onClick={() => setValidCheckoutPage((p) => p + 1)}
+                className="px-3 py-2 border rounded disabled:opacity-50"
+              >
+                Next
+              </button>
+            </div>
+          </section>
+
+          {/* expired checkouts */}
+          <section className="space-y-4">
+            {expiredLoading ? (
+              <div className="p-4 text-gray-500">
+                Loading expired checkouts...
+              </div>
+            ) : (
+              <CheckoutsTable
+                title="Expired Incomplete Checkouts"
+                data={expiredCheckouts}
+                emptyText="No expired incomplete checkouts found"
+                onViewDetails={handleOpenCheckoutDetails}
+              />
+            )}
+
+            <div className="flex items-center justify-end gap-3">
+              <button
+                disabled={expiredLoading || expiredCheckoutPage <= 1}
+                onClick={() => setExpiredCheckoutPage((p) => p - 1)}
+                className="px-3 py-2 border rounded disabled:opacity-50"
+              >
+                Prev
+              </button>
+              <span className="text-sm text-slate-600">
+                Page {expiredCheckoutPage} / {Math.max(1, expiredTotalPages)}
+              </span>
+              <button
+                disabled={
+                  expiredLoading || expiredCheckoutPage >= expiredTotalPages
+                }
+                onClick={() => setExpiredCheckoutPage((p) => p + 1)}
+                className="px-3 py-2 border rounded disabled:opacity-50"
+              >
+                Next
+              </button>
+            </div>
+          </section>
         </div>
       ) : (
-        <div className="overflow-x-auto shadow-md sm:rounded-lg">
-          <table className="min-w-full text-left text-gray-500">
-            <thead className="bg-gray-100 text-xs uppercase text-gray-700">
-              <tr>
-                <th className="py-3 px-4">Order ID</th>
-                <th className="py-3 px-4">Customer</th>
-                <th className="py-3 px-4">Created At</th>
-                <th className="py-3 px-4">Total Price (IDR)</th>
-                <th className="py-3 px-4">Status</th>
-                <th className="py-3 px-4">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
+        <>
+          {isMobile ? (
+            <div className="space-y-3">
               {orders.length > 0 ? (
                 orders.map((order) => (
-                  <tr key={order._id} className="border-b">
-                    <td className="py-4 px-4 font-medium text-gray-900 whitespace-nowrap">
-                      #{order.orderId}
-                    </td>
-                    <td className="p-4">
-                      {typeof order.user === "string"
-                        ? order.user
-                        : order.user.name}
-                    </td>
-                    <td className="p-4">
-                      {new Date(order.createdAt).toLocaleString()}
-                    </td>
-                    <td className="p-4">
-                      {order.totalPrice.toLocaleString("id-ID")}
-                    </td>
-                    <td className="p-4">
-                      <div className="flex flex-col items-start mt-4 sm:mt-0">
-                        {(() => {
-                          const badge = getStatusBadge(order.status);
-                          return (
-                            <span
-                              className={`${badge.className} inline-flex items-center rounded-full px-2 py-1 text-xs sm:text-sm font-medium`}
-                            >
-                              {badge.label}
-                            </span>
-                          );
-                        })()}
-                      </div>
-                    </td>
-                    <td className="p-4">
-                      <div className="flex flex-wrap gap-2">
-                        {renderActionButtons(order)}
-                        {/* Details button */}
-                        <button
-                          type="button"
-                          onClick={() => handleOpenOrderDetails(order._id)}
-                          className="inline-flex h-10 w-10 items-center justify-center rounded hover:bg-gray-100 cursor-pointer ml-auto"
-                          title="View details"
-                        >
-                          <FaEye className="h-6 w-6" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
+                  <MobileOrderCard
+                    key={order._id}
+                    order={order}
+                    onView={() => handleOpenOrderDetails(order._id)}
+                  />
                 ))
               ) : (
-                <tr>
-                  <td colSpan={5} className="p-4 text-center text-gray-500">
-                    No Orders found
-                  </td>
-                </tr>
+                <p className="text-center text-gray-500 py-6">
+                  No Orders found
+                </p>
               )}
-            </tbody>
-          </table>
-        </div>
+            </div>
+          ) : (
+            <div className="overflow-x-auto shadow-md sm:rounded-lg">
+              <table className="min-w-full text-left text-gray-500">
+                <thead className="bg-gray-100 text-xs uppercase text-gray-700">
+                  <tr>
+                    <th className="py-3 px-4">Order ID</th>
+                    <th className="py-3 px-4">Customer</th>
+                    <th className="py-3 px-4">Created At</th>
+                    <th className="py-3 px-4">Total Price (IDR)</th>
+                    <th className="py-3 px-4">Status</th>
+                    <th className="py-3 px-4">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {orders.length > 0 ? (
+                    orders.map((order) => (
+                      <tr key={order._id} className="border-b">
+                        <td className="py-4 px-4 font-medium text-gray-900 whitespace-nowrap">
+                          #{order.orderId}
+                        </td>
+                        <td className="p-4">
+                          {typeof order.user === "string"
+                            ? order.user
+                            : order.user.name}
+                        </td>
+                        <td className="p-4">
+                          {new Date(order.createdAt).toLocaleString()}
+                        </td>
+                        <td className="p-4">
+                          {order.totalPrice.toLocaleString("id-ID")}
+                        </td>
+                        <td className="p-4">
+                          <div className="flex flex-col items-start mt-4 sm:mt-0">
+                            {(() => {
+                              const badge = getStatusBadge(order.status);
+                              return (
+                                <span
+                                  className={`${badge.className} inline-flex items-center rounded-full px-2 py-1 text-xs sm:text-sm font-medium`}
+                                >
+                                  {badge.label}
+                                </span>
+                              );
+                            })()}
+                          </div>
+                        </td>
+                        <td className="p-4">
+                          <div className="flex flex-wrap gap-2">
+                            {renderActionButtons(order)}
+                            {/* Details button */}
+                            <button
+                              type="button"
+                              onClick={() => handleOpenOrderDetails(order._id)}
+                              className="inline-flex h-10 w-10 items-center justify-center rounded hover:bg-gray-100 cursor-pointer ml-auto"
+                              title="View details"
+                            >
+                              <FaEye className="h-6 w-6" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={5} className="p-4 text-center text-gray-500">
+                        No Orders found
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          <div className="flex items-center justify-end gap-3 mt-4">
+            <button
+              disabled={loading || page <= 1}
+              onClick={() => setPage((p) => p - 1)}
+              className="px-3 py-2 border rounded disabled:opacity-50"
+            >
+              Prev
+            </button>
+
+            <span className="text-sm text-slate-600">
+              Page {page} / {Math.max(1, orderTotalPages)}
+            </span>
+
+            <button
+              disabled={orderLoading || page >= orderTotalPages}
+              onClick={() => setPage((p) => p + 1)}
+              className="px-3 py-2 border rounded disabled:opacity-50"
+            >
+              Next
+            </button>
+          </div>
+        </>
       )}
-      <div className="flex items-center justify-end gap-3 mt-4">
-        <button
-          disabled={loading || page <= 1}
-          onClick={() => setPage((p) => p - 1)}
-          className="px-3 py-2 border rounded disabled:opacity-50"
-        >
-          Prev
-        </button>
-
-        <span className="text-sm text-slate-600">
-          Page {page} / {totalPages}
-        </span>
-
-        <button
-          disabled={loading || page >= totalPages}
-          onClick={() => setPage((p) => p + 1)}
-          className="px-3 py-2 border rounded disabled:opacity-50"
-        >
-          Next
-        </button>
-      </div>
     </div>
   );
 };
