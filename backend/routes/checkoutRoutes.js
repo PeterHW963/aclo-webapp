@@ -107,7 +107,10 @@ router.post("/", protect, async (req, res) => {
             cartId,
             cartSnapshotHash,
             checkoutItems: checkoutItemsWithWeight,
-            shippingDetails,
+            shippingDetails: {
+                ...shippingDetails,
+                email: req.user.email, // add email
+            },
             paymentMethod,
             totalPrice,
             noteToSeller: noteToSeller || "",
@@ -117,7 +120,7 @@ router.post("/", protect, async (req, res) => {
             shippingCourier: shippingCourier || "",
             shippingDuration: shippingDuration || "",
 
-            isFinalized: true,
+            isFinalized: false,
             finalizedAt: new Date(),
             expiresAt: new Date(Date.now() + CHECKOUT_EXPIRATION_TIME),
         });
@@ -146,7 +149,7 @@ router.post("/:id/submit-proof", protect, async (req, res) => {
 
         await session.withTransaction(async () => {
             const checkout = await Checkout.findById(req.params.id).session(
-                session
+                session,
             );
             if (!checkout) {
                 return res.status(404).json({ message: "checkout not found" });
@@ -186,7 +189,7 @@ router.post("/:id/submit-proof", protect, async (req, res) => {
                         status: "pending",
                     },
                 ],
-                { session }
+                { session },
             ).then((r) => r[0]);
 
             checkout.isFinalized = true;
@@ -194,12 +197,16 @@ router.post("/:id/submit-proof", protect, async (req, res) => {
             await checkout.save({ session });
 
             await Cart.findOneAndDelete({ user: checkout.user }).session(
-                session
+                session,
             );
         });
-        // if (createdOrder) {
-        //     sendEmail(req.user.email, `Order Confirmation #${createdOrder._id}`, `Your order has been placed successfully.`);
-        // }
+        if (createdOrder && req.user.email) {
+            sendEmail(
+                req.user.email,
+                `Order Confirmation #${createdOrder.orderId}`,
+                `Your order with Order ID #${createdOrder.orderId} has been placed successfully.`,
+            );
+        }
         if (res.headersSent) return;
         return res.status(200).json(createdOrder);
     } catch (err) {

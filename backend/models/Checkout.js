@@ -59,6 +59,7 @@ const checkoutSchema = new mongoose.Schema(
         checkoutItems: [checkoutItemSchema],
         shippingDetails: {
             name: { type: String, required: true },
+            email: { type: String, required: true },
             address: { type: String, required: true },
             city: { type: String, required: true },
             postalCode: { type: String, required: true },
@@ -107,6 +108,15 @@ const checkoutSchema = new mongoose.Schema(
             type: Date,
             required: true,
         },
+        // flags to check if a reminder email has been sent
+        reminder3hSentAt: {
+            type: Date,
+            default: null,
+        },
+        reminder1hSentAt: {
+            type: Date,
+            default: null,
+        },
         isFinalized: {
             type: Boolean,
             default: false,
@@ -116,7 +126,6 @@ const checkoutSchema = new mongoose.Schema(
             type: Date,
             required: false,
         },
-
 
         // ------ UNUSED FOR NOW ---------
         isPaid: {
@@ -136,5 +145,9 @@ const checkoutSchema = new mongoose.Schema(
     },
     { timestamps: true },
 );
+
+checkoutSchema.index({ expiresAt: 1, isFinalized: 1 });
+checkoutSchema.index({ reminder3hSentAt: 1, createdAt: 1 });
+checkoutSchema.index({ reminder1hSentAt: 1, expiresAt: 1 });
 
 module.exports = mongoose.model("Checkout", checkoutSchema);
