@@ -28,9 +28,10 @@ module.exports = async (req, res) => {
 
         const now = new Date();
         // check for whether checkout expires in 3h and 1h
-        const in3h = new Date(now.getTime() + 3 * 60 * 60 * 1000);
-        const in1h = new Date(now.getTime() + 1 * 60 * 60 * 1000);
-        // const in3h = new Date(now.getTime() + 5 * 60 * 60 * 1000); // testing 5h prior
+        // const in3h = new Date(now.getTime() + 3 * 60 * 60 * 1000);
+        // const in1h = new Date(now.getTime() + 1 * 60 * 60 * 1000);
+        const in3h = new Date(now.getTime() + 5.9 * 60 * 60 * 1000); // testing 5h 54m prior
+        const in1h = new Date(now.getTime() + 5.75 * 60 * 60 * 1000);
 
         console.log("in3h: ", in3h.toISOString());
         console.log("in1h: ", in1h.toISOString());
