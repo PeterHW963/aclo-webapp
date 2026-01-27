@@ -1,3 +1,4 @@
+require("../../models/User");
 const Checkout = require("../../models/Checkout");
 const { sendEmail } = require("../../utils/emailService");
 const connectDB = require("../../config/db");
@@ -13,7 +14,6 @@ function cronAuth(req) {
 // @desc cron job to check if any checkout reminders need to be sent out
 // @access Secure
 module.exports = async (req, res) => {
-    console.log("checkout-reminders hit");
     try {
         if (req.method !== "GET") {
             return res.status(405).json({ message: "Method Not Allowed" });
@@ -28,9 +28,12 @@ module.exports = async (req, res) => {
 
         const now = new Date();
         // check for whether checkout expires in 3h and 1h
-        // const in3h = new Date(now.getTime() + 3 * 60 * 60 * 1000);
+        const in3h = new Date(now.getTime() + 3 * 60 * 60 * 1000);
         const in1h = new Date(now.getTime() + 1 * 60 * 60 * 1000);
-        const in3h = new Date(now.getTime() + 5 * 60 * 60 * 1000); // testing 5h prior
+        // const in3h = new Date(now.getTime() + 5 * 60 * 60 * 1000); // testing 5h prior
+
+        console.log("in3h: ", in3h.toISOString());
+        console.log("in1h: ", in1h.toISOString());
 
         const threeHourRecipients = await Checkout.find({
             isFinalized: false,
