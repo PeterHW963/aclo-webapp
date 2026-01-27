@@ -42,6 +42,7 @@ module.exports = async (req, res) => {
             .sort({ expiresAt: 1 })
             .limit(200);
 
+        console.log("3h recipients: ", threeHourRecipients);
         let sent3h = 0;
         for (const checkout of threeHourRecipients) {
             const locked = await Checkout.findOneAndUpdate(
@@ -70,7 +71,7 @@ module.exports = async (req, res) => {
         })
             .populate("user", "name email")
             .limit(200);
-
+        console.log("1h recipients: ", oneHourRecipients);
         let sent1h = 0;
         for (const checkout of oneHourRecipients) {
             const locked = await Checkout.findOneAndUpdate(
