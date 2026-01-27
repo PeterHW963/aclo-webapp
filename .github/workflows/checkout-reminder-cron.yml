@@ -1,0 +1,16 @@
+name: Checkout Reminder Cron
+
+on:
+  schedule:
+    - cron: "*/10 * * * *" # every 10 mins
+  workflow_dispatch:
+
+jobs:
+  trigger:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call Vercel cron endpoint
+        run: |
+          curl -sS -X GET "https://aclo-webapp.vercel.app/api/cron/checkout-reminders" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            --fail
