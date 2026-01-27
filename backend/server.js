@@ -60,7 +60,7 @@ app.get("/api/test-email", async (req, res) => {
         const result = await sendEmail(
             "peterhadiwijaya963@gmail.com", // Replace with your actual target email
             "Test Button Clicked",
-            "The button on the login page works!"
+            "The button on the login page works!",
         );
         res.json(result);
     } catch (error) {
