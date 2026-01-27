@@ -1,9 +1,6 @@
-const express = require("express");
-const Checkout = require("../models/Checkout");
-const { sendEmail } = require("../utils/emailService");
-const connectDB = require("../config/db");
-
-const router = express.Router();
+const Checkout = require("../../models/Checkout");
+const { sendEmail } = require("../../utils/emailService");
+const connectDB = require("../../config/db");
 
 function cronAuth(req, res) {
     // returns a boolean of whether caller is authorized
@@ -15,8 +12,11 @@ function cronAuth(req, res) {
 // @router GET /api/cron/checkout-reminders
 // @desc cron job to check if any checkout reminders need to be sent out
 // @access Secure
-router.get("/checkout-reminders", async (req, res) => {
+module.exports = async (req, res) => {
     try {
+        if (req.method !== "GET") {
+            return res.status(405).json({ message: "Method Not Allowed" });
+        }
         // secure the endpoint
         if (!cronAuth(req, res)) {
             return res.status(401).json({ message: "Unauthorized" });
@@ -37,6 +37,7 @@ router.get("/checkout-reminders", async (req, res) => {
             reminder3hSentAt: null,
         })
             .populate("user", "name email")
+            .sort({ expiresAt: 1 })
             .limit(200);
 
         let sent3h = 0;
@@ -105,6 +106,4 @@ router.get("/checkout-reminders", async (req, res) => {
         console.error("cron checkout error:", err);
         return res.status(500).json({ message: "Server Error" });
     }
-});
-
-module.exports = router;
+};
