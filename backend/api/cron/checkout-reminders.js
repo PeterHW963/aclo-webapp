@@ -28,13 +28,8 @@ module.exports = async (req, res) => {
 
         const now = new Date();
         // check for whether checkout expires in 3h and 1h
-        // const in3h = new Date(now.getTime() + 3 * 60 * 60 * 1000);
-        // const in1h = new Date(now.getTime() + 1 * 60 * 60 * 1000);
-        const in3h = new Date(now.getTime() + 5.9 * 60 * 60 * 1000); // testing 5h 54m prior
-        const in1h = new Date(now.getTime() + 5.75 * 60 * 60 * 1000);
-
-        console.log("in3h: ", in3h.toISOString());
-        console.log("in1h: ", in1h.toISOString());
+        const in3h = new Date(now.getTime() + 3 * 60 * 60 * 1000);
+        const in1h = new Date(now.getTime() + 1 * 60 * 60 * 1000);
 
         const threeHourRecipients = await Checkout.find({
             isFinalized: false,
@@ -46,7 +41,6 @@ module.exports = async (req, res) => {
             .sort({ expiresAt: 1 })
             .limit(200);
 
-        console.log("3h recipients: ", threeHourRecipients);
         let sent3h = 0;
         for (const checkout of threeHourRecipients) {
             const locked = await Checkout.findOneAndUpdate(
@@ -74,7 +68,6 @@ module.exports = async (req, res) => {
         })
             .populate("user", "name email")
             .limit(200);
-        console.log("1h recipients: ", oneHourRecipients);
         let sent1h = 0;
         for (const checkout of oneHourRecipients) {
             const locked = await Checkout.findOneAndUpdate(
