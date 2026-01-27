@@ -24,6 +24,8 @@ const productAdminRoutes = require("./routes/admin/productAdminRoutes");
 const orderAdminRoutes = require("./routes/admin/orderAdminRoutes");
 const checkoutAdminRoutes = require("./routes/admin/checkoutAdminRoutes");
 
+const cronRoutes = require("./routes/cronRoutes");
+
 const { sendEmail } = require("./utils/emailService");
 
 const app = express();
@@ -60,7 +62,7 @@ app.get("/api/test-email", async (req, res) => {
         const result = await sendEmail(
             "peterhadiwijaya963@gmail.com", // Replace with your actual target email
             "Test Button Clicked",
-            "The button on the login page works!"
+            "The button on the login page works!",
         );
         res.json(result);
     } catch (error) {
@@ -73,6 +75,8 @@ app.use("/api/admin/users", adminRoutes);
 app.use("/api/admin/products", productAdminRoutes);
 app.use("/api/admin/orders", orderAdminRoutes);
 app.use("/api/admin/checkouts", checkoutAdminRoutes);
+
+app.use("/api/cron", cronRoutes);
 
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);

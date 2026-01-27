@@ -123,6 +123,7 @@ router.post("/", protect, async (req, res) => {
             isFinalized: false,
             finalizedAt: new Date(),
             expiresAt: new Date(Date.now() + CHECKOUT_EXPIRATION_TIME),
+            isExpired: false,
         });
 
         res.status(201).json(createdCheckout);

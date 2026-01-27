@@ -1,6 +1,13 @@
 {
-	"version": 2,
-	"rewrites": [
+    "$schema": "https://openapi.vercel.sh/vercel.json",
+    "version": 2,
+    "crons": [
+        {
+            "path": "/api/cron/checkout-reminders",
+            "schedule": "0 * * * *"
+        }
+    ],
+    "rewrites": [
         {
             "source": "/(.*)",
             "destination": "/server.js"

@@ -59,7 +59,6 @@ const checkoutSchema = new mongoose.Schema(
         checkoutItems: [checkoutItemSchema],
         shippingDetails: {
             name: { type: String, required: true },
-            email: { type: String, required: true },
             address: { type: String, required: true },
             city: { type: String, required: true },
             postalCode: { type: String, required: true },
@@ -107,6 +106,10 @@ const checkoutSchema = new mongoose.Schema(
         expiresAt: {
             type: Date,
             required: true,
+        },
+        isExpired: {
+            type: Boolean,
+            default: false,
         },
         // flags to check if a reminder email has been sent
         reminder3hSentAt: {

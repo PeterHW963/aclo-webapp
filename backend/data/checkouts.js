@@ -12,7 +12,6 @@ const checkouts = [
 
         shippingDetails: {
             name: "Admin User",
-            email: "admin@example.com",
             address: "Admin Street 123",
             city: "Jakarta",
             postalCode: "11234",
@@ -36,8 +35,8 @@ const checkouts = [
         totalPrice: 621500,
         isPaid: false,
 
-        isFinalized: true,
-        finalizedAt: new Date(),
+        isFinalized: false,
+        finalizedAt: null,
     },
 ];
 

@@ -40,6 +40,7 @@ export interface Checkout {
   shippingCourier?: string;
   shippingDuration?: string;
   expiresAt: string;
+  isExpired: boolean;
   isFinalized: boolean; // switch to true when user is done placing order
   finalizedAt?: string;
   createdAt: string;
