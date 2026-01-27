@@ -58,7 +58,7 @@ module.exports = async (req, res) => {
             if (!locked) continue;
 
             await sendEmail({
-                userEmail: checkout.user.email,
+                to: checkout.user.email,
                 subject:
                     "Reminder: Your checkout will expire in less than 3 hours",
                 text: `Hi ${checkout.user.name}, your checkout with ACLOKids will expire at ${locked.expiresAt.toISOString()}. Please complete your checkout to confirm your order.`,
