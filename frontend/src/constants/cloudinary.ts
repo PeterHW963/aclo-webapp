@@ -16,26 +16,32 @@ export const assets = {
     {
       publicId: "landing_independence_carousel_01_acfvtx",
       alt: "Toddler shaping dough using ACLO learning tower at the counter.",
+      caption: "Help Cook",
     },
     {
       publicId: "landing_independence_carousel_02_kp6n9m",
       alt: "Parent helping a toddler to wash hand at the sink with a learning tower.",
+      caption: "Wash Hands",
     },
     {
       publicId: "landing_independence_carousel_03_m9xdow",
       alt: "Child reading a book while sitting on ACLO learning tower.",
+      caption: "Read Books",
     },
     {
       publicId: "landing_independence_carousel_04_yopkfe",
       alt: "Toddler reaching up using ACLO learning tower.",
+      caption: "Reach Up",
     },
     {
       publicId: "landing_independence_carousel_05_ckc0bu",
       alt: "Toddler drinking from a cup while standing on a learning tower.",
+      caption: "Drink Milk",
     },
     {
       publicId: "landing_independence_carousel_06_1_pfvtbg",
       alt: "Toddler brushing teeth at the counter on ACLO learning tower.",
+      caption: "Brush Teeth",
     },
   ] as const,
 
