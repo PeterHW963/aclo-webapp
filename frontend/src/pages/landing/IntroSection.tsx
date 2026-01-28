@@ -16,11 +16,11 @@ const IntroSection = () => {
 
           {/* text */}
           <div className="text-ink mx-auto w-full max-w-md md:max-w-none md:mx-0">
-            <h2 className="text-acloblue font-semibold leading-tight text-2xl sm:text-3xl md:text-3xl">
+            <h2 className="text-acloblue font-semibold leading-tight text-3xl sm:text-4xl md:text-4xl">
               The little moments that shape them
             </h2>
 
-            <div className="mt-6 md:mt-4 space-y-6 text-sm xl:text-sm leading-relaxed text-justify">
+            <div className="mt-6 md:mt-4 space-y-6 text-md md:text-lg leading-relaxed text-justify">
               <p>
                 When little ones start getting curious, many parents feel unsure
                 about letting them help in their daily routines.
