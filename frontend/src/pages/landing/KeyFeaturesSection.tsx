@@ -2,7 +2,6 @@ import { Link } from "react-router-dom";
 
 import slimFoldable from "../../assets/icons/icon-slim-foldable.svg";
 import lightweightPortable from "../../assets/icons/icon-lightweight-portable.svg";
-import montessoriApproved from "../../assets/icons/icon-montessori-approved.svg";
 import strong from "../../assets/icons/icon-strong.svg";
 import durableSafe from "../../assets/icons/icon-durable-safe.svg";
 import adjustableHeights from "../../assets/icons/icon-adjustable-heights.svg";
