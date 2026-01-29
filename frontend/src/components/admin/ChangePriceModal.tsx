@@ -6,7 +6,7 @@ type VariantOption = {
   adminName: string;
   price: number;
   discountPrice?: number | null;
-  countInStock?: number;
+  isAvailable?: boolean;
   isDefault?: boolean;
 };
 
@@ -40,7 +40,7 @@ const ChangePriceModal = ({
 
   const selectedVariant = useMemo(
     () => variants.find((v) => v._id === selectedVariantId),
-    [variants, selectedVariantId]
+    [variants, selectedVariantId],
   );
 
   const [priceInput, setPriceInput] = useState<string>("");
@@ -60,12 +60,12 @@ const ChangePriceModal = ({
     if (!selectedVariant) return;
 
     setPriceInput(
-      selectedVariant.price != null ? String(selectedVariant.price) : ""
+      selectedVariant.price != null ? String(selectedVariant.price) : "",
     );
     setDiscountInput(
       selectedVariant.discountPrice != null
         ? String(selectedVariant.discountPrice)
-        : ""
+        : "",
     );
   }, [selectedVariantId, selectedVariant]);
 
@@ -127,15 +127,16 @@ const ChangePriceModal = ({
             onChange={(e) => setSelectedVariantId(e.target.value)}
             className="w-full rounded-xl border border-gray-200 px-3 py-2 bg-white focus:outline-none focus:ring-4 focus:ring-acloblue/20 disabled:opacity-60"
           >
-            {variants.map((v) => (
-              <option key={v._id} value={v._id}>
-                {formatVariantLabel(v)}
-                {v.isDefault ? " • Default" : ""}{" "}
-                {typeof v.countInStock === "number"
-                  ? `(Stock: ${v.countInStock})`
-                  : ""}
-              </option>
-            ))}
+            {variants.map((v) => {
+              const available = v.isAvailable ?? true;
+              return (
+                <option key={v._id} value={v._id}>
+                  {formatVariantLabel(v)}
+                  {v.isDefault ? " • Default" : ""}
+                  {available ? " • Available" : " • Unavailable"}
+                </option>
+              );
+            })}
           </select>
         </div>
 

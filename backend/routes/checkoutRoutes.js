@@ -248,28 +248,6 @@ router.post("/:id/submit-proof", protect, async (req, res) => {
 //                 return;
 //             }
 
-//             // decrement stock - not needed for now
-//             for (const item of checkout.checkoutItems) {
-//                 const r = await ProductVariant.updateOne(
-//                     {
-//                         _id: item.productVariantId,
-//                         productId: item.productId,
-//                         countInStock: { $gte: item.quantity },
-//                     },
-//                     { $inc: { countInStock: -item.quantity } },
-//                     { session }
-//                 );
-
-//                 if ((r.modifiedCount ?? 0) !== 1) {
-//                     // fail if insufficient stock or variant not found
-//                     res.status(400).json({
-//                         message: "Insufficient stock while finalizing.",
-//                         productVariantId: item.productVariantId,
-//                     });
-//                     return;
-//                 }
-//             }
-
 //             // Create final order
 //             finalOrder = await Order.create(
 //                 [

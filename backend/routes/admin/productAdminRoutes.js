@@ -34,7 +34,7 @@ router.post("/", protect, admin, async (req, res) => {
             price,
             discountPrice,
             sku,
-            countInStock,
+            isAvailable,
             category,
             options,
             images,
@@ -59,7 +59,7 @@ router.post("/", protect, admin, async (req, res) => {
             sku,
             price,
             discountPrice,
-            countInStock,
+            isAvailable,
             category,
             // put default values for now, need to cartesian product next time if needed
             color: options?.color?.[0],
@@ -86,7 +86,7 @@ router.patch("/:id/variants/:variantId", protect, admin, async (req, res) => {
             "sku",
             "price",
             "discountPrice",
-            "countInStock",
+            "isAvailable",
             "category",
             "color",
             "variant",
@@ -99,7 +99,7 @@ router.patch("/:id/variants/:variantId", protect, admin, async (req, res) => {
         const pv = await ProductVariant.findOneAndUpdate(
             { _id: req.params.variantId, productId: req.params.id },
             { $set: update },
-            { new: true }
+            { new: true },
         );
 
         if (!pv)
@@ -137,7 +137,7 @@ router.patch("/:id", protect, admin, async (req, res) => {
     const product = await Product.findByIdAndUpdate(
         req.params.id,
         { $set: update },
-        { new: true }
+        { new: true },
     );
     if (!product) return res.status(404).json({ message: "Product not found" });
 
@@ -152,7 +152,7 @@ router.delete("/:id", protect, admin, async (req, res) => {
     try {
         await session.withTransaction(async () => {
             const product = await Product.findById(req.params.id).session(
-                session
+                session,
             );
             if (!product) {
                 res.status(404).json({ message: "Product not found" });
@@ -161,7 +161,7 @@ router.delete("/:id", protect, admin, async (req, res) => {
 
             // delete all variants first
             await ProductVariant.deleteMany({ productId: product._id }).session(
-                session
+                session,
             );
 
             // delete the product
@@ -228,7 +228,7 @@ router.delete("/:id/variants/:variantId", protect, admin, async (req, res) => {
                 await Product.updateOne(
                     { _id: id },
                     { $pull: pullUpdate },
-                    { session }
+                    { session },
                 );
             }
         });

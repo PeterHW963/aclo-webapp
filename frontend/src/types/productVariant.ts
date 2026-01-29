@@ -8,7 +8,7 @@ export interface ProductVariant {
   name: string;
   price: number;
   discountPrice?: number | null;
-  countInStock: number;
+  isAvailable: boolean;
   category: ProductCategory;
   // option picks for this variant
   color?: string;
@@ -27,7 +27,7 @@ export interface CreateProductVariantPayload {
   name: string;
   price: number;
   discountPrice?: number;
-  countInStock?: number;
+  isAvailable?: boolean;
   category: ProductCategory;
   color?: string;
   variant?: string;
