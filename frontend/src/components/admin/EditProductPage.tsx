@@ -199,6 +199,11 @@ const EditProductPage = () => {
   ) => {
     const { name, value } = e.target;
     setProductVariantData((prev) => {
+      // checkbox: isAvailable
+      if (name === "isAvailable" && e.target instanceof HTMLInputElement) {
+        return { ...prev, isAvailable: e.target.checked };
+      }
+
       // special case: discountPrice empty => null
       if (name === "discountPrice") {
         return {
@@ -544,7 +549,9 @@ const EditProductPage = () => {
           </div>
           {/* Available */}
           <div className="mb-6">
-            <label className="block font-semibold mb-2">Availability</label>
+            <label className="block font-semibold mb-2">
+              Variant Availability
+            </label>
 
             <div className="flex items-center gap-3">
               <input
