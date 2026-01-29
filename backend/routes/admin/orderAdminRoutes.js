@@ -4,7 +4,10 @@ const { protect, admin } = require("../../middleware/authMiddleware");
 const {
     generateShippingLabelPDF,
 } = require("../../utils/generateShippingLabel");
-const { sendOrderStatusEmail } = require("../../utils/emailService");
+const {
+    sendOrderStatusEmail,
+    sendTrackingLinkChangeEmail,
+} = require("../../utils/emailService");
 
 const mongoose = require("mongoose");
 
@@ -123,12 +126,25 @@ router.put("/:id/trackingLink", protect, admin, async (req, res) => {
     try {
         const { trackingLink } = req.body;
 
-        const order = await findOrderByIdOrOrderId(req.params.id);
+        const order = await findOrderByIdOrOrderId(req.params.id).populate(
+            "user",
+            "name email",
+        );
         if (!order) return res.status(404).json({ message: "Order Not Found" });
 
-        order.trackingLink = trackingLink ?? order.trackingLink;
+        const oldLink = (order.trackingLink ?? "").trim();
+        const newLink = (trackingLink ?? "").trim();
 
+        if (!newLink || newLink === oldLink) {
+            return res.json(order); // no change
+        }
+        order.trackingLink = newLink;
         const updatedOrder = await order.save();
+
+        if (oldLink && newLink && oldLink !== newLink) {
+            await sendTrackingLinkChangeEmail(updatedOrder, oldLink, newLink);
+        }
+
         res.json(updatedOrder);
     } catch (error) {
         console.error(error);

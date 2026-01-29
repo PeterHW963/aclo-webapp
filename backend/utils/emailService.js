@@ -29,6 +29,7 @@ const sendEmail = async (userEmail, subject, text) => {
 };
 
 const sendOrderStatusEmail = async (order) => {
+    // handles order status CHANGES. If there are changes to an order that doesn't change a status (e.g. change tracking link, a separate function is used)
     const userEmail = order.user?.email;
     if (!userEmail) return;
 
@@ -44,6 +45,10 @@ const sendOrderStatusEmail = async (order) => {
             subject = `Order #${order.orderId}: Payment rejected`;
             text = `Hi ${order.user.name},\n\nYour payment proof was rejected. Please contact support for further clarification.\n\nThanks!`;
             break;
+        case "shipping":
+            subject = `Order #${order.orderId}: Shipping has been processed`;
+            text = `Hi ${order.user.name},\n\nYour items have been passed to the shipping courier. You may track the order item shipment at this link:\n${order.trackingLink}`;
+            break;
         default:
             return { success: true, skipped: true };
     }
@@ -51,4 +56,28 @@ const sendOrderStatusEmail = async (order) => {
     await sendEmail(userEmail, subject, text);
 };
 
-module.exports = { sendEmail, sendOrderStatusEmail };
+const sendTrackingLinkChangeEmail = async (order, oldLink, newLink) => {
+    const userEmail = order.user?.email;
+    if (!userEmail) return;
+
+    // If no change, skip
+    if ((oldLink ?? "") === (newLink ?? "")) {
+        return { success: true, skipped: true };
+    }
+
+    const subject = `Order #${order.orderId}: Tracking link updated`;
+
+    const text =
+        `Hi ${order.user.name},\n\n` +
+        `There has been an update to your tracking link.\n\n` +
+        `This is your new tracking link:\n${newLink}\n\n` +
+        `Thanks!`;
+
+    return await sendEmail(userEmail, subject, text);
+};
+
+module.exports = {
+    sendEmail,
+    sendOrderStatusEmail,
+    sendTrackingLinkChangeEmail,
+};
