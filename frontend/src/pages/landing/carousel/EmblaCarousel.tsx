@@ -25,12 +25,20 @@ const EmblaCarousel: React.FC<EmblaCarouselProps> = ({ slides, options }) => {
             const url = cloudinaryImageUrl(slide.publicId);
             return (
               <div className="embla__slide" key={slide.publicId}>
-                <div className="embla__slide__inner">
+                <div className="embla__slide__inner embla__media">
                   <img
                     className="embla__slide__img"
                     src={url}
                     alt={slide.alt}
                   />
+
+                  {slide.caption && (
+                    <div className="embla__caption">
+                      <span className="embla__captionText">
+                        {slide.caption}
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
             );

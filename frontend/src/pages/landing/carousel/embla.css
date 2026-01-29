@@ -26,7 +26,9 @@
   width: 100%;
   transform: scale(0.86);
   opacity: 0.45;
-  transition: transform 260ms ease, opacity 260ms ease;
+  transition:
+    transform 260ms ease,
+    opacity 260ms ease;
   will-change: transform;
 }
 
@@ -202,4 +204,36 @@
     width: 36px;
     height: 36px;
   }
+}
+
+.embla__media {
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+}
+
+.embla__caption {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+
+  background: var(--color-acloblue);
+  opacity: 90%;
+  padding: 10px 12px;
+
+  z-index: 2;
+}
+
+.embla__captionText {
+  display: block;
+  color: #fff;
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 1.2;
+  text-align: center;
+}
+
+.embla__slide__img {
+  display: block;
 }

@@ -8,11 +8,11 @@ const ShopNowSection = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 items-center gap-8 md:gap-5 lg:gap-5 xl:gap-6">
           {/* text */}
           <div className="text-ink order-2 md:order-1 mx-auto w-full max-w-md md:max-w-none md:mx-0">
-            <h2 className="text-acloblue font-semibold leading-tight text-2xl sm:text-3xl md:text-3xl">
+            <h2 className="text-acloblue font-semibold leading-tight text-3xl sm:text-4xl md:text-4xl">
               Built for little helpers
             </h2>
 
-            <div className="mt-6 md:mt-4 space-y-6 text-sm xl:text-sm leading-relaxed">
+            <div className="mt-6 md:mt-4 space-y-6 text-md md:text-lg leading-relaxed">
               <p>
                 The perfect everyday companion for toddlers learning to do
                 things on their own — from self-care routines to simple kitchen

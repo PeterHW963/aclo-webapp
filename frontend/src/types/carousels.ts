@@ -3,6 +3,7 @@ import type { EmblaOptionsType } from "embla-carousel";
 export type Slide = {
   publicId: string;
   alt: string;
+  caption: string;
 };
 
 export type EmblaCarouselProps = {
