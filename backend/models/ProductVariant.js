@@ -33,10 +33,9 @@ const productVariantSchema = new mongoose.Schema(
             default: null,
             min: 0,
         },
-        countInStock: {
-            type: Number,
-            default: 0,
-            min: 0,
+        isAvailable: {
+            type: Boolean,
+            default: true,
         },
         category: {
             type: String,
@@ -89,7 +88,7 @@ const productVariantSchema = new mongoose.Schema(
             required: true,
         },
     },
-    { timestamps: true }
+    { timestamps: true },
 );
 
 module.exports = mongoose.model("ProductVariant", productVariantSchema);

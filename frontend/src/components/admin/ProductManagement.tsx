@@ -40,7 +40,7 @@ const ProductManagement = () => {
     productId: string,
     variantId: string,
     productName: string,
-    variants: ProductVariant[]
+    variants: ProductVariant[],
   ) => {
     setActiveProductId(productId);
     setActiveVariantId(variantId);
@@ -168,7 +168,7 @@ const ProductManagement = () => {
                       <td className="p-4">
                         <img
                           src={cloudinaryImageUrl(
-                            defaultVariant?.images?.[0]?.publicId
+                            defaultVariant?.images?.[0]?.publicId,
                           )}
                           alt={product.name}
                           className="w-12 h-12 object-cover"
@@ -178,7 +178,9 @@ const ProductManagement = () => {
                         {product.name}
                       </td>
                       <td className="p-4">
-                        {displayPrice ? displayPrice.toLocaleString("id-ID") : ""}
+                        {displayPrice
+                          ? displayPrice.toLocaleString("id-ID")
+                          : ""}
                       </td>
                       <td className="p-4">
                         {defaultVariant && (
@@ -205,12 +207,12 @@ const ProductManagement = () => {
                                   product._id,
                                   defaultVariant._id,
                                   product.name,
-                                  allVariants
+                                  allVariants,
                                 );
                               }}
                               className="bg-acloblue text-white px-4 py-2 rounded mr-2 hover:opacity-90 cursor-pointer"
                             >
-                              Change Price
+                              Quick Change
                             </button>
                           </>
                         )}
@@ -245,14 +247,14 @@ const ProductManagement = () => {
                       price,
                       discountPrice,
                     },
-                  })
+                  }),
                 ).unwrap();
                 const prods = await dispatch(fetchProducts()).unwrap();
                 const ids = prods.map((p) => p._id);
 
                 if (ids.length > 0) {
                   await dispatch(
-                    fetchProductVariants({ productIds: ids })
+                    fetchProductVariants({ productIds: ids }),
                   ).unwrap();
                 }
                 toast.success("Price updated");

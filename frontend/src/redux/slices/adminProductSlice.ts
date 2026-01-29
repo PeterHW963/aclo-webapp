@@ -62,7 +62,7 @@ export const createProduct = createAsyncThunk<
     sku: string;
     price: number;
     discountPrice?: number;
-    countInStock: number;
+    isAvailable: boolean;
     category: "Learning Tower" | "Stool" | "Utensils" | "Accessories";
   },
   { rejectValue: AppError }
@@ -73,7 +73,7 @@ export const createProduct = createAsyncThunk<
       productData,
       {
         headers: getAuthHeader(),
-      }
+      },
     );
     return response.data;
   } catch (err) {
@@ -99,7 +99,7 @@ export const updateProduct = createAsyncThunk<
         productData,
         {
           headers: getAuthHeader(),
-        }
+        },
       );
       return response.data;
     } catch (err) {
@@ -109,7 +109,7 @@ export const updateProduct = createAsyncThunk<
       }
       return rejectWithValue({ message: "Failed to update product" });
     }
-  }
+  },
 );
 
 // async thunk to update an existing product
@@ -126,7 +126,7 @@ export const updateProductVariant = createAsyncThunk<
         variantData,
         {
           headers: getAuthHeader(),
-        }
+        },
       );
       return response.data;
     } catch (err) {
@@ -136,7 +136,7 @@ export const updateProductVariant = createAsyncThunk<
       }
       return rejectWithValue({ message: "Failed to update product" });
     }
-  }
+  },
 );
 
 // async thunk to delete a product
@@ -170,7 +170,7 @@ export const deleteProductVariant = createAsyncThunk<
     try {
       await axios.delete(
         `${API_URL}/api/admin/products/${productId}/variants/${variantId}`,
-        { headers: getAuthHeader() }
+        { headers: getAuthHeader() },
       );
       return { productId, variantId };
     } catch (err) {
@@ -180,7 +180,7 @@ export const deleteProductVariant = createAsyncThunk<
       }
       return rejectWithValue({ message: "Failed to delete product variant" });
     }
-  }
+  },
 );
 
 const adminProductSlice = createSlice({
@@ -199,7 +199,7 @@ const adminProductSlice = createSlice({
         (state, action: PayloadAction<Product[]>) => {
           state.loading = false;
           state.products = action.payload;
-        }
+        },
       )
       .addCase(fetchAdminProducts.rejected, (state, action) => {
         state.loading = false;
@@ -218,12 +218,12 @@ const adminProductSlice = createSlice({
           action: PayloadAction<{
             Product: Product;
             ProductVariant: ProductVariant;
-          }>
+          }>,
         ) => {
           state.loading = false;
           state.products.push(action.payload.Product);
           state.selectedVariant = action.payload.ProductVariant;
-        }
+        },
       )
       .addCase(createProduct.rejected, (state, action) => {
         state.loading = false;
@@ -239,13 +239,13 @@ const adminProductSlice = createSlice({
         (state, action: PayloadAction<Product>) => {
           const updatedProduct = action.payload;
           const index = state.products.findIndex(
-            (product) => product._id === updatedProduct._id
+            (product) => product._id === updatedProduct._id,
           );
           if (index !== -1) {
             state.products[index] = updatedProduct;
           }
           state.loading = false;
-        }
+        },
       )
       .addCase(updateProduct.rejected, (state, action) => {
         state.loading = false;
@@ -261,7 +261,7 @@ const adminProductSlice = createSlice({
         (state, action: PayloadAction<ProductVariant>) => {
           state.selectedVariant = action.payload;
           state.loading = false;
-        }
+        },
       )
       .addCase(updateProductVariant.rejected, (state, action) => {
         state.loading = false;
@@ -277,11 +277,11 @@ const adminProductSlice = createSlice({
         (state, action: PayloadAction<string>) => {
           const deletedId = action.payload;
           state.products = state.products.filter(
-            (product) => product._id !== deletedId
+            (product) => product._id !== deletedId,
           );
 
           state.loading = false;
-        }
+        },
       )
       .addCase(deleteProduct.rejected, (state, action) => {
         state.loading = false;

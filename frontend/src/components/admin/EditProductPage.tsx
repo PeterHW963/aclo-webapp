@@ -32,7 +32,7 @@ type ProductVariantData = {
   name: string;
   price: number;
   discountPrice?: number | null;
-  countInStock: number;
+  isAvailable: boolean;
   category: ProductCategory;
   color?: string;
   variant?: string;
@@ -63,7 +63,7 @@ const EditProductPage = () => {
   const { id, variantId } = useParams();
 
   const { selectedProduct, productVariants, error } = useAppSelector(
-    (state) => state.products
+    (state) => state.products,
   );
 
   const productFileInputRef = useRef<HTMLInputElement | null>(null);
@@ -88,7 +88,7 @@ const EditProductPage = () => {
       name: "",
       price: 0,
       discountPrice: undefined,
-      countInStock: 0,
+      isAvailable: false,
       category: "Learning Tower",
       color: undefined,
       variant: undefined,
@@ -138,7 +138,7 @@ const EditProductPage = () => {
     if (!id || !variantId || !productVariants[id]) return;
     const variantsForSelectedProduct = productVariants[id];
     const selectedVariant = variantsForSelectedProduct.find(
-      (v) => v._id === variantId
+      (v) => v._id === variantId,
     );
     if (selectedVariant) {
       setProductVariantData({
@@ -147,7 +147,7 @@ const EditProductPage = () => {
         name: selectedVariant.name,
         price: selectedVariant.price,
         discountPrice: selectedVariant.discountPrice,
-        countInStock: selectedVariant.countInStock,
+        isAvailable: selectedVariant.isAvailable,
         category: selectedVariant.category,
         color: selectedVariant.color ?? "",
         variant: selectedVariant.variant ?? "",
@@ -167,7 +167,7 @@ const EditProductPage = () => {
 
   // Generic Product Handler
   const handleProductChange = (
-    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
   ) => {
     const { name, value, type } = e.target;
 
@@ -195,7 +195,7 @@ const EditProductPage = () => {
 
   // Generic Variant Handler
   const handleVariantChange = (
-    e: ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e: ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
     const { name, value } = e.target;
     setProductVariantData((prev) => {
@@ -207,8 +207,8 @@ const EditProductPage = () => {
         };
       }
 
-      // other numeric fields
-      if (name === "price" || name === "countInStock") {
+      // price
+      if (name === "price") {
         return { ...prev, [name]: Number(value) };
       }
 
@@ -220,7 +220,7 @@ const EditProductPage = () => {
   // Image Upload (Shared Logic)
   const handleImageUpload = async (
     e: ChangeEvent<HTMLInputElement>,
-    target: "product" | "variant"
+    target: "product" | "variant",
   ) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -296,7 +296,7 @@ const EditProductPage = () => {
             images: variantImages,
             discountPrice: rest.discountPrice ?? null, // keep null if removing
           },
-        })
+        }),
       ).unwrap();
 
       // refresh variants so dropdown stock/name etc stays correct
@@ -481,7 +481,7 @@ const EditProductPage = () => {
               {availableVariants.map((v) => {
                 return (
                   <option key={v._id} value={v._id}>
-                    {v.name} (Stock: {v.countInStock})
+                    {v.name} {v.isAvailable ? "• Available" : "• Unavailable"}
                   </option>
                 );
               })}
@@ -542,16 +542,26 @@ const EditProductPage = () => {
               className="w-full border border-gray-300 rounded-md p-2"
             />
           </div>
-          {/* Count in Stock */}
+          {/* Available */}
           <div className="mb-6">
-            <label className="block font-semibold mb-2">Count in Stock</label>
-            <input
-              type="number"
-              name="countInStock"
-              value={productVariantData.countInStock}
-              onChange={handleVariantChange}
-              className="w-full border border-gray-300 rounded-md p-2"
-            />
+            <label className="block font-semibold mb-2">Availability</label>
+
+            <div className="flex items-center gap-3">
+              <input
+                id="available"
+                type="checkbox"
+                name="isAvailable"
+                checked={productVariantData.isAvailable ?? true}
+                onChange={handleVariantChange}
+                className="h-4 w-4 rounded border-gray-300 text-acloblue focus:ring-acloblue/30"
+              />
+              <label
+                htmlFor="available"
+                className="text-sm font-medium text-gray-700 select-none"
+              >
+                Available
+              </label>
+            </div>
           </div>
 
           {/* Color & Variant */}
