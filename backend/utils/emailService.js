@@ -49,6 +49,14 @@ const sendOrderStatusEmail = async (order) => {
             subject = `Order #${order.orderId}: Shipping has been processed`;
             text = `Hi ${order.user.name},\n\nYour items have been passed to the shipping courier. You may track the order item shipment at this link:\n${order.trackingLink}`;
             break;
+        case "delivered":
+            subject = `Order #${order.orderId}: Order has been delivered`;
+            text = `Hi ${order.user.name},\n\nYour items have been delivered.\n\nThank you for your purchase!`;
+            break;
+        case "cancelled":
+            subject = `Order #${order.orderId}: Cancellation request approved`;
+            text = `Hi ${order.user.name},\n\nYour request for order cancellation has been approved.`;
+            break;
         default:
             return { success: true, skipped: true };
     }
