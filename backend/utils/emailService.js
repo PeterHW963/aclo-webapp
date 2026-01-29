@@ -26,7 +26,29 @@ const sendEmail = async (userEmail, subject, text) => {
         console.error("Error sending email:", error);
         return { success: false, error: error.message };
     }
-}
+};
 
-module.exports = { sendEmail };
-    
+const sendOrderStatusEmail = async (order) => {
+    const userEmail = order.user?.email;
+    if (!userEmail) return;
+
+    let subject;
+    let text;
+
+    switch (order.status) {
+        case "processing":
+            subject = `Order #${order.orderId}: Payment accepted`;
+            text = `Hi ${order.user.name},\n\nYour payment proof was accepted. Your order is now Processing.\n\nThanks!`;
+            break;
+        case "rejected":
+            subject = `Order #${order.orderId}: Payment rejected`;
+            text = `Hi ${order.user.name},\n\nYour payment proof was rejected. Please contact support for further clarification.\n\nThanks!`;
+            break;
+        default:
+            return { success: true, skipped: true };
+    }
+
+    await sendEmail(userEmail, subject, text);
+};
+
+module.exports = { sendEmail, sendOrderStatusEmail };

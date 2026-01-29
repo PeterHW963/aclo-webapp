@@ -4,6 +4,7 @@ const { protect, admin } = require("../../middleware/authMiddleware");
 const {
     generateShippingLabelPDF,
 } = require("../../utils/generateShippingLabel");
+const { sendOrderStatusEmail } = require("../../utils/emailService");
 
 const mongoose = require("mongoose");
 
@@ -142,22 +143,23 @@ router.put("/:id", protect, admin, async (req, res) => {
     try {
         const order = await findOrderByIdOrOrderId(req.params.id).populate(
             "user",
-            "name"
+            "name email",
         );
-        if (order) {
-            order.status = req.body.status || order.status;
-            order.isDelivered =
-                req.body.status === "Delivered" ? true : order.isDelivered;
-            order.deliveredAt =
-                req.body.status === "Delivered"
-                    ? Date.now()
-                    : order.deliveredAt;
+        if (!order) return res.status(404).json({ message: "Order Not Found" });
 
-            const updatedOrder = await order.save();
-            res.json(updatedOrder);
-        } else {
-            res.status(404).json({ message: "Order Not Found" });
+        const prevStatus = order.status;
+        const nextStatus = req.body.status || order.status;
+
+        order.status = nextStatus;
+        order.deliveredAt =
+            req.body.status === "Delivered" ? Date.now() : order.deliveredAt;
+
+        const updatedOrder = await order.save();
+
+        if (prevStatus !== nextStatus) {
+            await sendOrderStatusEmail(updatedOrder);
         }
+        res.json(updatedOrder);
     } catch (error) {
         console.error(error);
         res.status(500).json("Server Error");
@@ -200,7 +202,7 @@ router.get("/:id/shipping-label", protect, admin, async (req, res) => {
         res.setHeader("Content-Type", "application/pdf");
         res.setHeader(
             "Content-Disposition",
-            `inline; filename=shipping-label-${order.orderId}.pdf`
+            `inline; filename=shipping-label-${order.orderId}.pdf`,
         );
         res.setHeader("Content-Length", pdfBuffer.length);
 

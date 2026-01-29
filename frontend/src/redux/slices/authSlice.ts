@@ -30,7 +30,7 @@ localStorage.setItem("guestId", initialGuestId);
 
 // initial state
 const initialState: AuthState = {
-  user: userFromStorage,
+  user: userFromStorage ?? null,
   guestId: initialGuestId,
   loading: false,
   error: null,
@@ -45,7 +45,7 @@ export const loginUser = createAsyncThunk<
   try {
     const response = await axios.post(
       `${API_URL as string}/api/users/login`,
-      userData
+      userData,
     );
     localStorage.setItem("userInfo", JSON.stringify(response.data.user));
     localStorage.setItem("userToken", response.data.token);
@@ -70,7 +70,7 @@ export const registerUser = createAsyncThunk<
   try {
     const response = await axios.post(
       `${API_URL as string}/api/users/register`,
-      userData
+      userData,
     );
 
     // return user obj from response
@@ -99,7 +99,7 @@ export const addShippingAddress = createAsyncThunk<
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      }
+      },
     );
 
     return response.data;
@@ -132,7 +132,7 @@ export const updateShippingAddress = createAsyncThunk<
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
 
       return response.data;
@@ -143,7 +143,7 @@ export const updateShippingAddress = createAsyncThunk<
       }
       return rejectWithValue({ message: "Failed to update shipping address" });
     }
-  }
+  },
 );
 
 // Slice
