@@ -18,6 +18,7 @@ const midtransRoutes = require("./routes/midtrans/midtransRoutes");
 const midtransWebhook = require("./routes/midtrans/midtransWebhookRoutes");
 
 const biteshipRoutes = require("./routes/biteship/biteshipRoutes");
+const mapsRoutes = require("./routes/maps/mapsRoutes");
 
 const adminRoutes = require("./routes/admin/adminRoutes");
 const productAdminRoutes = require("./routes/admin/productAdminRoutes");
@@ -39,7 +40,7 @@ app.get("/", (req, res) => {
     res.send("WELCOME TO ACLO API");
 });
 
-// API Routes
+// General API Routes
 app.use("/api/users", userRoutes); // prepends /api/users to all the user routes
 app.use("/api/products", productRoutes); // prepends /api/products to all the product routes
 app.use("/api/cart", cartRoutes); // prepends /api/cart to all the cart routes
@@ -53,8 +54,13 @@ app.use("/api/reviews", reviewRoutes); //prepends /api/reviews to all the subscr
 // app.use("/api/payments/midtrans", midtransRoutes); // prepends /api/payments/midtrans for midtrans payment route
 // app.use("/api/webhooks/midtrans", midtransWebhook);
 
+// Biteship API route
 app.use("/api/calculate-shipping", biteshipRoutes); // prepends /api/calculate-shipping for shipping cost calculation
 
+// Maps API route
+app.use("/api/maps", mapsRoutes); // prepends /api/maps for shipping delivery address routes
+
+// TO REMOVE
 app.get("/api/test-email", async (req, res) => {
     try {
         const result = await sendEmail(
@@ -68,7 +74,7 @@ app.get("/api/test-email", async (req, res) => {
     }
 });
 
-// Admin
+// Admin API routes
 app.use("/api/admin/users", adminRoutes);
 app.use("/api/admin/products", productAdminRoutes);
 app.use("/api/admin/orders", orderAdminRoutes);
