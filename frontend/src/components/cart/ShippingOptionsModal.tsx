@@ -1,7 +1,5 @@
 import type { ShippingOption } from "../../types/checkout";
 import { IoMdClose } from "react-icons/io";
-import jneLogo from "../../assets/jne-logo.png";
-import grabLogo from "../../assets/grab-logo.png";
 
 interface ShippingOptionsModalProps {
   isOpen: boolean;
@@ -10,6 +8,17 @@ interface ShippingOptionsModalProps {
   selectedShipping: ShippingOption | null;
   onSelectShipping: (option: ShippingOption) => void;
 }
+
+// helper function for changing courier option display
+const getDisplayServiceName = (option: ShippingOption) => {
+  // prioritize service code (more stable than names)
+  if (option.courierCode.toLowerCase() === "jne") {
+    if (option.courierServiceCode === "jtr") return "Cargo";
+    if (option.courierServiceCode === "reg") return "Reguler";
+  }
+  // fallback: just show the service name
+  return option.courierServiceName;
+};
 
 const ShippingOptionsModal = ({
   isOpen,
@@ -52,61 +61,37 @@ const ShippingOptionsModal = ({
 
         <div className="space-y-3">
           {shippingOptions.map((option, index) => (
-                <div
-                key={index}
-                className={`border rounded-lg p-4 cursor-pointer transition-all ${
-                    selectedShipping?.courierServiceCode === option.courierServiceCode
-                    ? "border-black bg-gray-50"
-                    : "border-gray-300 hover:border-gray-400"
-                }`}
-                onClick={() => handleSelect(option)}
-                >
-                <div className="flex justify-between items-start">
-                    <div className="flex gap-4 flex-1">
-                        <div className="flex-shrink-0">
-                            {option.courierCode.toLowerCase() === 'jne' && (
-                            <img
-                                src={jneLogo}
-                                alt="JNE logo"
-                                className="w-8 h-8 object-contain"
-                            />
-                            )}
-                            {option.courierCode.toLowerCase() === 'grab' && (
-                            <img
-                                src={grabLogo}
-                                alt="Grab logo"
-                                className="w-8 h-8 object-contain"
-                            />
-                            )}
-                        </div>
-
-                    <div className="flex-1">
+            <div
+              key={index}
+              className={`border rounded-lg p-4 cursor-pointer transition-all ${
+                selectedShipping?.courierServiceCode ===
+                option.courierServiceCode
+                  ? "border-black bg-gray-50"
+                  : "border-gray-300 hover:border-gray-400"
+              }`}
+              onClick={() => handleSelect(option)}
+            >
+              <div className="flex justify-between items-start">
+                <div className="flex gap-4 flex-1">
+                  <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
-                        <h4 className="font-semibold text-gray-900">
-                        {option.courierName}
-                        </h4>
-                        <span className="text-sm text-gray-600">
-                        - {option.courierServiceName}
-                        </span>
+                      <p className="text-xl font-semibold text-gray-900">
+                        {getDisplayServiceName(option)}
+                      </p>
                     </div>
-                    <p className="text-sm text-gray-600 mb-2">
-                        {option.description}
-                    </p>
                     <div className="flex items-center gap-4 text-sm">
-                        <span className="text-gray-700">
-                        {option.duration}
-                        </span>
+                      <span className="text-gray-700">{option.duration}</span>
                     </div>
-                    </div>
-                    </div>
+                  </div>
+                </div>
 
-                    <div className="text-right ml-4">
-                    <p className="text-xl font-semibold text-gray-900">
-                        IDR {option.price.toLocaleString()}
-                    </p>
-                    </div>
+                <div className="text-right ml-4">
+                  <p className="text-xl font-semibold text-gray-900">
+                    IDR {option.price.toLocaleString()}
+                  </p>
                 </div>
-                </div>
+              </div>
+            </div>
           ))}
         </div>
 
