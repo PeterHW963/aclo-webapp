@@ -146,6 +146,52 @@ const Footer = () => {
             </div>
           </div>
 
+          <div className="text-left md:text-center md:flex-none md:w-[520px]">
+            <h3 className="text-base font-semibold text-acloblue mb-3">
+              Find ACLO near you
+            </h3>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 text-gray-700 text-sm">
+              {/* Col 1 */}
+              <div className="text-left md:text-center">
+                <p className="font-medium">Baby Wise</p>
+                <div className="mt-1 flex flex-col gap-1">
+                  <a
+                    href="https://www.google.com/maps/place/Baby+Wise+BSD+Flagship+Store/@-6.2858581,106.6367034,17z/..."
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-acloblue hover:underline"
+                  >
+                    BSD Flagship Store
+                  </a>
+                  <a
+                    href="https://www.google.com/maps/place/Baby+Wise+Shop/@-6.2996563,106.6666592,17z/..."
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-acloblue hover:underline"
+                  >
+                    BSD Boulevard
+                  </a>
+                </div>
+              </div>
+
+              {/* Col 2 */}
+              <div className="text-left md:text-center">
+                <p className="font-medium">SONObébé</p>
+                <div className="mt-1">
+                  <a
+                    href="https://www.google.com/maps/place/Sonobebe+Babies+Superstore/@-6.275428,106.6115233,17z/..."
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-acloblue hover:underline"
+                  >
+                    Symphonia Summarecon
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* WhatsApp */}
           <div className="text-left md:text-right">
             <h3 className="text-base font-semibold text-acloblue mb-3">
