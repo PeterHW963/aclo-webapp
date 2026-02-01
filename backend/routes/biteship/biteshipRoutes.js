@@ -11,7 +11,12 @@ const Product = require("../../models/Product");
  */
 router.post("/", protect, async (req, res) => {
     try {
-        const { destinationPostalCode, cartItems } = req.body;
+        const {
+            destinationPostalCode,
+            destinationLatitude,
+            destinationLongitude,
+            cartItems,
+        } = req.body;
 
         if (
             !destinationPostalCode ||
@@ -92,8 +97,7 @@ router.post("/", protect, async (req, res) => {
             });
         }
 
-        // Currently requesting the following couriers: JNE, Grab
-        // To add more couriers in the future (eg JNT, Lalamove, DHL, etc):
+        // Currently requesting the following couriers: JNE, Gojek
         // - update the couriers field below with additional courier codes
         // - refer to biteship documentation: https://biteship.com/en/docs/api/couriers/overview
         const biteshipRequest = {
@@ -102,6 +106,17 @@ router.post("/", protect, async (req, res) => {
             couriers: "jne,gojek",
             items: biteshipItems,
         };
+
+        const originLat = Number(process.env.BITESHIP_ORIGIN_LAT);
+        const originLng = Number(process.env.BITESHIP_ORIGIN_LNG);
+
+        if (Number.isFinite(originLat) && Number.isFinite(originLng)) {
+            biteshipRequest.origin_latitude = originLat;
+            biteshipRequest.origin_longitude = originLng;
+        }
+
+        biteshipRequest.destination_latitude = destinationLatitude;
+        biteshipRequest.destination_longitude = destinationLongitude;
 
         // console.log("Biteship request:", JSON.stringify(biteshipRequest, null, 2));
 

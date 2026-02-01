@@ -16,8 +16,8 @@ const getDisplayServiceName = (option: ShippingOption) => {
     if (option.courierServiceCode === "jtr") return "Cargo";
     if (option.courierServiceCode === "reg") return "Reguler";
   }
-  // fallback: just show the service name
-  return option.courierServiceName;
+  // fallback: show the courier & service name
+  return `${option.courierName} - ${option.courierServiceName}`;
 };
 
 const ShippingOptionsModal = ({

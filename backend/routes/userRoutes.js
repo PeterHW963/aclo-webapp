@@ -43,7 +43,7 @@ router.post("/register", async (req, res) => {
                     },
                     token,
                 });
-            }
+            },
         );
     } catch (error) {
         console.log(error);
@@ -90,7 +90,7 @@ router.post("/login", async (req, res) => {
                     },
                     token,
                 });
-            }
+            },
         );
     } catch (error) {
         console.error(error);
@@ -110,7 +110,16 @@ router.get("/profile", protect, async (req, res) => {
 // @access Private
 router.post("/profile/addresses", protect, async (req, res) => {
     try {
-        const { name, address, city, postalCode, phone } = req.body;
+        const {
+            name,
+            address,
+            addressDetails,
+            city,
+            postalCode,
+            phone,
+            latitude,
+            longitude,
+        } = req.body;
 
         const user = await User.findById(req.user._id);
         if (!user)
@@ -119,9 +128,12 @@ router.post("/profile/addresses", protect, async (req, res) => {
         user.shippingAddresses.push({
             name,
             address,
+            addressDetails,
             city,
             postalCode,
             phone,
+            latitude,
+            longitude,
         });
 
         await user.save();

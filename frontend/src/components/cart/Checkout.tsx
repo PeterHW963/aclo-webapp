@@ -6,13 +6,13 @@ import ShippingOptionsModal from "./ShippingOptionsModal";
 import ShippingDetailsModal from "./ShippingDetailsModal";
 import LoadingOverlay from "../common/LoadingOverlay";
 import { useAppDispatch, useAppSelector } from "../../redux/hooks";
+import { createCheckout } from "../../redux/slices/checkoutSlice";
 import {
-  createCheckout,
   calculateShippingCost,
   setSelectedShipping,
   setShippingDetails,
   clearShipping,
-} from "../../redux/slices/checkoutSlice";
+} from "../../redux/slices/shippingSlice";
 import type { Checkout, ShippingDetails } from "../../types/checkout";
 import { cloudinaryImageUrl } from "../../constants/cloudinary";
 import { fetchCartById } from "../../redux/slices/cartSlice";
@@ -29,7 +29,7 @@ const Checkout = () => {
     selectedShipping,
     shippingLoading,
     shippingDetails,
-  } = useAppSelector((state) => state.checkout);
+  } = useAppSelector((state) => state.shipping);
 
   const [creatingCheckout, setCreatingCheckout] = useState<boolean>(false); // prevent double-clicking
   const [showShippingModal, setShowShippingModal] = useState<boolean>(false);
@@ -42,6 +42,8 @@ const Checkout = () => {
     postalCode: string;
     cartId: string;
     totalPrice: number;
+    latitude: number;
+    longitude: number;
   } | null>(null);
 
   // Only calculate shipping if postal code or cart changed
@@ -49,13 +51,17 @@ const Checkout = () => {
     postalCode: string,
     currentCartId: string,
     totalPrice: number,
+    latitude: number,
+    longitude: number,
   ): boolean => {
     if (!lastCalculatedRef.current) return true;
 
     return (
       lastCalculatedRef.current.postalCode !== postalCode ||
       lastCalculatedRef.current.cartId !== currentCartId ||
-      lastCalculatedRef.current.totalPrice !== totalPrice
+      lastCalculatedRef.current.totalPrice !== totalPrice ||
+      lastCalculatedRef.current.latitude !== latitude ||
+      lastCalculatedRef.current.longitude !== longitude
     );
   };
 
@@ -91,9 +97,12 @@ const Checkout = () => {
       detailsToUse = {
         name: firstAddress.name,
         address: firstAddress.address,
+        addressDetails: firstAddress.addressDetails,
         city: firstAddress.city,
         postalCode: firstAddress.postalCode,
         phone: firstAddress.phone,
+        latitude: firstAddress.latitude,
+        longitude: firstAddress.longitude,
       };
       dispatch(setShippingDetails(detailsToUse));
     }
@@ -104,11 +113,15 @@ const Checkout = () => {
           detailsToUse.postalCode,
           cart._id,
           cart.totalPrice,
+          detailsToUse.latitude,
+          detailsToUse.longitude,
         )
       ) {
         dispatch(
           calculateShippingCost({
             destinationPostalCode: detailsToUse.postalCode,
+            destinationLatitude: detailsToUse.latitude,
+            destinationLongitude: detailsToUse.longitude,
             cartItems: cart.products.map((p) => ({
               productId: p.productId,
               price: p.price,
@@ -122,6 +135,8 @@ const Checkout = () => {
               postalCode: detailsToUse!.postalCode,
               cartId: cart._id,
               totalPrice: cart.totalPrice,
+              latitude: detailsToUse!.latitude,
+              longitude: detailsToUse!.longitude,
             };
           })
           .catch((error: any) => {
@@ -166,6 +181,8 @@ const Checkout = () => {
         shippingDetails.postalCode,
         cart._id,
         cart.totalPrice,
+        shippingDetails.latitude,
+        shippingDetails.longitude,
       )
     ) {
       dispatch(setShippingDetails(shippingDetails));
@@ -177,6 +194,8 @@ const Checkout = () => {
       await dispatch(
         calculateShippingCost({
           destinationPostalCode: shippingDetails.postalCode,
+          destinationLatitude: shippingDetails.latitude,
+          destinationLongitude: shippingDetails.longitude,
           cartItems: cart.products.map((p) => ({
             productId: p.productId,
             price: p.price,
@@ -189,6 +208,8 @@ const Checkout = () => {
         postalCode: shippingDetails.postalCode,
         cartId: cart._id,
         totalPrice: cart.totalPrice,
+        latitude: shippingDetails.latitude,
+        longitude: shippingDetails.longitude,
       };
 
       dispatch(setShippingDetails(shippingDetails));
@@ -295,7 +316,9 @@ const Checkout = () => {
                 Shipping To:
               </h3>
               <p className="text-sm text-gray-800">{shippingDetails.name}</p>
-              <p className="text-sm text-gray-600">{shippingDetails.address}</p>
+              <p className="text-sm text-gray-600">
+                {shippingDetails.addressDetails}
+              </p>
               <p className="text-sm text-gray-600">
                 {shippingDetails.city}, {shippingDetails.postalCode}
               </p>
