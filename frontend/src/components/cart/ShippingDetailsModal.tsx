@@ -11,8 +11,9 @@ import {
 import { setOptions, importLibrary } from "@googlemaps/js-api-loader";
 import { API_URL, getAuthHeader } from "../../constants/api";
 
+// autocomplete suggestion returned by Places API with placeId = google's place id and text = display string for the suggestion
 type Suggestion = { placeId: string; text: string };
-type FormStep = 1 | 2 | 3;
+type FormStep = 1 | 2 | 3; // 1 for contact details, 2 for location (this pinpoints longitude/latitude for shipping cost calc), 3 for address details for the courier
 
 interface ShippingDetailsModalProps {
   onClose: () => void;
@@ -44,7 +45,7 @@ const ShippingDetailsModal = ({
     (state) => state.shipping,
   );
 
-  const [mode, setMode] = useState<"selection" | "form">("form");
+  const [mode, setMode] = useState<"selection" | "form">("form"); // selection = choose from saved addresses, form = enter new/edit address
   const [formStep, setFormStep] = useState<FormStep>(1);
   const [editingAddressId, setEditingAddressId] = useState<string | null>(null);
   const [isNewAddress, setIsNewAddress] = useState(false);
@@ -53,22 +54,23 @@ const ShippingDetailsModal = ({
     useState<string>("");
   const [phoneError, setPhoneError] = useState<string>("");
 
-  const [addressQuery, setAddressQuery] = useState("");
-  const [sessionToken] = useState(() => crypto.randomUUID());
-  const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
-  const [selectedPlaceId, setSelectedPlaceId] = useState<string | null>(null);
-  const [pinPostalCode, setPinPostalCode] = useState<string>("");
-  const [showMap, setShowMap] = useState(false);
+  // AUTOCOMPLETE STATES
+  const [addressQuery, setAddressQuery] = useState(""); // autocomplete input state (by user)
+  const [sessionToken] = useState(() => crypto.randomUUID()); // token for autocomplete API
+  const [suggestions, setSuggestions] = useState<Suggestion[]>([]); // suggestions list from autocomplete API
+  const [selectedPlaceId, setSelectedPlaceId] = useState<string | null>(null); // place Id of selected suggestion
 
-  const mapDivRef = useRef<HTMLDivElement | null>(null);
-  const mapRef = useRef<google.maps.Map | null>(null);
-  const markerRef = useRef<google.maps.Marker | null>(null);
+  const [pinPostalCode, setPinPostalCode] = useState<string>(""); // postal code extracted from pinned location
+
+  const mapDivRef = useRef<HTMLDivElement | null>(null); // div where the map is rendered
+  const mapRef = useRef<google.maps.Map | null>(null); // google.maps.Map instance
+  const markerRef = useRef<google.maps.Marker | null>(null); // draggable pin marker
 
   const [latLng, setLatLng] = useState<{ lat: number; lng: number } | null>(
     null,
-  );
+  ); // current pin coords
 
-  const [pinLabel, setPinLabel] = useState("");
+  const [pinLabel, setPinLabel] = useState(""); // readable reverse-geocoded address
   const [addressError, setAddressError] = useState<string>("");
   const [pinConfirmed, setPinConfirmed] = useState(false);
 
@@ -82,11 +84,6 @@ const ShippingDetailsModal = ({
     latitude: 0,
     longitude: 0,
   });
-
-  useEffect(() => {
-    // whenever we enter form mode, start at step 1
-    if (mode === "form") setFormStep(1);
-  }, [mode]);
 
   // tab navigation
   const goToStep = (next: FormStep) => {
@@ -252,13 +249,12 @@ const ShippingDetailsModal = ({
     }));
   };
   useEffect(() => {
-    if (!showMap) return;
+    if (formStep !== 2) return; // <-- only run when step 2 is visible
     if (!mapDivRef.current) return;
 
     let cancelled = false;
 
     (async () => {
-      // Set options ONCE (safe to guard in React)
       if (!mapsBootstrappedRef.current) {
         setOptions({
           key: import.meta.env.VITE_GOOGLE_MAPS_BROWSER_KEY,
@@ -267,9 +263,8 @@ const ShippingDetailsModal = ({
         mapsBootstrappedRef.current = true;
       }
 
-      // Load required libraries
       const { Map } = (await importLibrary("maps")) as google.maps.MapsLibrary;
-      await importLibrary("marker"); // ensures marker classes are available
+      await importLibrary("marker");
 
       if (cancelled) return;
 
@@ -291,17 +286,31 @@ const ShippingDetailsModal = ({
         marker.addListener("dragend", () => {
           const p = marker.getPosition();
           if (!p) return;
-          setLatLng({ lat: p.lat(), lng: p.lng() });
-          syncCoordsToDetails({ lat: p.lat(), lng: p.lng() });
+          const next = { lat: p.lat(), lng: p.lng() };
+          setLatLng(next);
+          syncCoordsToDetails(next);
           setPinConfirmed(false);
         });
       }
 
-      // If we already have a latLng, center to it
-      if (latLng && mapRef.current && markerRef.current) {
-        mapRef.current.setCenter(latLng);
-        markerRef.current.setPosition(latLng);
-      }
+      // IMPORTANT: when the div was previously hidden, Maps often needs a resize
+      setTimeout(() => {
+        if (!mapRef.current) return;
+        google.maps.event.trigger(mapRef.current, "resize");
+
+        // If we already have coordinates, center the map to them
+        const hasCoords =
+          shippingDetails.latitude !== 0 && shippingDetails.longitude !== 0;
+
+        const target = hasCoords
+          ? { lat: shippingDetails.latitude, lng: shippingDetails.longitude }
+          : latLng;
+
+        if (target && markerRef.current) {
+          mapRef.current.setCenter(target);
+          markerRef.current.setPosition(target);
+        }
+      }, 0);
     })().catch((err) => {
       console.error(err);
       setAddressError("Failed to load Google Map. Check your API key/billing.");
@@ -310,7 +319,7 @@ const ShippingDetailsModal = ({
     return () => {
       cancelled = true;
     };
-  }, [showMap, latLng]);
+  }, [formStep, latLng, shippingDetails.latitude, shippingDetails.longitude]);
 
   const handlePickSuggestion = async (s: Suggestion) => {
     setSuggestions([]);
@@ -342,9 +351,6 @@ const ShippingDetailsModal = ({
         const next = { lat: loc.latitude, lng: loc.longitude };
         setLatLng(next);
         syncCoordsToDetails(next);
-        setShowMap(true); // open map after selection
-      } else {
-        setShowMap(true);
       }
     } catch {
       setAddressError("Failed to load address details. Try again.");
@@ -440,7 +446,7 @@ const ShippingDetailsModal = ({
   const handleEditAddress = (address: ShippingAddress) => {
     setEditingAddressId(address._id);
     setIsNewAddress(false);
-    setFormStep(1);
+    setFormStep(3);
     setShippingDetails({
       name: address.name,
       address: address.address,
@@ -820,44 +826,42 @@ const ShippingDetailsModal = ({
                           )}
                         </div>
 
-                        {showMap && (
-                          <div className="mb-2">
-                            <label className="block text-gray-700 mb-2">
-                              Pinpoint delivery location
-                            </label>
+                        <div className="mb-2">
+                          <label className="block text-gray-700 mb-2">
+                            Pinpoint delivery location
+                          </label>
 
-                            <div
-                              ref={mapDivRef}
-                              className="w-full h-72 rounded-lg overflow-hidden border"
-                            />
+                          <div
+                            ref={mapDivRef}
+                            className="w-full h-72 rounded-lg overflow-hidden border"
+                          />
 
-                            <div className="flex items-center gap-3 mt-3">
-                              <button
-                                type="button"
-                                onClick={confirmPinAndValidate}
-                                className="bg-black text-white px-4 py-2 rounded hover:bg-gray-800 transition"
-                              >
-                                Confirm location
-                              </button>
+                          <div className="flex items-center gap-3 mt-3">
+                            <button
+                              type="button"
+                              onClick={confirmPinAndValidate}
+                              className="bg-black text-white px-4 py-2 rounded hover:bg-gray-800 transition"
+                            >
+                              Confirm location
+                            </button>
 
-                              {pinConfirmed ? (
-                                <span className="text-sm text-green-700">
-                                  Location confirmed ✓
-                                </span>
-                              ) : (
-                                <span className="text-sm text-gray-600">
-                                  Drag the pin, then confirm.
-                                </span>
-                              )}
-                            </div>
-
-                            {pinLabel && (
-                              <p className="mt-2 text-sm text-gray-600">
-                                Pinned near: {pinLabel}
-                              </p>
+                            {pinConfirmed ? (
+                              <span className="text-sm text-green-700">
+                                Location confirmed ✓
+                              </span>
+                            ) : (
+                              <span className="text-sm text-gray-600">
+                                Drag the pin, then confirm.
+                              </span>
                             )}
                           </div>
-                        )}
+
+                          {pinLabel && (
+                            <p className="mt-2 text-sm text-gray-600">
+                              Pinned near: {pinLabel}
+                            </p>
+                          )}
+                        </div>
                       </div>
                     )}
 
