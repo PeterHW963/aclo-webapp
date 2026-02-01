@@ -670,7 +670,7 @@ const ShippingDetailsModal = ({
                     <div className="flex items-center justify-between">
                       {(
                         [
-                          { step: 1, label: "Name & phone" },
+                          { step: 1, label: "Contact Details" },
                           { step: 2, label: "Location & map" },
                           { step: 3, label: "Address details" },
                         ] as const
@@ -689,7 +689,7 @@ const ShippingDetailsModal = ({
                                 className={[
                                   "h-7 w-7 rounded-full flex items-center justify-center text-sm font-semibold",
                                   isDone
-                                    ? "bg-green-600 text-white"
+                                    ? "bg-green-600 text-white cursor-pointer"
                                     : isActive
                                       ? "border-2 border-acloblue text-acloblue bg-white"
                                       : "border-2 border-gray-300 text-gray-400 bg-white",
@@ -962,7 +962,7 @@ const ShippingDetailsModal = ({
             </div>
             {/* FOOTER (always pinned to bottom) */}
             {mode !== "selection" && (
-              <div className="border-t bg-white px-6 py-4">
+              <div className="border-t border-gray-400 bg-white px-6 py-4">
                 {addressError && (
                   <p className="mb-3 text-sm text-red-600">{addressError}</p>
                 )}
