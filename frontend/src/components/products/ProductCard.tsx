@@ -65,9 +65,9 @@ const ProductCard = ({ product, variants }: ProductCardProps) => {
   }
 
   const isLearningTower = product.category?.trim() === "Learning Tower";
-  const hasVariants =
-    product.name?.trim() === "TALON - Stabiliser for Learning Tower" ||
-    product.name?.trim() === "QUILL - Premium Kid-size Mini Kitchen Utensils";
+  // const hasVariants =
+  //   product.name?.trim() === "TALON - Stabiliser for Learning Tower" ||
+  //   product.name?.trim() === "QUILL - Premium Kid-size Mini Kitchen Utensils";
 
   return (
     <Link to={productUrl} className="block">
