@@ -91,7 +91,7 @@ export const assets = {
   story: {
     story_1: {
       type: "image",
-      publicId: "Story-1_c4rh5s",
+      publicId: "Story-1_mzwc56",
     },
     story_2: {
       type: "image",
@@ -110,6 +110,16 @@ export const assets = {
   },
 
   learnMore: {
+    adjustableHeights: {
+      stork: { publicId: "learnmore-6_uji9rj" },
+      falcon: { publicId: "Falcon-Adjustable_Heights_zqfwqc" },
+      sparrow: { publicId: "Sparrow-Adjustable_Heights_qqczk9" },
+    },
+    safety: {
+      stork: { publicId: "learnmore-7_e8ascy" },
+      falcon: { publicId: "Falcon-Safety_ack7qm" },
+      sparrow: { publicId: "Sparrow-Safety_kkipdw" },
+    },
     learnMore_1: {
       type: "image",
       publicId: "learnmore-1_ykwm7r",
@@ -118,26 +128,26 @@ export const assets = {
       type: "image",
       publicId: "learnmore-2_ju9rkm",
     },
-    learnMore_3: {
-      type: "image",
-      publicId: "learnmore-3_qdyw2d",
-    },
-    learnMore_4: {
-      type: "image",
-      publicId: "learnmore-4_hfxsr9",
-    },
-    learnMore_5: {
-      type: "image",
-      publicId: "learnmore-5_rdc7ne",
-    },
-    learnMore_6: {
-      type: "image",
-      publicId: "learnmore-6_uji9rj",
-    },
-    learnMore_7: {
-      type: "image",
-      publicId: "learnmore-7_e8ascy",
-    },
+    // learnMore_3: {
+    //   type: "image",
+    //   publicId: "learnmore-3_qdyw2d",
+    // },
+    // learnMore_4: {
+    //   type: "image",
+    //   publicId: "learnmore-4_hfxsr9",
+    // },
+    // learnMore_5: {
+    //   type: "image",
+    //   publicId: "learnmore-5_rdc7ne",
+    // },
+    // learnMore_6: {
+    //   type: "image",
+    //   publicId: "learnmore-6_uji9rj",
+    // },
+    // learnMore_7: {
+    //   type: "image",
+    //   publicId: "learnmore-7_e8ascy",
+    // },
   },
 } as const;
 

@@ -22,7 +22,7 @@ const ProductCard = ({ product, variants }: ProductCardProps) => {
   const handleOptionSelect = (
     e: React.MouseEvent,
     key: string,
-    value: string
+    value: string,
   ) => {
     e.preventDefault(); // Stop Link navigation
     e.stopPropagation();
@@ -65,9 +65,9 @@ const ProductCard = ({ product, variants }: ProductCardProps) => {
   }
 
   const isLearningTower = product.category?.trim() === "Learning Tower";
-  const hasVariants =
-    product.name?.trim() === "TALON - Stabiliser for Learning Tower" ||
-    product.name?.trim() === "QUILL - Premium Kid-size Mini Kitchen Utensils";
+  // const hasVariants =
+  //   product.name?.trim() === "TALON - Stabiliser for Learning Tower" ||
+  //   product.name?.trim() === "QUILL - Premium Kid-size Mini Kitchen Utensils";
 
   return (
     <Link to={productUrl} className="block">
@@ -104,42 +104,6 @@ const ProductCard = ({ product, variants }: ProductCardProps) => {
                       onSelect={handleOptionSelect}
                     />
                   ))}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
-
-      {/* VARIANT SELECTOR */}
-      {hasVariants && product.options && (
-        <div className="px-4 mb-3 space-y-2">
-          {Object.entries(product.options).map(([key, rawValues]) => {
-            const values = rawValues as string[];
-
-            if (!CHECKED_KEYS.includes(key) || !values || values.length === 0) {
-              return null;
-            }
-
-            return (
-              <div key={key} className="text-xs">
-                <div className="flex flex-wrap gap-2 justify-center">
-                  {values.map((value) => {
-                    const isSelected = selections[key] === value;
-                    return (
-                      <button
-                        key={value}
-                        onClick={(e) => handleOptionSelect(e, key, value)}
-                        className={`px-2 py-1 rounded border text-xs transition-colors cursor-pointer ${
-                          isSelected
-                            ? "bg-acloblue text-white border-acloblue"
-                            : "bg-white text-acloblue-700 border-acloblue-200 hover:border-acloblue-400"
-                        }`}
-                      >
-                        {value}
-                      </button>
-                    );
-                  })}
                 </div>
               </div>
             );
