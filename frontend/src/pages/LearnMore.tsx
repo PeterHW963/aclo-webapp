@@ -67,36 +67,68 @@ const LearnMore: React.FC = () => {
             </section>
 
             {/* SECTION 3 */}
-            <section className="space-y-4">
+            <section className="space-y-6">
               <h3 className="text-acloblue text-xl sm:text-2xl md:text-2xl text-center">
                 Design Features You’ll Love
               </h3>
 
-              <div className="w-full flex flex-col items-center max-w-2xl mx-auto">
-                <DesignFeaturesCarousel
-                  images={[
-                    {
-                      publicId: assets.learnMore.learnMore_3.publicId,
-                      alt: "Stork design features",
-                    },
-                    {
-                      publicId: assets.learnMore.learnMore_4.publicId,
-                      alt: "Falcon design features",
-                    },
-                    {
-                      publicId: assets.learnMore.learnMore_5.publicId,
-                      alt: "Sparrow design features",
-                    },
-                    {
-                      publicId: assets.learnMore.learnMore_6.publicId,
-                      alt: "Two adjustable heights",
-                    },
-                    {
-                      publicId: assets.learnMore.learnMore_7.publicId,
-                      alt: "Ultimate child safety features",
-                    },
-                  ]}
-                />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-10">
+                {/* Adjustable heights */}
+                <div className="w-full">
+                  <p className="text-center text-acloblue font-semibold mb-3">
+                    Adjustable Heights
+                  </p>
+
+                  <DesignFeaturesCarousel
+                    images={[
+                      {
+                        publicId:
+                          assets.learnMore.adjustableHeights.stork.publicId,
+                        alt: "Stork - adjustable heights",
+                        caption: "Stork",
+                      },
+                      {
+                        publicId:
+                          assets.learnMore.adjustableHeights.falcon.publicId,
+                        alt: "Falcon - adjustable heights",
+                        caption: "Falcon",
+                      },
+                      {
+                        publicId:
+                          assets.learnMore.adjustableHeights.sparrow.publicId,
+                        alt: "Sparrow - adjustable heights",
+                        caption: "Sparrow",
+                      },
+                    ]}
+                  />
+                </div>
+
+                {/* Safety */}
+                <div className="w-full">
+                  <p className="text-center text-acloblue font-semibold mb-3">
+                    Safety Features
+                  </p>
+
+                  <DesignFeaturesCarousel
+                    images={[
+                      {
+                        publicId: assets.learnMore.safety.stork.publicId,
+                        alt: "Stork - safety features",
+                        caption: "Stork",
+                      },
+                      {
+                        publicId: assets.learnMore.safety.falcon.publicId,
+                        alt: "Falcon - safety features",
+                        caption: "Falcon",
+                      },
+                      {
+                        publicId: assets.learnMore.safety.sparrow.publicId,
+                        alt: "Sparrow - safety features",
+                        caption: "Sparrow",
+                      },
+                    ]}
+                  />
+                </div>
               </div>
             </section>
           </div>
