@@ -8,6 +8,9 @@ const OPTIONS: EmblaOptionsType = {
   align: "center",
   containScroll: "trimSnaps",
   loop: true,
+  duration: 25,
+  skipSnaps: false,
+  dragThreshold: 6,
 };
 
 const Carousel: React.FC = () => (

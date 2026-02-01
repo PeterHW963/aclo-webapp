@@ -33,8 +33,8 @@ Delivered fully assembled *(comes with a manual and tools).*
 Monday – Sunday: Orders placed before **16:00 WIB** will be processed and shipped the same day.  
 Orders placed after **16:00 WIB** will be processed on the next working day.
 
-**I need it quickly. Can my order be expedited?**  
-Yes. If you need express shipping, please WhatsApp **+62 821-2852-8968** before placing your order.
+**Need it urgently?**  
+Instant delivery is available within Jabodetabek.
 `,
         options: {
             color: ["Natural", "Sunshine", "Silver"],
@@ -125,8 +125,8 @@ Delivered fully assembled *(comes with a manual and tools).*
 Monday – Sunday: Orders placed before **16:00 WIB** will be processed and shipped the same day.  
 Orders placed after **16:00 WIB** will be processed on the next working day.
 
-**I need it quickly. Can my order be expedited?**  
-Yes. If you need express shipping, please WhatsApp **+62 821-2852-8968** before placing your order.
+**Need it urgently?**  
+Instant delivery is available within Jabodetabek.
 `,
         options: {
             color: ["Natural", "Cerulean", "Silver", "Snow"],
@@ -218,8 +218,8 @@ This learning tower supports your child’s natural curiosity through hands-on e
 Monday – Sunday: Orders placed before **16:00 WIB** will be processed and shipped the same day.  
 Orders placed after **16:00 WIB** will be processed on the next working day.
 
-**I need it quickly. Can my order be expedited?**  
-Yes. If you need express shipping, please WhatsApp **+62 821-2852-8968** before placing your order.
+**Need it urgently?**  
+Instant delivery is available within Jabodetabek.
 `,
         options: { color: ["Natural", "Snow"] },
         images: [
@@ -316,8 +316,8 @@ This supports your child’s natural curiosity through hands-on experiences. Whe
 Monday – Sunday: Orders placed before **16:00 WIB** will be processed and shipped the same day.  
 Orders placed after **16:00 WIB** will be processed on the next working day.
 
-**I need it quickly. Can my order be expedited?**  
-Yes. If you need express shipping, please WhatsApp **+62 821-2852-8968** before placing your order.
+**Need it urgently?**  
+Instant delivery is available within Jabodetabek.
 `,
         options: {
             ovenMitt: ["Oven mitt", "No oven mitt"],
@@ -405,8 +405,8 @@ This supports your child’s natural curiosity through hands-on experiences. Whe
 Monday – Sunday: Orders placed before **16:00 WIB** will be processed and shipped the same day.  
 Orders placed after **16:00 WIB** will be processed on the next working day.
 
-**I need it quickly. Can my order be expedited?**  
-Yes. If you need express shipping, please WhatsApp **+62 821-2852-8968** before placing your order.
+**Need it urgently?**  
+Instant delivery is available within Jabodetabek.
 `,
         images: [
             {
@@ -488,8 +488,8 @@ This supports your child’s natural curiosity through hands-on experiences. Whe
 Monday – Sunday: Orders placed before **16:00 WIB** will be processed and shipped the same day.  
 Orders placed after **16:00 WIB** will be processed on the next working day.
 
-**I need it quickly. Can my order be expedited?**  
-Yes. If you need express shipping, please WhatsApp **+62 821-2852-8968** before placing your order.
+**Need it urgently?**  
+Instant delivery is available within Jabodetabek.
 `,
         images: [
             {
@@ -569,8 +569,8 @@ This supports your child’s natural curiosity through hands-on experiences. Whe
 Monday – Sunday: Orders placed before **16:00 WIB** will be processed and shipped the same day.  
 Orders placed after **16:00 WIB** will be processed on the next working day.
 
-**I need it quickly. Can my order be expedited?**  
-Yes. If you need express shipping, please WhatsApp **+62 821-2852-8968** before placing your order.
+**Need it urgently?**  
+Instant delivery is available within Jabodetabek.
 `,
         options: { variant: ["Stork", "Falcon"] },
         images: [
