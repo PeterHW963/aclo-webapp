@@ -108,25 +108,25 @@ router.get(
 // @route POST /api/maps/validate-address
 // @desc uses GMaps' Address Validation API to verify the validity of a user's address
 // @access Private
-router.post("/validate-address", protect, async (req, res) => {
-    try {
-        const url =
-            "https://addressvalidation.googleapis.com/v1:validateAddress";
+// router.post("/validate-address", protect, async (req, res) => {
+//     try {
+//         const url =
+//             "https://addressvalidation.googleapis.com/v1:validateAddress";
 
-        const r = await fetch(url, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "X-Goog-Api-Key": GOOGLE_SERVER_KEY,
-            },
-            body: JSON.stringify(req.body),
-        });
+//         const r = await fetch(url, {
+//             method: "POST",
+//             headers: {
+//                 "Content-Type": "application/json",
+//                 "X-Goog-Api-Key": GOOGLE_SERVER_KEY,
+//             },
+//             body: JSON.stringify(req.body),
+//         });
 
-        const data = await r.json();
-        res.json(data);
-    } catch (e) {
-        res.status(500).json({ error: "Address validation failed" });
-    }
-});
+//         const data = await r.json();
+//         res.json(data);
+//     } catch (e) {
+//         res.status(500).json({ error: "Address validation failed" });
+//     }
+// });
 
 module.exports = router;

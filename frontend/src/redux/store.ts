@@ -5,6 +5,7 @@ import cartReducer from "./slices/cartSlice";
 import checkoutReducer from "./slices/checkoutSlice";
 import orderReducer from "./slices/orderSlice";
 import reviewReducer from "./slices/reviewsSlice";
+import shippingReducer from "./slices/shippingSlice";
 import adminReducer from "./slices/adminSlice";
 import adminProductReducer from "./slices/adminProductSlice";
 import adminOrderReducer from "./slices/adminOrderSlice";
@@ -18,6 +19,7 @@ export const store = configureStore({
     checkout: checkoutReducer,
     orders: orderReducer,
     reviews: reviewReducer,
+    shipping: shippingReducer,
     admin: adminReducer,
     adminProducts: adminProductReducer,
     adminOrders: adminOrderReducer,

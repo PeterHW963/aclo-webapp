@@ -60,9 +60,12 @@ const checkoutSchema = new mongoose.Schema(
         shippingDetails: {
             name: { type: String, required: true },
             address: { type: String, required: true },
+            addressDetails: { type: String, required: true },
             city: { type: String, required: true },
             postalCode: { type: String, required: true },
             phone: { type: String, required: true },
+            latitude: { type: Number, required: true },
+            longitude: { type: Number, required: true },
         },
         paymentMethod: {
             // might remove if not needed
