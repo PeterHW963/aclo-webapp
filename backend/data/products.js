@@ -1,97 +1,5 @@
 const products = [
     {
-        name: "STORK - Ultra-Slim & Foldable Learning Tower",
-        category: "Learning Tower",
-        description: `The only Montessori learning tower in Indonesia that folds down to just **10 cm**! Perfect for moms who want to create a Montessori environment at home and prioritise **space, safety, and simplicity**.
-
-### Key Features
-
-- **Super-Slim & Foldable:** Slim, minimalist design that folds flat to save space while still looking stylish in your home.
-- **Lightweight & Portable:** Easy to move from room to room, so your little one can join different activities around the house.
-- **Adjustable Heights:** The platform can be adjusted as your child grows, making it a long-term investment in Montessori learning.
-- **Safe & Sturdy:** Made from high-quality, non-toxic materials with a smooth finish to keep your child safe while climbing, standing, and exploring.
-
-### Specifications
-
-- **Brand:** ACLO 
-- **Open dimensions (H x W x D):** 90 x 41 x 48 cm  
-- **Folded thickness:** 10 cm  
-- **Weight:** 4 kg  
-- **Material:** Birch plywood  
-- **Maximum load:** 80 kg  
-
-### Why Choose Montessori?
-
-This learning tower supports your child’s natural curiosity through hands-on experiences. Whether they’re helping in the kitchen, washing their hands, or observing their surroundings, it helps develop **independence, self-confidence, and practical life skills**.
-
-Delivered fully assembled *(comes with a manual and tools).*
-
-### Shipping
-
-**When will my order be processed and shipped?**  
-Monday – Sunday: Orders placed before **16:00 WIB** will be processed and shipped the same day.  
-Orders placed after **16:00 WIB** will be processed on the next working day.
-
-**I need it quickly. Can my order be expedited?**  
-Yes. If you need express shipping, please WhatsApp **+62 821-2852-8968** before placing your order.
-`,
-        options: {
-            color: ["Natural", "Cerulean", "Silver", "Snow"],
-            stabiliser: ["Stabiliser", "No stabiliser"],
-        },
-        images: [
-            {
-                publicId: "STORK-1_zlt3i8",
-                alt: "Stork",
-            },
-            {
-                publicId: "STORK1-min_yqhrri",
-                alt: "Stork",
-            },
-            {
-                publicId: "STORK2-min_neeaea",
-                alt: "Stork",
-            },
-            {
-                publicId: "STORK3_dhvwzl",
-                alt: "Stork",
-            },
-            {
-                publicId: "STORK4_hulpdo",
-                alt: "Stork",
-            },
-            {
-                publicId: "STORK5_k1skiq",
-                alt: "Stork",
-            },
-            {
-                publicId: "STORK6-min_vni24a",
-                alt: "Stork",
-            },
-            {
-                publicId: "STORK7-min_xtaicr",
-                alt: "Stork",
-            },
-            {
-                publicId: "STORK8-min_oeydaw",
-                alt: "Stork",
-            },
-            {
-                publicId: "STORK9-min_x7y7hx",
-                alt: "Stork",
-            },
-        ],
-        rating: 4.81,
-        numReviews: 32,
-        dimensions: {
-            length: 46,
-            width: 12,
-            height: 102,
-        },
-        weight: 8500,
-        isListed: true,
-    },
-    {
         name: "FALCON - Strong & Foldable Learning Tower",
         category: "Learning Tower",
         description: `A sturdy yet space-saving Montessori learning tower. Ideal for moms who want to create a Montessori-like environment at home while prioritising safety. Perfect for little ones.
@@ -182,6 +90,98 @@ Yes. If you need express shipping, please WhatsApp **+62 821-2852-8968** before 
             height: 100,
         },
         weight: 7500,
+        isListed: true,
+    },
+    {
+        name: "STORK - Ultra-Slim & Foldable Learning Tower",
+        category: "Learning Tower",
+        description: `The only Montessori learning tower in Indonesia that folds down to just **10 cm**! Perfect for moms who want to create a Montessori environment at home and prioritise **space, safety, and simplicity**.
+
+### Key Features
+
+- **Super-Slim & Foldable:** Slim, minimalist design that folds flat to save space while still looking stylish in your home.
+- **Lightweight & Portable:** Easy to move from room to room, so your little one can join different activities around the house.
+- **Adjustable Heights:** The platform can be adjusted as your child grows, making it a long-term investment in Montessori learning.
+- **Safe & Sturdy:** Made from high-quality, non-toxic materials with a smooth finish to keep your child safe while climbing, standing, and exploring.
+
+### Specifications
+
+- **Brand:** ACLO 
+- **Open dimensions (H x W x D):** 90 x 41 x 48 cm  
+- **Folded thickness:** 10 cm  
+- **Weight:** 4 kg  
+- **Material:** Birch plywood  
+- **Maximum load:** 80 kg  
+
+### Why Choose Montessori?
+
+This learning tower supports your child’s natural curiosity through hands-on experiences. Whether they’re helping in the kitchen, washing their hands, or observing their surroundings, it helps develop **independence, self-confidence, and practical life skills**.
+
+Delivered fully assembled *(comes with a manual and tools).*
+
+### Shipping
+
+**When will my order be processed and shipped?**  
+Monday – Sunday: Orders placed before **16:00 WIB** will be processed and shipped the same day.  
+Orders placed after **16:00 WIB** will be processed on the next working day.
+
+**I need it quickly. Can my order be expedited?**  
+Yes. If you need express shipping, please WhatsApp **+62 821-2852-8968** before placing your order.
+`,
+        options: {
+            color: ["Natural", "Cerulean", "Silver", "Snow"],
+            stabiliser: ["Stabiliser", "No stabiliser"],
+        },
+        images: [
+            {
+                publicId: "STORK-1_zlt3i8",
+                alt: "Stork",
+            },
+            {
+                publicId: "STORK1-min_yqhrri",
+                alt: "Stork",
+            },
+            {
+                publicId: "STORK2-min_neeaea",
+                alt: "Stork",
+            },
+            {
+                publicId: "STORK3_dhvwzl",
+                alt: "Stork",
+            },
+            {
+                publicId: "STORK4_hulpdo",
+                alt: "Stork",
+            },
+            {
+                publicId: "STORK5_k1skiq",
+                alt: "Stork",
+            },
+            {
+                publicId: "STORK6-min_vni24a",
+                alt: "Stork",
+            },
+            {
+                publicId: "STORK7-min_xtaicr",
+                alt: "Stork",
+            },
+            {
+                publicId: "STORK8-min_oeydaw",
+                alt: "Stork",
+            },
+            {
+                publicId: "STORK9-min_x7y7hx",
+                alt: "Stork",
+            },
+        ],
+        rating: 4.81,
+        numReviews: 32,
+        dimensions: {
+            length: 46,
+            width: 12,
+            height: 102,
+        },
+        weight: 8500,
         isListed: true,
     },
     {
