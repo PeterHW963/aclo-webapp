@@ -12,6 +12,8 @@ import {
   fetchSimilarProducts,
   fetchProductVariant,
   fetchSimilarProductVariants,
+  fetchProductVariants,
+  fetchProducts,
 } from "../../redux/slices/productsSlice";
 import { addToCart } from "../../redux/slices/cartSlice";
 import { cloudinaryImageUrl } from "../../constants/cloudinary";
@@ -26,10 +28,10 @@ const ProductDetails = () => {
   const {
     selectedProduct,
     selectedVariant,
+    products,
+    productVariants,
     loading: productsLoading,
     error,
-    similarProducts,
-    similarProductVariants,
   } = useAppSelector((state) => state.products);
 
   const { user, guestId } = useAppSelector((state) => state.auth);
@@ -77,12 +79,12 @@ const ProductDetails = () => {
     if (!hasUserSelectedOption) return productImgs;
 
     const variantIds = new Set(
-      variantImgs.map((img: ProductImage) => img.publicId)
+      variantImgs.map((img: ProductImage) => img.publicId),
     );
     const merged = [
       ...variantImgs,
       ...productImgs.filter(
-        (img: ProductImage) => !variantIds.has(img.publicId)
+        (img: ProductImage) => !variantIds.has(img.publicId),
       ),
     ];
 
@@ -97,7 +99,7 @@ const ProductDetails = () => {
     if (!blockedProductFirstId) return displayedImages;
 
     const filtered = displayedImages.filter(
-      (img: ProductImage) => img.publicId !== blockedProductFirstId
+      (img: ProductImage) => img.publicId !== blockedProductFirstId,
     );
 
     return filtered.length ? filtered : displayedImages;
@@ -126,12 +128,20 @@ const ProductDetails = () => {
             variant,
             ovenMitt,
             stabiliser,
-          })
+          }),
         ).unwrap();
+
+        const all = await dispatch(fetchProducts()).unwrap();
+        const listed = all.filter((p: Product) => p.isListed && p._id !== id);
+        const ids = listed.map((p: Product) => p._id);
+
+        if (ids.length > 0) {
+          await dispatch(fetchProductVariants({ productIds: ids })).unwrap();
+        }
 
         // similar products
         const similarProds = await dispatch(
-          fetchSimilarProducts({ id })
+          fetchSimilarProducts({ id }),
         ).unwrap();
         const productIds = (similarProds ?? []).map((p: Product) => p._id);
 
@@ -161,7 +171,7 @@ const ProductDetails = () => {
       lastVariantIdRef.current = null;
 
       const exists = carouselImages.some(
-        (img: ProductImage) => img.publicId === mainImage
+        (img: ProductImage) => img.publicId === mainImage,
       );
       if (!mainImage || !exists) {
         setMainImage(carouselImages[0].publicId);
@@ -174,7 +184,7 @@ const ProductDetails = () => {
 
       const variantPick =
         vImgs.find(
-          (img: ProductImage) => img.publicId !== blockedProductFirstId
+          (img: ProductImage) => img.publicId !== blockedProductFirstId,
         )?.publicId || "";
 
       if (variantPick) {
@@ -188,7 +198,7 @@ const ProductDetails = () => {
     }
 
     const exists = carouselImages.some(
-      (img: ProductImage) => img.publicId === mainImage
+      (img: ProductImage) => img.publicId === mainImage,
     );
     if (!mainImage || !exists) {
       setMainImage(carouselImages[0].publicId);
@@ -206,9 +216,28 @@ const ProductDetails = () => {
     if (action === "decr") setQuantity((prev) => (prev > 1 ? prev - 1 : prev));
   };
 
+  const pickNoStabiliserValue = (values: string[]) => {
+    const preferred = values.find((v) => {
+      const s = v.toLowerCase();
+      return s.includes("no");
+    });
+
+    return preferred ?? values[0];
+  };
+
   const handleOptionSelect = (key: string, value: string) => {
     const newParams = new URLSearchParams(searchParams);
     newParams.set(key, value);
+
+    if (key === "color" && selectedProduct?.options?.stabiliser) {
+      const currentStab = newParams.get("stabiliser");
+      if (!currentStab) {
+        const stabValues = selectedProduct.options.stabiliser;
+        const noStab = pickNoStabiliserValue(stabValues);
+        newParams.set("stabiliser", noStab);
+      }
+    }
+
     setSearchParams(newParams);
   };
 
@@ -231,7 +260,7 @@ const ProductDetails = () => {
       if (missing.length > 0) {
         toast.error(
           `Please select ${missing.join(", ")} before adding to cart.`,
-          { duration: 1500 }
+          { duration: 1500 },
         );
         return;
       }
@@ -252,7 +281,7 @@ const ProductDetails = () => {
         options: finalOptions,
         guestId,
         userId: user?._id,
-      })
+      }),
     )
       .unwrap()
       .then(() => {
@@ -269,7 +298,7 @@ const ProductDetails = () => {
   const getCurrentIndex = () => {
     if (!carouselImages.length) return 0;
     const idx = carouselImages.findIndex(
-      (img: ProductImage) => img.publicId === mainImage
+      (img: ProductImage) => img.publicId === mainImage,
     );
     return idx >= 0 ? idx : 0;
   };
@@ -379,7 +408,7 @@ const ProductDetails = () => {
                           }`}
                           onClick={() => setMainImage(image.publicId)}
                         />
-                      )
+                      ),
                     )}
                   </div>
                 </div>
@@ -404,7 +433,7 @@ const ProductDetails = () => {
                     ) : (
                       <span className="text-xl text-gray-800">
                         IDR{" "}
-                        {selectedVariant?.price ?? ""
+                        {(selectedVariant?.price ?? "")
                           ? selectedVariant?.price?.toLocaleString()
                           : "Price Not Available"}
                       </span>
@@ -442,7 +471,7 @@ const ProductDetails = () => {
                             })}
                           </div>
                         </div>
-                      )
+                      ),
                     )}
 
                   {/* Quantity */}
@@ -488,8 +517,8 @@ const ProductDetails = () => {
                 </h2>
 
                 <ProductGrid
-                  products={similarProducts}
-                  productVariants={similarProductVariants}
+                  products={products.filter((p) => p.isListed && p._id !== id)}
+                  productVariants={productVariants}
                   loading={productsLoading}
                   error={error}
                 />
