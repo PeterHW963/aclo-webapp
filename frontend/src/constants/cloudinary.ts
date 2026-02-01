@@ -91,7 +91,7 @@ export const assets = {
   story: {
     story_1: {
       type: "image",
-      publicId: "Story-1_c4rh5s",
+      publicId: "Story-1_mzwc56",
     },
     story_2: {
       type: "image",
