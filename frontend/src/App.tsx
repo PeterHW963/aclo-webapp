@@ -30,11 +30,13 @@ import Verified from "./pages/Verified";
 import Story from "./pages/Story";
 import Contact from "./pages/Contact";
 import LearnMore from "./pages/LearnMore";
+import ScrollToTop from "./utils/scrollToTop";
 
 function App() {
   return (
     <Provider store={store}>
       <BrowserRouter>
+        <ScrollToTop />
         <Toaster
           position="top-right"
           toastOptions={{
