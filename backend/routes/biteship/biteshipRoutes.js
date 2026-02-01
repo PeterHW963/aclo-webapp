@@ -52,12 +52,15 @@ router.post("/", protect, async (req, res) => {
         const productIds = cartItems.map((item) => item.productId);
         const products = await Product.find({
             _id: { $in: productIds },
-        }).select("name dimensions weight");
+        }).select("name dimensions weight category");
 
         const productMap = {};
         products.forEach((product) => {
             productMap[product._id.toString()] = product;
         });
+
+        // count quantity of Learning Tower items
+        let learningTowerQty = 0;
 
         // Construct items array for Biteship API
         const biteshipItems = [];
@@ -74,6 +77,10 @@ router.post("/", protect, async (req, res) => {
                 return res.status(400).json({
                     message: `Product "${product.name}" does not have weight data configured`,
                 });
+            }
+
+            if (product.category === "Learning Tower") {
+                learningTowerQty += cartItem.quantity || 1;
             }
 
             biteshipItems.push({
@@ -97,13 +104,15 @@ router.post("/", protect, async (req, res) => {
             });
         }
 
+        const couriers = learningTowerQty > 1 ? "jne" : "jne,gojek";
+
         // Currently requesting the following couriers: JNE, Gojek
         // - update the couriers field below with additional courier codes
         // - refer to biteship documentation: https://biteship.com/en/docs/api/couriers/overview
         const biteshipRequest = {
             origin_postal_code: originPostalCode,
             destination_postal_code: destinationPostalCode,
-            couriers: "jne,gojek",
+            couriers: couriers,
             items: biteshipItems,
         };
 
