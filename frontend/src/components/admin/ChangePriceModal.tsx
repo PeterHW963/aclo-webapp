@@ -21,6 +21,7 @@ type ChangePriceModalProps = {
     variantId: string;
     price: number;
     discountPrice: number | null;
+    countInStock: number;
   }) => Promise<void> | void;
 };
 
@@ -40,11 +41,12 @@ const ChangePriceModal = ({
 
   const selectedVariant = useMemo(
     () => variants.find((v) => v._id === selectedVariantId),
-    [variants, selectedVariantId]
+    [variants, selectedVariantId],
   );
 
   const [priceInput, setPriceInput] = useState<string>("");
   const [discountInput, setDiscountInput] = useState<string>("");
+  const [stockInput, setStockInput] = useState<string>("");
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -53,6 +55,7 @@ const ChangePriceModal = ({
     const v = variants.find((x) => x._id === initialVariantId);
     setPriceInput(v?.price != null ? String(v.price) : "");
     setDiscountInput(v?.discountPrice != null ? String(v.discountPrice) : "");
+    setStockInput(v?.countInStock != null ? String(v.countInStock) : "");
     setSaving(false);
   }, [initialVariantId, variants]);
 
@@ -60,12 +63,17 @@ const ChangePriceModal = ({
     if (!selectedVariant) return;
 
     setPriceInput(
-      selectedVariant.price != null ? String(selectedVariant.price) : ""
+      selectedVariant.price != null ? String(selectedVariant.price) : "",
     );
     setDiscountInput(
       selectedVariant.discountPrice != null
         ? String(selectedVariant.discountPrice)
-        : ""
+        : "",
+    );
+    setStockInput(
+      typeof selectedVariant.countInStock === "number"
+        ? String(selectedVariant.countInStock)
+        : "",
     );
   }, [selectedVariantId, selectedVariant]);
 
@@ -79,13 +87,26 @@ const ChangePriceModal = ({
       discountPrice === null ||
       (Number.isFinite(discountPrice) && discountPrice >= 0);
 
-    return { price, discountPrice, priceOk, discountOk };
-  }, [priceInput, discountInput]);
+    const stock = Number(stockInput);
+    const stockOk =
+      Number.isFinite(stock) && Number.isInteger(stock) && stock >= 0;
 
-  const canSave = parsed.priceOk && parsed.discountOk && !saving;
+    return { price, discountPrice, stock, priceOk, discountOk, stockOk };
+  }, [priceInput, discountInput, stockInput]);
+
+  const canSave =
+    parsed.priceOk && parsed.discountOk && parsed.stockOk && !saving;
 
   const handleSave = async () => {
     console.log("save clicked");
+    const payload = {
+      variantId: selectedVariantId,
+      price: parsed.price,
+      discountPrice: parsed.discountPrice,
+      countInStock: parsed.stock,
+    };
+    console.log("payload", payload);
+    await onSave(payload);
     if (!canSave) return;
     setSaving(true);
     try {
@@ -93,6 +114,7 @@ const ChangePriceModal = ({
         variantId: selectedVariantId,
         price: parsed.price,
         discountPrice: parsed.discountPrice,
+        countInStock: parsed.stock,
       });
       onClose();
     } finally {
@@ -115,7 +137,9 @@ const ChangePriceModal = ({
         className="w-full max-w-md rounded-2xl bg-white p-6 shadow-lg border border-gray-100"
         onClick={(e) => e.stopPropagation()}
       >
-        <h3 className="text-lg font-semibold text-acloblue">Update Price</h3>
+        <h3 className="text-lg font-semibold text-acloblue">
+          Update Price & Stock
+        </h3>
         <p className="text-sm text-gray-500 mt-1">{productName}</p>
 
         <div className="mt-4">
@@ -175,6 +199,24 @@ const ChangePriceModal = ({
               </p>
             )}
           </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Count in Stock
+          </label>
+          <input
+            value={stockInput}
+            onChange={(e) => setStockInput(e.target.value)}
+            inputMode="numeric"
+            className="w-full rounded-xl border border-gray-200 px-3 py-2 focus:outline-none focus:ring-4 focus:ring-acloblue/20"
+            placeholder="e.g. 200"
+          />
+          {!parsed.stockOk && (
+            <p className="mt-1 text-xs text-red-600">
+              Enter a valid whole number (0 or more).
+            </p>
+          )}
         </div>
 
         <div className="mt-6 flex gap-3">
