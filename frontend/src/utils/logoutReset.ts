@@ -1,6 +1,6 @@
 import { logout } from "../redux/slices/authSlice";
 import { clearCart, fetchCart } from "../redux/slices/cartSlice";
-import { clearShipping } from "../redux/slices/checkoutSlice";
+import { clearShipping } from "../redux/slices/shippingSlice";
 import type { AppDispatch, RootState } from "../redux/store";
 
 export const logoutAndReset =

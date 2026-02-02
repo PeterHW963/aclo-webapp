@@ -12,9 +12,12 @@ export interface CheckoutItem {
 export interface ShippingDetails {
   name: string;
   address: string;
+  addressDetails: string;
   city: string;
   postalCode: string;
   phone: string;
+  latitude: number;
+  longitude: number;
 }
 
 export interface PaymentProof {
@@ -60,6 +63,8 @@ export interface ShippingOption {
 
 export interface ShippingCostRequest {
   destinationPostalCode: string;
+  destinationLatitude: number;
+  destinationLongitude: number;
   cartItems: Array<{
     productId: string;
     price: number;
@@ -72,6 +77,7 @@ export interface ShippingCostResponse {
   options: ShippingOption[];
   origin?: any;
   destination?: any;
+  gojekDisabled: boolean;
 }
 
 // Payload when calling createCheckout
