@@ -77,6 +77,7 @@ export interface ShippingCostResponse {
   options: ShippingOption[];
   origin?: any;
   destination?: any;
+  gojekDisabled: boolean;
 }
 
 // Payload when calling createCheckout

@@ -29,6 +29,7 @@ const Checkout = () => {
     selectedShipping,
     shippingLoading,
     shippingDetails,
+    gojekDisabled,
   } = useAppSelector((state) => state.shipping);
 
   const [creatingCheckout, setCreatingCheckout] = useState<boolean>(false); // prevent double-clicking
@@ -461,6 +462,7 @@ const Checkout = () => {
           onSelectShipping={(option) => {
             dispatch(setSelectedShipping(option));
           }}
+          gojekDisabled={gojekDisabled}
         />
       </div>
     </>

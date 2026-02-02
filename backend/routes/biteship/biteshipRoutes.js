@@ -159,37 +159,45 @@ router.post("/", protect, async (req, res) => {
         const hasOriginCoords =
             Number.isFinite(originLat) && Number.isFinite(originLng);
 
-        const shouldRequestToGojek = learningTowerQty <= 1 && hasOriginCoords;
+        const destLat = Number(destinationLatitude);
+        const destLng = Number(destinationLongitude);
+        const hasDestCoords =
+            Number.isFinite(destLat) && Number.isFinite(destLng);
+
+        // Always request gojek if we have coords (rates will show on frontend)
+        const shouldRequestToGojek = hasOriginCoords && hasDestCoords;
+
+        // Flag: frontend should disable gojek selection if LT qty > 1
+        const gojekDisabled = learningTowerQty > 1;
 
         let gojekRequest = null;
         if (shouldRequestToGojek) {
-            const destLat = Number(destinationLatitude);
-            const destLng = Number(destinationLongitude);
-
-            // Force items to always be eligible
+            // ONE safe item only (always)
             const SAFE_LENGTH = 50;
             const SAFE_WIDTH = 70;
-            const SAFE_HEIGHT = 20; // in cm
-            const SAFE_WEIGHT = 10000; // in kg
+            const SAFE_HEIGHT = 20; // cm
+            const SAFE_WEIGHT = 1000; // g
 
-            const gojekItems = baseItems.map((item) => ({
-                name: item.name,
-                description: item.description,
-                value: item.value,
-                length: SAFE_LENGTH,
-                width: SAFE_WIDTH,
-                height: SAFE_HEIGHT,
-                weight: SAFE_WEIGHT,
-                quantity: item.quantity,
-            }));
-
+            const gojekItems = [
+                {
+                    name: "Cart (estimated)",
+                    description:
+                        "Estimated package size for Gojek rate preview",
+                    value: 0,
+                    length: SAFE_LENGTH,
+                    width: SAFE_WIDTH,
+                    height: SAFE_HEIGHT,
+                    weight: SAFE_WEIGHT,
+                    quantity: 1,
+                },
+            ];
             gojekRequest = {
                 origin_latitude: originLat,
                 origin_longitude: originLng,
-                couriers: "gojek",
-                items: gojekItems,
                 destination_latitude: destLat,
                 destination_longitude: destLng,
+                couriers: "gojek",
+                items: gojekItems,
             };
         }
 
@@ -274,6 +282,7 @@ router.post("/", protect, async (req, res) => {
             options: shippingOptions,
             origin: jneData.origin || gojekData?.origin,
             destination: jneData.destination || gojekData?.destination,
+            gojekDisabled,
         });
     } catch (error) {
         console.error(error);

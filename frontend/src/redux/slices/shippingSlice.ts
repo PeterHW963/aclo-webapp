@@ -36,6 +36,7 @@ export interface ShippingState {
   shippingLoading: boolean;
   shippingError: string | null;
   shippingDetails: ShippingDetails | null;
+  gojekDisabled: boolean;
 }
 
 const initialState: ShippingState = {
@@ -44,6 +45,7 @@ const initialState: ShippingState = {
   shippingLoading: false,
   shippingError: null,
   shippingDetails: loadShippingDetailsFromStorage(),
+  gojekDisabled: false,
 };
 
 // Async thunk to calculate shipping cost
@@ -84,6 +86,7 @@ const shippingSlice = createSlice({
       state.selectedShipping = null;
       state.shippingError = null;
       state.shippingDetails = null;
+      state.gojekDisabled = false;
 
       localStorage.removeItem("shippingOptions");
       localStorage.removeItem("selectedShipping");
@@ -102,6 +105,7 @@ const shippingSlice = createSlice({
           state.shippingLoading = false;
 
           state.shippingOptions = action.payload.options;
+          state.gojekDisabled = !!action.payload.gojekDisabled;
           localStorage.setItem(
             "shippingOptions",
             JSON.stringify(action.payload.options),
