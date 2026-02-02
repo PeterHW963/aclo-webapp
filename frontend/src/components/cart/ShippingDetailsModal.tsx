@@ -120,13 +120,19 @@ const ShippingDetailsModal = ({
 
   const validateStep2 = () => {
     setAddressError("");
+    const hasCoords =
+      shippingDetails.latitude !== 0 && shippingDetails.longitude !== 0;
+    const hasAddressText = !!shippingDetails.address?.trim();
 
-    if (!selectedPlaceId) {
+    const locationChosen = !!selectedPlaceId || hasAddressText;
+    const locationConfirmed = pinConfirmed || hasCoords;
+
+    if (!locationChosen) {
       setAddressError("Please select an address from the suggestions.");
       return false;
     }
 
-    if (!pinConfirmed) {
+    if (!locationConfirmed) {
       setAddressError("Please confirm the pin location on the map.");
       return false;
     }
@@ -200,6 +206,21 @@ const ShippingDetailsModal = ({
           latitude: addressToUse.latitude,
           longitude: addressToUse.longitude,
         });
+        // hydrate UI
+        setSelectedPlaceId(null);
+        setAddressQuery(addressToUse.address || "");
+        setSuggestions([]);
+
+        if (addressToUse.latitude && addressToUse.longitude) {
+          setLatLng({
+            lat: addressToUse.latitude,
+            lng: addressToUse.longitude,
+          });
+          setPinConfirmed(true);
+        } else {
+          setLatLng(null);
+          setPinConfirmed(false);
+        }
       }
     } else {
       setMode("form");
@@ -450,7 +471,22 @@ const ShippingDetailsModal = ({
   const handleEditAddress = (address: ShippingAddress) => {
     setEditingAddressId(address._id);
     setIsNewAddress(false);
-    setFormStep(3);
+    // Clear "new selection" state because we are using saved data
+    setSelectedPlaceId(null);
+    setSuggestions([]);
+    setAddressError("");
+
+    // Hydrate input text so Step 2 field is "selected"
+    setAddressQuery(address.address || "");
+    // Hydrate pin state so Step 2 can pass
+    if (address.latitude && address.longitude) {
+      const next = { lat: address.latitude, lng: address.longitude };
+      setLatLng(next);
+      setPinConfirmed(true); // treat saved coords as confirmed
+    } else {
+      setLatLng(null);
+      setPinConfirmed(false);
+    }
     setShippingDetails({
       name: address.name,
       address: address.address,
@@ -462,6 +498,7 @@ const ShippingDetailsModal = ({
       longitude: address.longitude,
     });
     setMode("form");
+    setFormStep(3);
   };
 
   const handleAddNewAddress = () => {
@@ -506,18 +543,32 @@ const ShippingDetailsModal = ({
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (formStep === 1) {
+      if (validateStep1()) setFormStep(2);
+      return;
+    }
+
+    if (formStep === 2) {
+      if (validateStep2()) setFormStep(3);
+      return;
+    }
     if (!validateStep3()) return;
 
     if (!e.currentTarget.checkValidity()) {
       e.currentTarget.reportValidity();
       return;
     }
-    if (!selectedPlaceId) {
+    const hasCoords =
+      shippingDetails.latitude !== 0 && shippingDetails.longitude !== 0;
+
+    const hasAddressText = !!shippingDetails.address?.trim();
+
+    if (!selectedPlaceId && !hasAddressText) {
       setAddressError("Please select an address from the suggestions.");
       return;
     }
 
-    if (!pinConfirmed) {
+    if (!pinConfirmed && !hasCoords) {
       setAddressError("Please confirm the pin location on the map.");
       return;
     }
@@ -725,246 +776,236 @@ const ShippingDetailsModal = ({
                     </div>
                   </div>
 
-                  <form onSubmit={handleSubmit}>
-                    {/* STEP 1: Name & phone */}
-                    {formStep === 1 && (
-                      <div>
-                        <div className="mb-4">
-                          <label className="block text-gray-700">Name *</label>
-                          <input
-                            type="text"
-                            value={shippingDetails.name}
-                            onChange={(e) => {
-                              setAddressError("");
-                              setShippingDetails({
-                                ...shippingDetails,
-                                name: e.target.value,
-                              });
-                            }}
-                            className="w-full p-2 border rounded focus:outline-none focus:ring-1 focus:ring-acloblue focus:border-acloblue"
-                            required
-                          />
-                        </div>
-
-                        <div className="mb-2">
-                          <label className="block text-gray-700">
-                            Whatsapp Phone Number *
-                          </label>
-
-                          <p className="mt-1 text-sm text-gray-500">
-                            We may contact you via WhatsApp for order updates
-                            (delivery updates, reminders, support) and
-                            promotions.
-                          </p>
-
-                          <input
-                            type="tel"
-                            value={shippingDetails.phone}
-                            onChange={(e) => {
-                              const next = e.target.value.replace(
-                                /[^\d+]/g,
-                                "",
-                              );
-                              setPhoneError("");
-                              setAddressError("");
-                              setShippingDetails({
-                                ...shippingDetails,
-                                phone: next,
-                              });
-                            }}
-                            pattern="^(?:\+62|62|0)\d{8,12}$"
-                            placeholder="e.g. 081234567890 or 6281234567890"
-                            className="mt-1 w-full p-2 border rounded focus:outline-none focus:ring-1 focus:ring-acloblue focus:border-acloblue"
-                            required
-                          />
-                          {phoneError && (
-                            <p className="mt-1 text-sm text-red-600">
-                              {phoneError}
-                            </p>
-                          )}
-                        </div>
+                  {/* STEP 1: Name & phone */}
+                  {formStep === 1 && (
+                    <div>
+                      <div className="mb-4">
+                        <label className="block text-gray-700">Name *</label>
+                        <input
+                          type="text"
+                          value={shippingDetails.name}
+                          onChange={(e) => {
+                            setAddressError("");
+                            setShippingDetails({
+                              ...shippingDetails,
+                              name: e.target.value,
+                            });
+                          }}
+                          className="w-full p-2 border rounded focus:outline-none focus:ring-1 focus:ring-acloblue focus:border-acloblue"
+                          required
+                        />
                       </div>
-                    )}
 
-                    {/* STEP 2: Location & map */}
-                    {formStep === 2 && (
-                      <div>
-                        <div className="mb-4 relative">
-                          <label className="block text-gray-700">
-                            Delivery location *
-                          </label>
+                      <div className="mb-2">
+                        <label className="block text-gray-700">
+                          Whatsapp Phone Number *
+                        </label>
 
-                          <input
-                            type="text"
-                            value={shippingDetails.address || addressQuery}
-                            onChange={(e) => {
-                              const next = e.target.value;
-                              setShippingDetails({
-                                ...shippingDetails,
-                                address: next,
-                              });
-                              setAddressQuery(next);
+                        <p className="mt-1 text-sm text-gray-500">
+                          We may contact you via WhatsApp for order updates
+                          (delivery updates, reminders, support) and promotions.
+                        </p>
 
-                              setSelectedPlaceId(null);
-                              setPinConfirmed(false);
-                              setAddressError("");
-                            }}
-                            className="mt-1 w-full p-2 border rounded focus:outline-none focus:ring-1 focus:ring-acloblue focus:border-acloblue"
-                            required
-                            placeholder="Type street / building / neighborhood name..."
-                          />
-
-                          {suggestions.length > 0 && (
-                            <div className="absolute z-20 mt-1 w-full max-h-56 overflow-auto rounded border bg-white shadow">
-                              {suggestions.map((s) => (
-                                <button
-                                  type="button"
-                                  key={s.placeId}
-                                  className="w-full text-left px-3 py-2 hover:bg-gray-50"
-                                  onClick={() => handlePickSuggestion(s)}
-                                >
-                                  {s.text}
-                                </button>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-
-                        <div className="mb-2">
-                          <label className="block text-gray-700 mb-2">
-                            Pinpoint delivery location
-                          </label>
-
-                          <div
-                            ref={mapDivRef}
-                            className="w-full h-72 rounded-lg overflow-hidden border"
-                          />
-
-                          <div className="flex items-center gap-3 mt-3">
-                            <button
-                              type="button"
-                              onClick={confirmPinAndValidate}
-                              className="bg-black text-white px-4 py-2 rounded hover:bg-gray-800 transition"
-                            >
-                              Confirm location
-                            </button>
-
-                            {pinConfirmed ? (
-                              <span className="text-sm text-green-700">
-                                Location confirmed ✓
-                              </span>
-                            ) : (
-                              <span className="text-sm text-gray-600">
-                                Drag the pin, then confirm.
-                              </span>
-                            )}
-                          </div>
-
-                          {pinLabel && (
-                            <p className="mt-2 text-sm text-gray-600">
-                              Pinned near: {pinLabel}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* STEP 3: Address details */}
-                    {formStep === 3 && (
-                      <div>
-                        <div className="mb-4">
-                          <label className="block text-gray-700">
-                            Full Address *
-                          </label>
-
-                          <textarea
-                            rows={3}
-                            value={shippingDetails.addressDetails || ""}
-                            onChange={(e) => {
-                              setAddressError("");
-                              setShippingDetails({
-                                ...shippingDetails,
-                                addressDetails: e.target.value,
-                              });
-                            }}
-                            className="w-full p-2 border rounded focus:outline-none focus:ring-1 focus:ring-acloblue focus:border-acloblue"
-                            required
-                          />
-
-                          <p className="mt-1 text-xs text-gray-500">
-                            Example: apartment/unit number, floor, building
-                            name, landmark, gate code, etc.
+                        <input
+                          type="tel"
+                          value={shippingDetails.phone}
+                          onChange={(e) => {
+                            const next = e.target.value.replace(/[^\d+]/g, "");
+                            setPhoneError("");
+                            setAddressError("");
+                            setShippingDetails({
+                              ...shippingDetails,
+                              phone: next,
+                            });
+                          }}
+                          pattern="^(?:\+62|62|0)\d{8,12}$"
+                          placeholder="e.g. 081234567890 or 6281234567890"
+                          className="mt-1 w-full p-2 border rounded focus:outline-none focus:ring-1 focus:ring-acloblue focus:border-acloblue"
+                          required
+                        />
+                        {phoneError && (
+                          <p className="mt-1 text-sm text-red-600">
+                            {phoneError}
                           </p>
-                        </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
 
-                        <div className="mb-4 grid grid-cols-2 gap-4">
-                          <div>
-                            <label className="block text-gray-700">
-                              City *
-                            </label>
-                            <input
-                              type="text"
-                              value={shippingDetails.city}
-                              onChange={(e) => {
-                                setAddressError("");
-                                setShippingDetails({
-                                  ...shippingDetails,
-                                  city: e.target.value,
-                                });
-                              }}
-                              className="w-full p-2 border rounded focus:outline-none focus:ring-1 focus:ring-acloblue focus:border-acloblue"
-                              required
-                            />
-                          </div>
+                  {/* STEP 2: Location & map */}
+                  {formStep === 2 && (
+                    <div>
+                      <div className="mb-4 relative">
+                        <label className="block text-gray-700">
+                          Delivery location *
+                        </label>
 
-                          <div>
-                            <label className="block text-gray-700">
-                              Postal Code *
-                            </label>
-                            <input
-                              type="text"
-                              inputMode="numeric"
-                              pattern="^\d{5}$"
-                              value={shippingDetails.postalCode}
-                              onChange={(e) => {
-                                const next = e.target.value
-                                  .replace(/\D/g, "")
-                                  .slice(0, 5);
-                                setAddressError("");
-                                setShippingDetails({
-                                  ...shippingDetails,
-                                  postalCode: next,
-                                });
-                              }}
-                              className="w-full p-2 border rounded focus:outline-none focus:ring-1 focus:ring-acloblue focus:border-acloblue"
-                              required
-                              minLength={5}
-                              maxLength={5}
-                            />
-                          </div>
-                        </div>
+                        <input
+                          type="text"
+                          value={addressQuery || shippingDetails.address}
+                          onChange={(e) => {
+                            const next = e.target.value;
+                            setShippingDetails({
+                              ...shippingDetails,
+                              address: next,
+                            });
+                            setAddressQuery(next);
 
-                        {/* Save Address Checkbox (ONLY here, default true) */}
-                        {isNewAddress && (
-                          <div className="mb-2">
-                            <label className="flex items-center gap-2 text-gray-700 cursor-pointer">
-                              <input
-                                type="checkbox"
-                                checked={saveAddress}
-                                onChange={(e) =>
-                                  setSaveAddress(e.target.checked)
-                                }
-                                className="w-4 h-4 cursor-pointer"
-                              />
-                              <span className="text-sm">
-                                Save this address to my account
-                              </span>
-                            </label>
+                            setSelectedPlaceId(null);
+                            setPinConfirmed(false);
+                            setAddressError("");
+                          }}
+                          className="mt-1 w-full p-2 border rounded focus:outline-none focus:ring-1 focus:ring-acloblue focus:border-acloblue"
+                          required
+                          placeholder="Type street / building / neighborhood name..."
+                        />
+
+                        {suggestions.length > 0 && (
+                          <div className="absolute z-20 mt-1 w-full max-h-56 overflow-auto rounded border bg-white shadow">
+                            {suggestions.map((s) => (
+                              <button
+                                type="button"
+                                key={s.placeId}
+                                className="w-full text-left px-3 py-2 hover:bg-gray-50"
+                                onClick={() => handlePickSuggestion(s)}
+                              >
+                                {s.text}
+                              </button>
+                            ))}
                           </div>
                         )}
                       </div>
-                    )}
-                  </form>
+
+                      <div className="mb-2">
+                        <label className="block text-gray-700 mb-2">
+                          Pinpoint delivery location
+                        </label>
+
+                        <div
+                          ref={mapDivRef}
+                          className="w-full h-72 rounded-lg overflow-hidden border"
+                        />
+
+                        <div className="flex items-center gap-3 mt-3">
+                          <button
+                            type="button"
+                            onClick={confirmPinAndValidate}
+                            className="bg-black text-white px-4 py-2 rounded hover:bg-gray-800 transition"
+                          >
+                            Confirm location
+                          </button>
+
+                          {pinConfirmed ? (
+                            <span className="text-sm text-green-700">
+                              Location confirmed ✓
+                            </span>
+                          ) : (
+                            <span className="text-sm text-gray-600">
+                              Drag the pin, then confirm.
+                            </span>
+                          )}
+                        </div>
+
+                        {pinLabel && (
+                          <p className="mt-2 text-sm text-gray-600">
+                            Pinned near: {pinLabel}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* STEP 3: Address details */}
+                  {formStep === 3 && (
+                    <div>
+                      <div className="mb-4">
+                        <label className="block text-gray-700">
+                          Full Address *
+                        </label>
+
+                        <textarea
+                          rows={3}
+                          value={shippingDetails.addressDetails || ""}
+                          onChange={(e) => {
+                            setAddressError("");
+                            setShippingDetails({
+                              ...shippingDetails,
+                              addressDetails: e.target.value,
+                            });
+                          }}
+                          className="w-full p-2 border rounded focus:outline-none focus:ring-1 focus:ring-acloblue focus:border-acloblue"
+                          required
+                        />
+
+                        <p className="mt-1 text-xs text-gray-500">
+                          Example: apartment/unit number, floor, building name,
+                          landmark, gate code, etc.
+                        </p>
+                      </div>
+
+                      <div className="mb-4 grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-gray-700">City *</label>
+                          <input
+                            type="text"
+                            value={shippingDetails.city}
+                            onChange={(e) => {
+                              setAddressError("");
+                              setShippingDetails({
+                                ...shippingDetails,
+                                city: e.target.value,
+                              });
+                            }}
+                            className="w-full p-2 border rounded focus:outline-none focus:ring-1 focus:ring-acloblue focus:border-acloblue"
+                            required
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-gray-700">
+                            Postal Code *
+                          </label>
+                          <input
+                            type="text"
+                            inputMode="numeric"
+                            pattern="^\d{5}$"
+                            value={shippingDetails.postalCode}
+                            onChange={(e) => {
+                              const next = e.target.value
+                                .replace(/\D/g, "")
+                                .slice(0, 5);
+                              setAddressError("");
+                              setShippingDetails({
+                                ...shippingDetails,
+                                postalCode: next,
+                              });
+                            }}
+                            className="w-full p-2 border rounded focus:outline-none focus:ring-1 focus:ring-acloblue focus:border-acloblue"
+                            required
+                            minLength={5}
+                            maxLength={5}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Save Address Checkbox (ONLY here, default true) */}
+                      {isNewAddress && (
+                        <div className="mb-2">
+                          <label className="flex items-center gap-2 text-gray-700 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={saveAddress}
+                              onChange={(e) => setSaveAddress(e.target.checked)}
+                              className="w-4 h-4 cursor-pointer"
+                            />
+                            <span className="text-sm">
+                              Save this address to my account
+                            </span>
+                          </label>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
