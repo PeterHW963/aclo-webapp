@@ -210,6 +210,10 @@ const ShippingDetailsModal = ({
   useEffect(() => {
     const t = setTimeout(async () => {
       const q = addressQuery.trim();
+      if (selectedPlaceId) {
+        setSuggestions([]);
+        return;
+      }
       if (q.length < 3) {
         setSuggestions([]);
         return;
@@ -238,7 +242,7 @@ const ShippingDetailsModal = ({
     }, 250);
 
     return () => clearTimeout(t);
-  }, [addressQuery, sessionToken]);
+  }, [addressQuery, selectedPlaceId, sessionToken]);
   const mapsBootstrappedRef = useRef(false);
 
   const syncCoordsToDetails = (p: { lat: number; lng: number }) => {
