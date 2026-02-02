@@ -646,13 +646,13 @@ const ShippingDetailsModal = ({
         >
           <IoMdClose className="h-6 w-6 hover:text-gray-600 cursor-pointer" />
         </button>
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col min-h-0">
           <form
             onSubmit={handleSubmit}
             className="flex-1 flex flex-col min-h-0"
           >
             {/* SCROLLABLE CONTENT */}
-            <div className="flex-1 overflow-y-auto px-6 py-6 min-h-0">
+            <div className="flex-1 min-h-0 overflow-y-auto px-6 py-6">
               {mode === "selection" ? (
                 // Address Selection View - shows list of user's saved addresses
                 <div>
