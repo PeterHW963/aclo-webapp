@@ -13,9 +13,12 @@ const checkouts = [
         shippingDetails: {
             name: "Admin User",
             address: "Admin Street 123",
+            addressDetails: "Details of Admin Street 123",
             city: "Jakarta",
             postalCode: "11234",
-            phone: "1234567890",
+            phone: "081234567890",
+            latitude: -6.2,
+            longitude: 106.8,
         },
 
         paymentMethod: "BankTransfer",

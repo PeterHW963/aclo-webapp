@@ -56,7 +56,6 @@ router.post("/", protect, async (req, res) => {
         }
 
         // Get origin postal code from .env
-        // TODO: set origin (sender) postal code in .env
         const originPostalCode = process.env.BITESHIP_ORIGIN_POSTAL_CODE;
         if (!originPostalCode) {
             console.error("BITESHIP_ORIGIN_POSTAL_CODE not configured");
@@ -92,7 +91,6 @@ router.post("/", protect, async (req, res) => {
         // Construct items array for Biteship API
         const baseItems = [];
 
-        // const biteshipItems = [];
         for (const cartItem of cartItems) {
             const product = productMap[cartItem.productId];
 
@@ -154,6 +152,13 @@ router.post("/", protect, async (req, res) => {
         };
 
         // GOJEK REQUEST
+        /* Note for Gojek:
+         * Gojek does not vary their rates based on weight, rates only vary by route and distance.
+         * However, it does have a limit on weight, and item dimension for driver's safety.
+         * For us, we will always want to see Gojek's rates, so we will pass in a dummy items list that is safe.
+         * To ensure that users cannot choose the gojek option, we also send a disabled flag to the FE so that FE can make
+         * the shipping option disabled when bulky items (category Learning Tower has quantity > 1)
+         */
         const originLat = Number(process.env.BITESHIP_ORIGIN_LAT);
         const originLng = Number(process.env.BITESHIP_ORIGIN_LNG);
         const hasOriginCoords =
@@ -238,7 +243,7 @@ router.post("/", protect, async (req, res) => {
             // If gojek fails, we can still return JNE.
             console.error("Biteship Gojek API error:", gojekData);
         }
-        // Merge pricing arrays
+        // merge pricing arrays
         const pricing = [
             ...(jneData.pricing || []),
             ...((gojekData && gojekData.pricing) || []),
@@ -259,7 +264,7 @@ router.post("/", protect, async (req, res) => {
             });
         }
 
-        // map + markup x1.1
+        // map + markup x1.1 for client buffer
         const shippingOptions = filteredPricing.map((option) => {
             const markedUp = applyMarkup(option.price, 1.1);
             return {
@@ -275,6 +280,7 @@ router.post("/", protect, async (req, res) => {
             };
         });
 
+        // sort shipping options by price in ascending order
         shippingOptions.sort((a, b) => a.price - b.price);
 
         res.json({
