@@ -93,7 +93,7 @@ const ShippingOptionsModal = ({
 
                   <div className="text-right ml-4">
                     <p className="text-xl font-semibold text-gray-900">
-                      IDR {option.price.toLocaleString()}
+                      IDR {option.price.toLocaleString("id-ID")}
                     </p>
                   </div>
                 </div>

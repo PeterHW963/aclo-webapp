@@ -75,7 +75,7 @@ router.get("/details", protect, must("placeId"), async (req, res) => {
     }
 });
 
-// @route GET /api/maps/details
+// @route GET /api/maps/geocode-reverse
 // @desc uses GMaps' Geocoding API to get longitude and latitude of a location, the links it to an address
 // @access Private
 router.get(
