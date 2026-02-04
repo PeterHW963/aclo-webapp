@@ -60,6 +60,25 @@ export const fetchOrderDetails = createAsyncThunk<
   }
 });
 
+export const requestCancelOrder = createAsyncThunk<
+  Order, // or whatever your API returns (maybe the updated order)
+  { id: string; reason?: string },
+  { rejectValue: AppError }
+>("orders/requestCancelOrder", async ({ id, reason }, { rejectWithValue }) => {
+  try {
+    const response = await axios.put(
+      `${API_URL}/api/orders/${id}/cancel`,
+      { reason },
+      { headers: getAuthHeader() },
+    );
+    return response.data;
+  } catch (err) {
+    const error = err as AxiosError<AppError>;
+    if (error.response?.data) return rejectWithValue(error.response.data);
+    return rejectWithValue({ message: "Failed to cancel order" });
+  }
+});
+
 const orderSlice = createSlice({
   name: "orders",
   initialState,
@@ -90,6 +109,24 @@ const orderSlice = createSlice({
         state.loading = false;
         state.error =
           action.payload?.message || "Failed to fetch order details";
+      })
+      .addCase(requestCancelOrder.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(requestCancelOrder.fulfilled, (state, action) => {
+        state.loading = false;
+
+        // If API returns the updated order:
+        state.orderDetails = action.payload;
+
+        // Also update it inside orders list if present:
+        const idx = state.orders.findIndex((o) => o._id === action.payload._id);
+        if (idx !== -1) state.orders[idx] = action.payload;
+      })
+      .addCase(requestCancelOrder.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload?.message ?? "Failed to cancel order";
       });
   },
 });

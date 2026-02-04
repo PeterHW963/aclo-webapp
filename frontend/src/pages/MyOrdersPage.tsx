@@ -1,17 +1,23 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../redux/hooks";
-import { fetchUserOrders } from "../redux/slices/orderSlice";
+import {
+  fetchUserOrders,
+  requestCancelOrder,
+} from "../redux/slices/orderSlice";
 import { cloudinaryImageUrl } from "../constants/cloudinary";
 import { getStatusBadge } from "../constants/orderStatus";
 import Navbar from "../components/common/Navbar";
 import LoadingOverlay from "../components/common/LoadingOverlay";
+import CancelModal from "../components/profile/CancelModal";
 
 const MyOrdersPage = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const { orders, error } = useAppSelector((state) => state.orders);
+  const [cancelModalOpen, setCancelModalOpen] = useState(false);
+  const [cancelOrderId, setCancelOrderId] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -39,10 +45,34 @@ const MyOrdersPage = () => {
   };
   if (error) return <p>Error: {error}</p>;
 
+  const openCancelModal = (orderId: string) => {
+    setCancelOrderId(orderId);
+    setCancelModalOpen(true);
+  };
+
+  const closeCancelModal = () => {
+    setCancelModalOpen(false);
+    setCancelOrderId(null);
+  };
+
   return (
     <div>
       <Navbar />
       <LoadingOverlay show={loading} />
+      {cancelModalOpen && cancelOrderId && (
+        <CancelModal
+          onClose={closeCancelModal}
+          onSubmit={async (reason) => {
+            await dispatch(
+              requestCancelOrder({ id: cancelOrderId, reason }),
+            ).unwrap();
+
+            // Optional: refresh orders to be 100% in sync (if your reducer already updates, you can skip)
+            // await dispatch(fetchUserOrders()).unwrap();
+          }}
+        />
+      )}
+
       <div className="max-w-7xl mx-auto p-4 sm:p-6">
         <h2 className="text-xl sm:text-2xl font-bold mb-6 text-acloblue">
           My Orders
@@ -97,11 +127,25 @@ const MyOrdersPage = () => {
                       {(() => {
                         const badge = getStatusBadge(order.status);
                         return (
-                          <span
-                            className={`${badge.className} inline-flex items-center rounded-full px-2 py-1 text-xs sm:text-sm font-medium`}
-                          >
-                            {badge.label}
-                          </span>
+                          <div className="flex flex-col items-start gap-2">
+                            <span
+                              className={`${badge.className} inline-flex items-center rounded-full px-2 py-1 text-xs sm:text-sm font-medium`}
+                            >
+                              {badge.label}
+                            </span>
+
+                            {order.status === "pending" && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  openCancelModal(order._id);
+                                }}
+                                className="rounded-md px-3 py-1 text-xs sm:text-sm font-medium bg-rose-600 text-white hover:bg-rose-500"
+                              >
+                                Cancel
+                              </button>
+                            )}
+                          </div>
                         );
                       })()}
                     </td>
