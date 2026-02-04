@@ -511,17 +511,22 @@ const ProductDetails = () => {
               </div>
 
               {/* Similar products */}
-              <div className="mt-20">
-                <h2 className="text-2xl text-center font-medium mb-4">
-                  You May Also Like
-                </h2>
+              <div className="mt-20 text-center">
+                <h2 className="text-2xl font-medium">Buy more, save 5%</h2>
+                <p className="mt-1 text-md text-gray-500">
+                  Unlock 5% off when your cart hits IDR 1.500.000+
+                </p>
 
-                <ProductGrid
-                  products={products.filter((p) => p.isListed && p._id !== id)}
-                  productVariants={productVariants}
-                  loading={productsLoading}
-                  error={error}
-                />
+                <div className="mt-4">
+                  <ProductGrid
+                    products={products.filter(
+                      (p) => p.isListed && p._id !== id,
+                    )}
+                    productVariants={productVariants}
+                    loading={productsLoading}
+                    error={error}
+                  />
+                </div>
               </div>
             </>
           )}
