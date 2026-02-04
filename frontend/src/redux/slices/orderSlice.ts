@@ -61,7 +61,7 @@ export const fetchOrderDetails = createAsyncThunk<
 });
 
 export const requestCancelOrder = createAsyncThunk<
-  Order, // or whatever your API returns (maybe the updated order)
+  Order,
   { id: string; reason?: string },
   { rejectValue: AppError }
 >("orders/requestCancelOrder", async ({ id, reason }, { rejectWithValue }) => {
@@ -117,10 +117,8 @@ const orderSlice = createSlice({
       .addCase(requestCancelOrder.fulfilled, (state, action) => {
         state.loading = false;
 
-        // If API returns the updated order:
         state.orderDetails = action.payload;
 
-        // Also update it inside orders list if present:
         const idx = state.orders.findIndex((o) => o._id === action.payload._id);
         if (idx !== -1) state.orders[idx] = action.payload;
       })

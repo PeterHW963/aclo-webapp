@@ -66,9 +66,6 @@ const MyOrdersPage = () => {
             await dispatch(
               requestCancelOrder({ id: cancelOrderId, reason }),
             ).unwrap();
-
-            // Optional: refresh orders to be 100% in sync (if your reducer already updates, you can skip)
-            // await dispatch(fetchUserOrders()).unwrap();
           }}
         />
       )}
