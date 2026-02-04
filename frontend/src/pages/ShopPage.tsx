@@ -89,7 +89,7 @@ const ShopPage = () => {
                   <p className="mt-2 text-xl font-semibold text-ink sm:text-2xl">
                     Spend{" "}
                     <span className="underline decoration-lightbrown decoration-4 underline-offset-4">
-                      IDR {PROMO_MIN_SPEND.toLocaleString()}+
+                      IDR {PROMO_MIN_SPEND.toLocaleString("id-ID")}+
                     </span>{" "}
                     and enjoy{" "}
                     <span className="text-acloblue">
