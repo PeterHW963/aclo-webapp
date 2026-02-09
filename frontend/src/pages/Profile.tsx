@@ -80,7 +80,7 @@ const Profile = () => {
             </div>
 
             <div className="flex justify-between items-center mt-6 mb-3">
-              <h2 className="text-lg font-semibold text-acloblue">
+              <h2 className="text-lg font-semibold text-ink">
                 Shipping Details
               </h2>
 
