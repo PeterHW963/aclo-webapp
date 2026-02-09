@@ -7,6 +7,7 @@ const Cart = require("./models/Cart");
 const Order = require("./models/Order");
 const Review = require("./models/Review");
 const Checkout = require("./models/Checkout");
+const OrderCounter = require("./models/OrderCounter");
 const products = require("./data/products");
 const productVariants = require("./data/productVariants");
 const reviews = require("./data/reviews");
@@ -34,6 +35,7 @@ async function clearCollections() {
         Cart.deleteMany(),
         Review.deleteMany(),
         Order.deleteMany(),
+        OrderCounter.deleteMany(),
     ]);
 }
 
@@ -53,12 +55,12 @@ function findByContains(allProducts, keyword) {
 
 function getVariantAndProduct(insertedProducts, insertedVariants, keyword) {
     const product = insertedProducts.find((p) =>
-        p.name?.toLowerCase().includes(keyword.toLowerCase())
+        p.name?.toLowerCase().includes(keyword.toLowerCase()),
     );
     if (!product) throw new Error(`Product not found for keyword: ${keyword}`);
 
     const variant = insertedVariants.find(
-        (pv) => pv.productId.toString() === product._id.toString()
+        (pv) => pv.productId.toString() === product._id.toString(),
     );
     if (!variant)
         throw new Error(`Variant not found for product: ${product.name}`);
@@ -88,13 +90,13 @@ function injectCartSnapshotHash(checkoutTemplate) {
         checkoutTemplate.checkoutItems.length === 0
     ) {
         throw new Error(
-            "Cannot generate snapshot hash: no checkout items found"
+            "Cannot generate snapshot hash: no checkout items found",
         );
     }
     return {
         ...checkoutTemplate,
         cartSnapshotHash: generateCartSnapshotHash(
-            checkoutTemplate.checkoutItems
+            checkoutTemplate.checkoutItems,
         ),
     };
 }
@@ -152,7 +154,7 @@ const seedData = async () => {
             !beak
         ) {
             throw new Error(
-                "One or more products not found by name. Check your seed product names exactly."
+                "One or more products not found by name. Check your seed product names exactly.",
             );
         }
 
@@ -205,7 +207,7 @@ const seedData = async () => {
         });
 
         const insertedVariants = await ProductVariant.insertMany(
-            variantsWithProductId
+            variantsWithProductId,
         );
 
         const checkoutTemp = checkouts[0];
@@ -264,7 +266,7 @@ const seedData = async () => {
 
             const orderPayload = buildOrderFromCheckout(
                 orderTemp,
-                createdCheckout
+                createdCheckout,
             );
 
             // const isPaid = paidStatuses.has(status); // irrelevant until midtrans implemented
