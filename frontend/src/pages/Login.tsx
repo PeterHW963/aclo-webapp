@@ -8,12 +8,14 @@ import { assets, cloudinaryImageUrl } from "../constants/cloudinary";
 import Navbar from "../components/common/Navbar";
 import { ChevronLeftIcon } from "@heroicons/react/24/solid";
 import axios from "axios";
+import { toast } from "sonner";
 
 const Login = () => {
   const [formData, setFormData] = useState<LoginPayload>({
     email: "",
     password: "",
   });
+  const [error, setError] = useState<string | null>(null);
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const location = useLocation();
@@ -38,6 +40,7 @@ const Login = () => {
   }, [user, guestId, cart, navigate, isCheckoutRedirect, dispatch]);
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setError(null);
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
@@ -54,10 +57,15 @@ const Login = () => {
     }
   };
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    dispatch(loginUser(formData));
-    setFormData({ email: "", password: "" });
+    try {
+      await dispatch(loginUser(formData)).unwrap();
+      toast.success("You've successfully logged in!");
+      setFormData({ email: "", password: "" });
+    } catch (err: any) {
+      setError(err.message || "Invalid credentials. Please try again.");
+    }
   };
 
   return (
@@ -78,6 +86,11 @@ const Login = () => {
             {/* <p className="text-center mb-6">
             Enter your email and password to login
           </p> */}
+            {error && (
+              <div className="mb-4 rounded-md bg-red-50 text-red-700 px-3 py-2 text-sm">
+                {error}
+              </div>
+            )}
             <div className="mb-4">
               <label className="block text-sm font-semibold mb-2">Email</label>
               <input

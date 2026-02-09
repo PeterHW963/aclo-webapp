@@ -32,7 +32,8 @@ const Profile = () => {
 		try {
 			await dispatch(resendVerification()).unwrap();
 			toast.success("Verification email sent! Check your inbox to complete verification.");
-		} catch (err: any) {
+		} catch (err) {
+			console.error(err);
 			toast.error("Failed to send verification email. Please try again.");
 		} finally {
 			setSendingVerification(false);

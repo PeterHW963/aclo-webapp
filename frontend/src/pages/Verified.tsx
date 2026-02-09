@@ -42,7 +42,7 @@ const Verified = () => {
     };
 
     verify();
-  }, [token]);
+  }, [token, dispatch, navigate, redirect]);
 
   useEffect(() => {
     if (verificationStatus === "success") {

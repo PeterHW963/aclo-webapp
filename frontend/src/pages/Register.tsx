@@ -27,7 +27,6 @@ const Register = () => {
   const {
     user,
     loading,
-    error: authError,
   } = useAppSelector((state) => state.auth);
 
   const redirect = new URLSearchParams(location.search).get("redirect") || "/";
@@ -37,7 +36,7 @@ const Register = () => {
     if (user) {
       navigate("/");
     }
-  }, [user]);
+  }, [user, navigate]);
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     setError(null);
