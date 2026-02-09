@@ -16,6 +16,7 @@ import {
 import { addToCart } from "../../redux/slices/cartSlice";
 import { cloudinaryImageUrl } from "../../constants/cloudinary";
 import type { Product, ProductImage } from "../../types/product";
+import { LOW_STOCK_THRESHOLD } from "../../constants/products";
 
 const ProductDetails = () => {
   const [loading, setLoading] = useState<boolean>(true);
@@ -77,12 +78,12 @@ const ProductDetails = () => {
     if (!hasUserSelectedOption) return productImgs;
 
     const variantIds = new Set(
-      variantImgs.map((img: ProductImage) => img.publicId)
+      variantImgs.map((img: ProductImage) => img.publicId),
     );
     const merged = [
       ...variantImgs,
       ...productImgs.filter(
-        (img: ProductImage) => !variantIds.has(img.publicId)
+        (img: ProductImage) => !variantIds.has(img.publicId),
       ),
     ];
 
@@ -97,11 +98,19 @@ const ProductDetails = () => {
     if (!blockedProductFirstId) return displayedImages;
 
     const filtered = displayedImages.filter(
-      (img: ProductImage) => img.publicId !== blockedProductFirstId
+      (img: ProductImage) => img.publicId !== blockedProductFirstId,
     );
 
     return filtered.length ? filtered : displayedImages;
   }, [displayedImages, blockedProductFirstId]);
+
+  // Stock status
+  const stockCount = selectedVariant?.countInStock;
+  const isSoldOut = stockCount === 0;
+  const isLowStock =
+    typeof stockCount === "number" &&
+    stockCount > 0 &&
+    stockCount <= LOW_STOCK_THRESHOLD;
 
   useEffect(() => {
     let cancelled = false;
@@ -126,12 +135,12 @@ const ProductDetails = () => {
             variant,
             ovenMitt,
             stabiliser,
-          })
+          }),
         ).unwrap();
 
         // similar products
         const similarProds = await dispatch(
-          fetchSimilarProducts({ id })
+          fetchSimilarProducts({ id }),
         ).unwrap();
         const productIds = (similarProds ?? []).map((p: Product) => p._id);
 
@@ -161,7 +170,7 @@ const ProductDetails = () => {
       lastVariantIdRef.current = null;
 
       const exists = carouselImages.some(
-        (img: ProductImage) => img.publicId === mainImage
+        (img: ProductImage) => img.publicId === mainImage,
       );
       if (!mainImage || !exists) {
         setMainImage(carouselImages[0].publicId);
@@ -174,7 +183,7 @@ const ProductDetails = () => {
 
       const variantPick =
         vImgs.find(
-          (img: ProductImage) => img.publicId !== blockedProductFirstId
+          (img: ProductImage) => img.publicId !== blockedProductFirstId,
         )?.publicId || "";
 
       if (variantPick) {
@@ -188,7 +197,7 @@ const ProductDetails = () => {
     }
 
     const exists = carouselImages.some(
-      (img: ProductImage) => img.publicId === mainImage
+      (img: ProductImage) => img.publicId === mainImage,
     );
     if (!mainImage || !exists) {
       setMainImage(carouselImages[0].publicId);
@@ -231,7 +240,7 @@ const ProductDetails = () => {
       if (missing.length > 0) {
         toast.error(
           `Please select ${missing.join(", ")} before adding to cart.`,
-          { duration: 1500 }
+          { duration: 1500 },
         );
         return;
       }
@@ -252,7 +261,7 @@ const ProductDetails = () => {
         options: finalOptions,
         guestId,
         userId: user?._id,
-      })
+      }),
     )
       .unwrap()
       .then(() => {
@@ -269,7 +278,7 @@ const ProductDetails = () => {
   const getCurrentIndex = () => {
     if (!carouselImages.length) return 0;
     const idx = carouselImages.findIndex(
-      (img: ProductImage) => img.publicId === mainImage
+      (img: ProductImage) => img.publicId === mainImage,
     );
     return idx >= 0 ? idx : 0;
   };
@@ -379,7 +388,7 @@ const ProductDetails = () => {
                           }`}
                           onClick={() => setMainImage(image.publicId)}
                         />
-                      )
+                      ),
                     )}
                   </div>
                 </div>
@@ -391,7 +400,7 @@ const ProductDetails = () => {
                   </h1>
 
                   {/* Price Display */}
-                  <div className="mb-4">
+                  <div className="mb-2">
                     {selectedVariant?.discountPrice ? (
                       <>
                         <span className="text-xl font-medium text-acloblue mr-6">
@@ -404,10 +413,15 @@ const ProductDetails = () => {
                     ) : (
                       <span className="text-xl text-gray-800">
                         IDR{" "}
-                        {selectedVariant?.price ?? ""
+                        {(selectedVariant?.price ?? "")
                           ? selectedVariant?.price?.toLocaleString()
                           : "Price Not Available"}
                       </span>
+                    )}
+                    {isLowStock && (
+                      <p className="text-md text-yellow-500 font-medium">
+                        Low stock
+                      </p>
                     )}
                   </div>
 
@@ -442,7 +456,7 @@ const ProductDetails = () => {
                             })}
                           </div>
                         </div>
-                      )
+                      ),
                     )}
 
                   {/* Quantity */}
@@ -467,15 +481,20 @@ const ProductDetails = () => {
 
                   <button
                     onClick={handleAddToCart}
-                    disabled={isButtonDisabled}
-                    className={`bg-acloblue text-white py-2 px-6 rounded w-full mb-4 ${
-                      isButtonDisabled
+                    disabled={isButtonDisabled || isSoldOut}
+                    className={`bg-acloblue text-white py-2 px-6 rounded w-full mb-2 ${
+                      isButtonDisabled || isSoldOut
                         ? "cursor-not-allowed opacity-50"
                         : "hover:bg-acloblue hover:opacity-50"
                     }`}
                   >
                     {isButtonDisabled ? "Processing..." : "ADD TO CART"}
                   </button>
+                  {isSoldOut && (
+                    <p className="text-left text-md text-red-600 font-semibold">
+                      Sold out
+                    </p>
+                  )}
 
                   <ProductDescription md={selectedProduct.description} />
                 </div>

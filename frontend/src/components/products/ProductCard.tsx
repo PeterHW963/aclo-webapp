@@ -4,6 +4,8 @@ import { cloudinaryImageUrl } from "../../constants/cloudinary";
 import type { Product } from "../../types/product";
 import type { ProductVariant } from "../../types/productVariant";
 import ColorSwatch from "./ColorSwatch";
+import { GoAlert } from "react-icons/go";
+import { LOW_STOCK_THRESHOLD } from "../../constants/products";
 
 type ProductCardProps = {
   product: Product;
@@ -64,20 +66,50 @@ const ProductCard = ({ product, variants }: ProductCardProps) => {
     originalPrice = selectedVariant.price;
   }
 
+  // stock status
+  const stockCount = selectedVariant?.countInStock;
+  const isSoldOut = stockCount === 0;
+  const isLowStock =
+    typeof stockCount === "number" &&
+    stockCount > 0 &&
+    stockCount <= LOW_STOCK_THRESHOLD;
+
+  const stockLabel = isSoldOut ? "Sold out" : isLowStock ? "Low stock" : null;
+
   const isLearningTower = product.category?.trim() === "Learning Tower";
-  // const hasVariants =
-  //   product.name?.trim() === "TALON - Stabiliser for Learning Tower" ||
-  //   product.name?.trim() === "QUILL - Premium Kid-size Mini Kitchen Utensils";
 
   return (
     <Link to={productUrl} className="block">
       <div className="bg-white p-4">
-        <div className="w-full aspect-7/8 mb-3 overflow-hidden">
+        <div className="relative w-full aspect-7/8 mb-3 overflow-hidden">
           <img
             src={cloudinaryImageUrl(displayImageId)}
             alt={displayAlt}
             className="w-full h-full object-cover"
           />
+
+          {/* SOLD OUT / LOW STOCK OVERLAY */}
+          {stockLabel && (
+            <div
+              className={`absolute inset-x-0 bottom-0 z-10 flex items-center justify-center gap-2
+          py-6 px-4
+          bg-acloblue/30
+        `}
+            >
+              {isSoldOut ? (
+                <span className="text-red-600 font-semibold tracking-widest uppercase text-md">
+                  Sold out
+                </span>
+              ) : (
+                <>
+                  <GoAlert className="text-orange-500 text-lg" aria-hidden />
+                  <span className="text-orange-500 font-semibold tracking-widest uppercase text-md">
+                    Low stock
+                  </span>
+                </>
+              )}
+            </div>
+          )}
         </div>
       </div>
       <h3 className="text-sm px-4 mb-2 text-center">{product.name}</h3>
