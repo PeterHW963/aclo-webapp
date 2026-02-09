@@ -98,7 +98,6 @@ const ChangePriceModal = ({
     parsed.priceOk && parsed.discountOk && parsed.stockOk && !saving;
 
   const handleSave = async () => {
-    console.log("save clicked");
     const payload = {
       variantId: selectedVariantId,
       price: parsed.price,
@@ -106,16 +105,10 @@ const ChangePriceModal = ({
       countInStock: parsed.stock,
     };
     console.log("payload", payload);
-    await onSave(payload);
     if (!canSave) return;
     setSaving(true);
     try {
-      await onSave({
-        variantId: selectedVariantId,
-        price: parsed.price,
-        discountPrice: parsed.discountPrice,
-        countInStock: parsed.stock,
-      });
+      await onSave(payload);
       onClose();
     } finally {
       setSaving(false);

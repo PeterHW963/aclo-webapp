@@ -263,9 +263,9 @@ const ProductManagement = () => {
                     fetchProductVariants({ productIds: ids }),
                   ).unwrap();
                 }
-                toast.success("Price updated");
+                toast.success("Product updated");
               } catch (err: any) {
-                toast.error(err?.message ?? "Failed to update price");
+                toast.error(err?.message ?? "Failed to update product");
               }
             }}
           />
