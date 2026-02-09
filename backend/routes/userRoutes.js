@@ -5,6 +5,10 @@ const { protect } = require("../middleware/authMiddleware");
 const crypto = require("crypto");
 const { sendEmail } = require("../utils/emailService.js");
 const { validatePassword } = require("../utils/passwordValidator.js");
+const {
+    getVerificationEmailTemplate,
+    getPasswordResetTemplate,
+} = require("../utils/emailTemplates.js");
 
 const router = express.Router();
 
@@ -35,10 +39,11 @@ router.post("/register", async (req, res) => {
         await user.save({ validateBeforeSave: false });
 
         const verificationUrl = `${process.env.FRONTEND_URL}/verified?token=${verificationToken}`;
-        const message = `Hi ${name},\n\nThank you for registering! Please verify your email by clicking the link below:\n\n${verificationUrl}\n\nThis link will expire in 24 hours.\n\n\nThanks!`;
+        const textMessage = `Hi ${name},\n\nThank you for registering! Please verify your email by clicking the link below:\n\n${verificationUrl}\n\nThis link will expire in 24 hours.\n\nThanks!`;
+        const htmlMessage = getVerificationEmailTemplate(name, verificationUrl);
 
         try {
-            await sendEmail(user.email, "Verify Your Email Address", message);
+            await sendEmail(user.email, "Verify Your Email Address", textMessage, htmlMessage);
             res.status(201).json({
                 success: true,
                 message: "Registration successful",
@@ -124,10 +129,11 @@ router.post("/resend-verification", protect, async (req, res) => {
         await user.save({ validateBeforeSave: false });
 
         const verificationUrl = `${process.env.FRONTEND_URL}/verified?token=${verificationToken}`;
-        const message = `Hi ${user.name},\n\nPlease verify your email by clicking the link below:\n\n${verificationUrl}\n\nThis link will expire in 24 hours.\n\nThanks!`;
+        const textMessage = `Hi ${user.name},\n\nPlease verify your email by clicking the link below:\n\n${verificationUrl}\n\nThis link will expire in 24 hours.\n\nThanks!`;
+        const htmlMessage = getVerificationEmailTemplate(user.name, verificationUrl);
 
         try {
-            await sendEmail(user.email, "Verify your email address", message);
+            await sendEmail(user.email, "Verify your email address", textMessage, htmlMessage);
             res.status(200).json({
                 message: "Verification email sent",
             });
@@ -304,10 +310,11 @@ router.post("/forgot-password", async (req, res) => {
         const resetToken = user.getResetPasswordToken();
         await user.save({ validateBeforeSave: false });
         const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
-        const message = `Click the link below to reset your password: \n\n ${resetUrl}`;
+        const textMessage = `Click the link below to reset your password: \n\n ${resetUrl}`;
+        const htmlMessage = getPasswordResetTemplate(resetUrl);
 
         try {
-            await sendEmail(user.email, "Reset your password", message);
+            await sendEmail(user.email, "Reset your password", textMessage, htmlMessage);
             console.log(`Forgot Password Reset email sent successfully to: ${user.email}`);
         } catch (err) {
             user.resetPasswordToken = undefined;
