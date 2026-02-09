@@ -70,9 +70,15 @@ const userSchema = new mongoose.Schema(
             enum: ["customer", "admin"],
             default: "customer",
         },
+        isVerified: {
+            type: Boolean,
+            default: false,
+        },
         shippingAddresses: [shippingAddressSchema],
         resetPasswordToken: String,
         resetPasswordExpire: Date,
+        verificationToken: String,
+        verificationExpire: Date,
     },
     { timestamps: true },
 );
@@ -103,6 +109,17 @@ userSchema.methods.getResetPasswordToken = function () {
         .digest("hex");
     this.resetPasswordExpire = Date.now() + 2 * 60 * 1000; // 2 minutes expiry time (can be adjusted)
     return resetToken;
+};
+
+// Token generation method with expiry time, for user verification
+userSchema.methods.getVerificationToken = function () {
+    const verificationToken = crypto.randomBytes(20).toString("hex");
+    this.verificationToken = crypto
+        .createHash("sha256")
+        .update(verificationToken)
+        .digest("hex");
+    this.verificationExpire = Date.now() + 24 * 60 * 60 * 1000; // 24 hours expiry time
+    return verificationToken;
 };
 
 module.exports = mongoose.model("User", userSchema);

@@ -43,6 +43,7 @@ async function createAdminUser() {
         email: "admin@example.com",
         password: "123456",
         role: "admin",
+        isVerified: true,
     });
 }
 

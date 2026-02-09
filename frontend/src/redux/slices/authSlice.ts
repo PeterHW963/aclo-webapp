@@ -63,7 +63,7 @@ export const loginUser = createAsyncThunk<
 
 // Async Thunk for handling user registration process
 export const registerUser = createAsyncThunk<
-  User,
+  { success: boolean; message: string },
   RegisterPayload,
   { rejectValue: AppError }
 >("auth/registerUser", async (userData, { rejectWithValue }) => {
@@ -73,8 +73,8 @@ export const registerUser = createAsyncThunk<
       userData,
     );
 
-    // return user obj from response
-    return response.data.user as User;
+    // return success message from response (no autologin)
+    return response.data as { success: boolean; message: string };
   } catch (err) {
     const error = err as AxiosError<AppError>;
     if (error.response && error.response.data) {
@@ -145,6 +145,59 @@ export const updateShippingAddress = createAsyncThunk<
     }
   },
 );
+
+// Async Thunk for user email verification
+export const verifyEmail = createAsyncThunk<
+  User,
+  string,
+  { rejectValue: AppError }
+>(
+  "auth/verifyEmail", 
+  async (token, { rejectWithValue }) => {
+    try {
+      const response = await axios.get(
+        `${API_URL as string}/api/users/verify-email/${token}`,
+      );
+      
+      localStorage.setItem("userInfo", JSON.stringify(response.data.user));
+      localStorage.setItem("userToken", response.data.token);
+
+      return response.data.user as User;
+    } catch (err) {
+      const error = err as AxiosError<AppError>;
+      if (error.response && error.response.data) {
+        return rejectWithValue(error.response.data);
+      }
+      return rejectWithValue({ message: "Email verification failed" });
+    }
+});
+
+// Async Thunk for resending verification email
+export const resendVerification = createAsyncThunk<
+  { success: boolean; message: string },
+  void,
+  { rejectValue: AppError }
+>("auth/resendVerification", async (_, { rejectWithValue }) => {
+  try {
+    const token = localStorage.getItem("userToken");
+    const response = await axios.post(
+      `${API_URL as string}/api/users/resend-verification`,
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    );
+    return response.data as { success: boolean; message: string };
+  } catch (err) {
+    const error = err as AxiosError<AppError>;
+    if (error.response && error.response.data) {
+      return rejectWithValue(error.response.data);
+    }
+    return rejectWithValue({ message: "Failed to resend verification email" });
+  }
+});
 
 // Slice
 const authSlice = createSlice({
@@ -218,6 +271,31 @@ const authSlice = createSlice({
         state.loading = false;
         state.error =
           action.payload?.message ?? "Failed to update shipping address";
+      })
+      .addCase(verifyEmail.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(verifyEmail.fulfilled, (state, action) => {
+        state.loading = false;
+        state.user = action.payload;
+        state.error = null;
+      })
+      .addCase(verifyEmail.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload?.message ?? "Email verification failed";
+      })
+      .addCase(resendVerification.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(resendVerification.fulfilled, (state) => {
+        state.loading = false;
+        state.error = null;
+      })
+      .addCase(resendVerification.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload?.message ?? "Failed to resend email verification";
       });
   },
 });

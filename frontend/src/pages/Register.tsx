@@ -34,7 +34,7 @@ const Register = () => {
     if (user) {
       navigate("/");
     }
-  }, []);
+  }, [user]);
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     setError(null);
@@ -61,9 +61,13 @@ const Register = () => {
     }
 
     setSubmittedEmail(formData.email);
-    await dispatch(registerUser(formData));
-    setShowEmailDialog(true);
-    setFormData({ name: "", email: "", password: "" });
+    try {
+      await dispatch(registerUser(formData)).unwrap();
+      setShowEmailDialog(true);
+      setFormData({ name: "", email: "", password: "" });
+    } catch (err: any) {
+      setError(err.message || "Registration failed. Please try again.");
+    }
   };
 
   if (loading) return <p>Loading...</p>;
@@ -81,13 +85,15 @@ const Register = () => {
         >
           <div
             className="absolute inset-0 bg-black/40"
-            onClick={() => setShowEmailDialog(false)}
           />
 
           <div className="relative w-full max-w-md rounded-xl bg-white p-6 shadow-lg border">
             <button
               type="button"
-              onClick={() => setShowEmailDialog(false)}
+              onClick={() => {
+                setShowEmailDialog(false);
+                navigate("/");
+              }}
               aria-label="Close dialog"
               className="absolute right-3 top-3 inline-flex h-9 w-9 items-center justify-center rounded-full text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition"
             >
@@ -101,6 +107,7 @@ const Register = () => {
             <p className="mt-3 text-center text-sm text-gray-600">
               We sent a link to{" "}
               <span className="font-semibold text-ink">{submittedEmail}</span>.
+              Please click on the link to verify your account and complete your registration. The link will expire in 24 hours.
             </p>
 
             <div className="mt-6 flex flex-col gap-3">
