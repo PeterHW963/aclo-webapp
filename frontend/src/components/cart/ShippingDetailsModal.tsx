@@ -715,7 +715,7 @@ const ShippingDetailsModal = ({
 
                   <button
                     onClick={handleAddNewAddress}
-                    className="w-full bg-black text-white py-3 rounded disabled:bg-gray-400 disabled:cursor-not-allowed hover:bg-gray-800 transition"
+                    className="w-full bg-acloblue text-white py-3 rounded disabled:bg-gray-400 disabled:cursor-not-allowed transition hover:opacity-80"
                   >
                     Add New Address
                   </button>

@@ -304,7 +304,7 @@ const Checkout = () => {
                 setModalMode("selection");
                 setShowShippingDetailsModal(true);
               }}
-              className="text-sm text-acloblue hover:underline px-3 py-2 -mr-2 rounded-md"
+              className="text-sm text-white px-3 py-2 -mr-2 rounded-md bg-acloblue transition hover:opacity-80"
             >
               Edit Shipping Details
             </button>
