@@ -4,6 +4,7 @@ const jwt = require("jsonwebtoken");
 const { protect } = require("../middleware/authMiddleware");
 const crypto = require("crypto");
 const { sendEmail } = require("../utils/emailService.js");
+const { validatePassword } = require("../utils/passwordValidator.js");
 
 const router = express.Router();
 
@@ -18,6 +19,14 @@ router.post("/register", async (req, res) => {
         let user = await User.findOne({ email });
         if (user)
             return res.status(400).json({ message: "User already exists" });
+
+        const passwordValidation = validatePassword(password);
+        if (!passwordValidation.isValid) {
+            return res.status(400).json({ 
+                message: "Password does not meet requirements",
+                errors: passwordValidation.errors 
+            });
+        }
         
         user = new User({ name, email, password, isVerified: false });
         
@@ -278,10 +287,18 @@ router.patch("/profile/addresses/:addressId", protect, async (req, res) => {
 // @access Public
 router.post("/forgot-password", async (req, res) => {
     const { email } = req.body;
+    
+    // Generic response to prevent email enumeration (always returned to user)
+    const genericResponse = {
+        success: true,
+        message: "If an account with that email exists, a password reset link has been sent",
+    };
+    
     try {
         const user = await User.findOne({ email });
         if (!user) {
-            return res.status(404).json({ message: "User does not exist!" });
+            console.log(`User not found for email: ${email}`);
+            return res.status(200).json(genericResponse);
         }
 
         const resetToken = user.getResetPasswordToken();
@@ -291,16 +308,16 @@ router.post("/forgot-password", async (req, res) => {
 
         try {
             await sendEmail(user.email, "Reset your password", message);
-            res.status(200).json({
-                success: true,
-                data: "Email sent successfully",
-            });
+            console.log(`Forgot Password Reset email sent successfully to: ${user.email}`);
         } catch (err) {
             user.resetPasswordToken = undefined;
             user.resetPasswordExpire = undefined;
             await user.save({ validateBeforeSave: false });
-            return res.status(500).json({ message: "Email could not be sent" });
+            console.error(`Failed to send Forgot Password Reset email to: ${user.email}`, err.message);
         }
+        
+        // Always return the same response for security
+        res.status(200).json(genericResponse);
     } catch (error) {
         console.error(error);
         return res.status(500).json({ message: "Server Error" });
@@ -325,6 +342,15 @@ router.put("/reset-password/:resetToken", async (req, res) => {
                 .status(400)
                 .json({ message: "Invalid or expired Token" });
         }
+        
+        const passwordValidation = validatePassword(req.body.password);
+        if (!passwordValidation.isValid) {
+            return res.status(400).json({ 
+                message: "Password does not meet requirements",
+                errors: passwordValidation.errors 
+            });
+        }
+        
         user.password = req.body.password;
         user.resetPasswordToken = undefined;
         user.resetPasswordExpire = undefined;

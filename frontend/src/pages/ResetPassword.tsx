@@ -1,8 +1,10 @@
 import { useState, useEffect, type ChangeEvent, type FormEvent } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import Navbar from "../components/common/Navbar";
+import LoadingOverlay from "../components/common/LoadingOverlay";
 import { assets, cloudinaryImageUrl } from "../constants/cloudinary";
 import type { ResetPasswordPayload } from "../types/auth";
+import { validatePassword } from "../utils/passwordValidator";
 import axios from "axios";
 import { API_URL } from "../constants/api";
 
@@ -13,6 +15,7 @@ const ResetPassword = () => {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [passwordErrors, setPasswordErrors] = useState<string[]>([]);
   const [success, setSuccess] = useState<string | null>(null);
 
   const navigate = useNavigate();
@@ -30,16 +33,25 @@ const ResetPassword = () => {
   }, [token, navigate]);
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    
+    if (name === "password") {
+      const validation = validatePassword(value);
+      setPasswordErrors(validation.isValid ? [] : validation.errors);
+    }
   };
 
   const validate = () => {
     if (!formData.password || !formData.confirmPassword) {
       return "Please fill in both password fields.";
     }
-    if (formData.password.length < 8) {
-      return "Password must be at least 8 characters.";
+    
+    const passwordValidation = validatePassword(formData.password);
+    if (!passwordValidation.isValid) {
+      return passwordValidation.errors[0];
     }
+    
     if (formData.password !== formData.confirmPassword) {
       return "Passwords do not match.";
     }
@@ -72,8 +84,12 @@ const ResetPassword = () => {
       setTimeout(() => {
         navigate(`/login?redirect=${encodeURIComponent(redirect)}`);
       }, 1200);
-    } catch {
-      setError("Something went wrong. Please try again.");
+    } catch (err: any) {
+      if (err.response?.data?.errors && Array.isArray(err.response.data.errors)) {
+        setError(err.response.data.errors.join(", "));
+      } else {
+        setError(err.response?.data?.message || "Something went wrong. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
@@ -82,6 +98,7 @@ const ResetPassword = () => {
   return (
     <>
       <Navbar />
+      <LoadingOverlay show={loading} />
       <div className="flex">
         <div className="w-full md:w-1/2 flex flex-col justify-center items-center p-8 md:p-12">
           <form
@@ -125,14 +142,25 @@ const ResetPassword = () => {
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
-                className="w-full p-2 border rounded focus:outline-acloblue"
+                className={`w-full p-2 border rounded focus:outline-acloblue ${
+                  passwordErrors.length > 0 ? "border-red-300" : ""
+                }`}
                 placeholder="Enter a new password"
                 autoComplete="new-password"
                 required
               />
-              <p className="mt-2 text-xs text-gray-500">
-                Must be at least 8 characters.
-              </p>
+              {passwordErrors.length > 0 && (
+                <ul className="mt-2 text-xs text-red-600 space-y-1">
+                  {passwordErrors.map((err, idx) => (
+                    <li key={idx}>• {err}</li>
+                  ))}
+                </ul>
+              )}
+              {passwordErrors.length === 0 && formData.password && (
+                <p className="mt-2 text-xs text-green-600">
+                  ✓ Password meets requirements
+                </p>
+              )}
             </div>
 
             <div className="mb-4">

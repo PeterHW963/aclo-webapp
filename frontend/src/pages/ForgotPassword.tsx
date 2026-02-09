@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { assets, cloudinaryImageUrl } from "../constants/cloudinary";
 import type { ForgotPasswordPayload } from "../types/auth";
 import Navbar from "../components/common/Navbar";
+import LoadingOverlay from "../components/common/LoadingOverlay";
 import { ChevronLeftIcon } from "@heroicons/react/24/solid";
 import axios from "axios";
 import { API_URL } from "../constants/api";
@@ -56,6 +57,7 @@ const ForgotPassword = () => {
   return (
     <>
       <Navbar />
+      <LoadingOverlay show={loading} />
       <div className="flex">
         <div className="w-full md:w-1/2 flex flex-col justify-center items-center p-8 md:p-12">
           <form

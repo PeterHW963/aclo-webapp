@@ -5,7 +5,9 @@ import { useAppDispatch, useAppSelector } from "../redux/hooks";
 import type { RegisterPayload } from "../types/auth";
 import { assets, cloudinaryImageUrl } from "../constants/cloudinary";
 import Navbar from "../components/common/Navbar";
+import LoadingOverlay from "../components/common/LoadingOverlay";
 import { XMarkIcon } from "@heroicons/react/24/solid";
+import { validatePassword } from "../utils/passwordValidator";
 
 const Register = () => {
   const [formData, setFormData] = useState<RegisterPayload>({
@@ -15,6 +17,7 @@ const Register = () => {
   });
 
   const [error, setError] = useState<string | null>(null);
+  const [passwordErrors, setPasswordErrors] = useState<string[]>([]);
   const [showEmailDialog, setShowEmailDialog] = useState(false);
   const [submittedEmail, setSubmittedEmail] = useState<string>("");
 
@@ -38,16 +41,25 @@ const Register = () => {
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     setError(null);
-    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    
+    if (name === "password") {
+      const validation = validatePassword(value);
+      setPasswordErrors(validation.isValid ? [] : validation.errors);
+    }
   };
 
   const validate = () => {
     if (!formData.name || !formData.email || !formData.password) {
       return "Please fill in all fields.";
     }
-    if (formData.password.length < 8) {
-      return "Password must be at least 8 characters.";
+    
+    const passwordValidation = validatePassword(formData.password);
+    if (!passwordValidation.isValid) {
+      return passwordValidation.errors[0];
     }
+    
     return null;
   };
 
@@ -65,17 +77,20 @@ const Register = () => {
       await dispatch(registerUser(formData)).unwrap();
       setShowEmailDialog(true);
       setFormData({ name: "", email: "", password: "" });
+      setPasswordErrors([]);
     } catch (err: any) {
-      setError(err.message || "Registration failed. Please try again.");
+      if (err.errors && Array.isArray(err.errors)) {
+        setError(err.errors.join(", "));
+      } else {
+        setError(err.message || "Registration failed. Please try again.");
+      }
     }
   };
-
-  if (loading) return <p>Loading...</p>;
-  if (authError) return <p>Error: {authError}</p>;
 
   return (
     <>
       <Navbar />
+      <LoadingOverlay show={loading} />
 
       {showEmailDialog && (
         <div
@@ -179,14 +194,25 @@ const Register = () => {
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
-                className="w-full p-2 border rounded"
+                className={`w-full p-2 border rounded ${
+                  passwordErrors.length > 0 ? "border-red-300" : ""
+                }`}
                 placeholder="Enter your password"
                 autoComplete="new-password"
                 required
               />
-              <p className="mt-2 text-xs text-gray-500">
-                Must be at least 8 characters.
-              </p>
+              {passwordErrors.length > 0 && (
+                <ul className="mt-2 text-xs text-red-600 space-y-1">
+                  {passwordErrors.map((err, idx) => (
+                    <li key={idx}>• {err}</li>
+                  ))}
+                </ul>
+              )}
+              {passwordErrors.length === 0 && formData.password && (
+                <p className="mt-2 text-xs text-green-600">
+                  ✓ Password meets requirements
+                </p>
+              )}
             </div>
 
             <button
