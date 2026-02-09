@@ -57,7 +57,6 @@ const MyOrdersPage = () => {
 
   return (
     <div>
-      <Navbar />
       <LoadingOverlay show={loading} />
       {cancelModalOpen && cancelOrderId && (
         <CancelModal
