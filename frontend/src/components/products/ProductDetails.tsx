@@ -176,47 +176,39 @@ const ProductDetails = () => {
 
     const variantId = selectedVariant?._id ?? null;
 
+    const vImgs = selectedVariant?.images || [];
+    const preferredVariantImage =
+      vImgs.find((img) => img.publicId !== blockedProductFirstId)?.publicId ??
+      vImgs[0]?.publicId ??
+      "";
+
     if (!hasUserSelectedOption) {
       lastVariantIdRef.current = null;
 
-      const exists = carouselImages.some(
-        (img: ProductImage) => img.publicId === mainImage,
-      );
-      if (!mainImage || !exists) {
-        setMainImage(carouselImages[0].publicId);
-      }
+      const exists = carouselImages.some((img) => img.publicId === mainImage);
+      if (!mainImage || !exists) setMainImage(carouselImages[0].publicId);
       return;
     }
 
-    if (variantId && variantId !== lastVariantIdRef.current) {
-      const vImgs = selectedVariant?.images || [];
+    const mainIsVariantImage = vImgs.some((img) => img.publicId === mainImage);
 
-      const variantPick =
-        vImgs.find(
-          (img: ProductImage) => img.publicId !== blockedProductFirstId,
-        )?.publicId || "";
-
-      if (variantPick) {
-        setMainImage(variantPick);
-      } else {
-        setMainImage(carouselImages[0].publicId);
-      }
-
+    if (
+      (variantId && variantId !== lastVariantIdRef.current) ||
+      (!mainIsVariantImage && preferredVariantImage)
+    ) {
+      setMainImage(preferredVariantImage || carouselImages[0].publicId);
       lastVariantIdRef.current = variantId;
       return;
     }
 
-    const exists = carouselImages.some(
-      (img: ProductImage) => img.publicId === mainImage,
-    );
-    if (!mainImage || !exists) {
-      setMainImage(carouselImages[0].publicId);
-    }
+    const exists = carouselImages.some((img) => img.publicId === mainImage);
+    if (!mainImage || !exists) setMainImage(carouselImages[0].publicId);
   }, [
     carouselImages,
     hasUserSelectedOption,
     selectedVariant?._id,
     selectedVariant?.images,
+    blockedProductFirstId,
     mainImage,
   ]);
 
