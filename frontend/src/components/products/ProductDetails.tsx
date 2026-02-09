@@ -18,6 +18,7 @@ import {
 import { addToCart } from "../../redux/slices/cartSlice";
 import { cloudinaryImageUrl } from "../../constants/cloudinary";
 import type { Product, ProductImage } from "../../types/product";
+import { LOW_STOCK_THRESHOLD } from "../../constants/products";
 
 const ProductDetails = () => {
   const [loading, setLoading] = useState<boolean>(true);
@@ -105,6 +106,14 @@ const ProductDetails = () => {
     return filtered.length ? filtered : displayedImages;
   }, [displayedImages, blockedProductFirstId]);
 
+  // Stock status
+  const stockCount = selectedVariant?.countInStock;
+  const isSoldOut = stockCount === 0;
+  const isLowStock =
+    typeof stockCount === "number" &&
+    stockCount > 0 &&
+    stockCount <= LOW_STOCK_THRESHOLD;
+
   useEffect(() => {
     let cancelled = false;
     const load = async () => {
@@ -167,47 +176,39 @@ const ProductDetails = () => {
 
     const variantId = selectedVariant?._id ?? null;
 
+    const vImgs = selectedVariant?.images || [];
+    const preferredVariantImage =
+      vImgs.find((img) => img.publicId !== blockedProductFirstId)?.publicId ??
+      vImgs[0]?.publicId ??
+      "";
+
     if (!hasUserSelectedOption) {
       lastVariantIdRef.current = null;
 
-      const exists = carouselImages.some(
-        (img: ProductImage) => img.publicId === mainImage,
-      );
-      if (!mainImage || !exists) {
-        setMainImage(carouselImages[0].publicId);
-      }
+      const exists = carouselImages.some((img) => img.publicId === mainImage);
+      if (!mainImage || !exists) setMainImage(carouselImages[0].publicId);
       return;
     }
 
-    if (variantId && variantId !== lastVariantIdRef.current) {
-      const vImgs = selectedVariant?.images || [];
+    const mainIsVariantImage = vImgs.some((img) => img.publicId === mainImage);
 
-      const variantPick =
-        vImgs.find(
-          (img: ProductImage) => img.publicId !== blockedProductFirstId,
-        )?.publicId || "";
-
-      if (variantPick) {
-        setMainImage(variantPick);
-      } else {
-        setMainImage(carouselImages[0].publicId);
-      }
-
+    if (
+      (variantId && variantId !== lastVariantIdRef.current) ||
+      (!mainIsVariantImage && preferredVariantImage)
+    ) {
+      setMainImage(preferredVariantImage || carouselImages[0].publicId);
       lastVariantIdRef.current = variantId;
       return;
     }
 
-    const exists = carouselImages.some(
-      (img: ProductImage) => img.publicId === mainImage,
-    );
-    if (!mainImage || !exists) {
-      setMainImage(carouselImages[0].publicId);
-    }
+    const exists = carouselImages.some((img) => img.publicId === mainImage);
+    if (!mainImage || !exists) setMainImage(carouselImages[0].publicId);
   }, [
     carouselImages,
     hasUserSelectedOption,
     selectedVariant?._id,
     selectedVariant?.images,
+    blockedProductFirstId,
     mainImage,
   ]);
 
@@ -420,7 +421,7 @@ const ProductDetails = () => {
                   </h1>
 
                   {/* Price Display */}
-                  <div className="mb-4">
+                  <div className="mb-2">
                     {selectedVariant?.discountPrice ? (
                       <>
                         <span className="text-xl font-medium text-acloblue mr-6">
@@ -437,6 +438,11 @@ const ProductDetails = () => {
                           ? selectedVariant?.price?.toLocaleString()
                           : "Price Not Available"}
                       </span>
+                    )}
+                    {isLowStock && (
+                      <p className="text-md text-yellow-500 font-medium">
+                        Low stock
+                      </p>
                     )}
                   </div>
 
@@ -496,15 +502,20 @@ const ProductDetails = () => {
 
                   <button
                     onClick={handleAddToCart}
-                    disabled={isButtonDisabled}
-                    className={`bg-acloblue text-white py-2 px-6 rounded w-full mb-4 ${
-                      isButtonDisabled
+                    disabled={isButtonDisabled || isSoldOut}
+                    className={`bg-acloblue text-white py-2 px-6 rounded w-full mb-2 ${
+                      isButtonDisabled || isSoldOut
                         ? "cursor-not-allowed opacity-50"
                         : "hover:bg-acloblue hover:opacity-50"
                     }`}
                   >
                     {isButtonDisabled ? "Processing..." : "ADD TO CART"}
                   </button>
+                  {isSoldOut && (
+                    <p className="text-left text-md text-red-600 font-semibold">
+                      Sold out
+                    </p>
+                  )}
 
                   <ProductDescription md={selectedProduct.description} />
                 </div>

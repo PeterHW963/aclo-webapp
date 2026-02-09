@@ -1,32 +1,31 @@
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../redux/hooks";
-import MyOrdersPage from "./MyOrdersPage";
-import { useEffect, useState } from "react";
 import { logoutAndReset } from "../utils/logoutReset";
 import { resendVerification } from "../redux/slices/authSlice";
 import { toast } from "sonner";
 
+import MyOrdersPage from "./MyOrdersPage";
+import ShippingDetailsModal from "../components/cart/ShippingDetailsModal";
+import { setShippingDetails } from "../redux/slices/shippingSlice";
+import type { ShippingDetails } from "../types/checkout";
+import Navbar from "../components/common/Navbar";
+
 const Profile = () => {
-	const { user } = useAppSelector((state) => state.auth);
-	const navigate = useNavigate();
-	const dispatch = useAppDispatch();
-	const [sendingVerification, setSendingVerification] = useState(false);
+  const { user } = useAppSelector((state) => state.auth);
+  const { shippingDetails } = useAppSelector((state) => state.shipping);
+  const [sendingVerification, setSendingVerification] = useState(false);
 
-	useEffect(() => {
-		if (!user) {
-			// if user isn't logged in
-			navigate("/login");
-		}
-	}, [user, navigate]);
+  const navigate = useNavigate();
+  const dispatch = useAppDispatch();
 
-	if (!user) {
-		return null;
-	}
+  const [showShippingDetailsModal, setShowShippingDetailsModal] =
+    useState(false);
+  const [modalMode, setModalMode] = useState<"selection" | "form">("selection");
 
-	const handleLogout = () => {
-		dispatch(logoutAndReset());
-		navigate("/login");
-	};
+  useEffect(() => {
+    if (!user) navigate("/login");
+  }, [user, navigate]);
 
 	const handleResendVerification = async () => {
 		setSendingVerification(true);
@@ -40,53 +39,155 @@ const Profile = () => {
 		}
 	};
 
-	return (
-		<div className="min-h-screen flex flex-col">
-			<div className="grow container mx-auto p-4 md:p-6">
-				<div className="flex flex-col md:flex-row md:space-x-6 space-y-6 md:space-y-0">
-					{/* Account details section on the left */}
-					<div className="w-full md:w-1/3 lg:w-1/4 shadow-md rounded-lg p-6">
-						<h1 className="text-2xl md:text-3xl font-bold mb-4">{user.name}</h1>
-						<p className="text-lg text-gray-600 mb-4">{user.email}</p>
-						
-						<div className="mb-4 flex items-center gap-2">
-							<span className="text-sm font-semibold">Status:</span>
-							{user.isVerified ? (
-								<span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-									Verified
-								</span>
-							) : (
-								<span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-									Unverified
-								</span>
-							)}
-						</div>
-						
-						{!user.isVerified && (
-							<button
-								onClick={handleResendVerification}
-								disabled={sendingVerification}
-								className="w-full mb-4 bg-acloblue text-white py-2 px-4 rounded hover:opacity-90 transition disabled:opacity-60"
-							>
-								{sendingVerification ? "Sending..." : "Verify My Account"}
-							</button>
-						)}
-						
-						<button
-							onClick={handleLogout}
-							className="w-full bg-red-500 text-white py-2 px-4 rounded hover:bg-red-600"
-						>
-							Logout
-						</button>
-					</div>
-					{/* Orders table on the right */}
-					<div className="w-full md:w-2/3 lg:w-3/4">
-						<MyOrdersPage />
-					</div>
-				</div>
-			</div>
-		</div>
-	);
+  useEffect(() => {
+    if (!user) {
+      navigate("/login");
+      return;
+    }
+
+    const addresses = user.shippingAddresses ?? [];
+
+    if (!shippingDetails?.postalCode && addresses.length > 0) {
+      const firstAddress = addresses[0];
+      const detailsToUse: ShippingDetails = {
+        name: firstAddress.name,
+        address: firstAddress.address,
+        addressDetails: firstAddress.addressDetails,
+        city: firstAddress.city,
+        postalCode: firstAddress.postalCode,
+        phone: firstAddress.phone,
+        latitude: firstAddress.latitude,
+        longitude: firstAddress.longitude,
+      };
+      dispatch(setShippingDetails(detailsToUse));
+    }
+  }, [user, shippingDetails?.postalCode, dispatch, navigate]);
+
+  const handleLogout = () => {
+    dispatch(logoutAndReset());
+    navigate("/login");
+  };
+
+  const handleShippingDetailsSubmit = async (details: ShippingDetails) => {
+    dispatch(setShippingDetails(details));
+    setShowShippingDetailsModal(false);
+  };
+
+  if (!user) return null;
+
+  return (
+    <>
+      <Navbar />
+      <div className="min-h-screen flex flex-col">
+        <div className="grow container mx-auto p-4 md:p-6 space-y-6">
+          <div className="shadow-md rounded-lg p-6">
+            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+              <div>
+                <h1 className="text-2xl md:text-3xl font-bold mb-1 text-acloblue">
+                  {user.name}
+                </h1>
+                <p className="text-lg text-gray-600">{user.email}</p>
+                <div className="mt-2 flex items-center gap-2">
+                  <span
+                    className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
+                      user.isVerified
+                        ? "bg-green-100 text-green-800"
+                        : "bg-yellow-100 text-yellow-800"
+                    }`}
+                  >
+                    {user.isVerified ? "Verified" : "Unverified"}
+                  </span>
+                  {!user.isVerified && (
+                    <button
+                      onClick={handleResendVerification}
+                      disabled={sendingVerification}
+                      className="text-sm text-blue-600 hover:underline disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {sendingVerification ? "Sending..." : "Verify My Account"}
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              <button
+                onClick={handleLogout}
+                className="w-full sm:w-auto bg-red-500 text-white py-2 px-4 rounded hover:bg-red-600"
+              >
+                Logout
+              </button>
+            </div>
+
+            <div className="flex justify-between items-center mt-6 mb-3">
+              <h2 className="text-lg font-semibold text-ink">
+                Shipping Details
+              </h2>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setModalMode("selection");
+                  setShowShippingDetailsModal(true);
+                }}
+                className="text-sm text-white px-3 py-2 -mr-2 rounded-md bg-acloblue transition hover:opacity-80 hover:cursor-pointer"
+              >
+                Edit Shipping Details
+              </button>
+            </div>
+
+            {shippingDetails?.postalCode ? (
+              <div className="mb-2 p-4 bg-gray-50 rounded-lg">
+                <p className="text-sm text-gray-800">{shippingDetails.name}</p>
+                <p className="text-sm text-gray-600">
+                  {shippingDetails.addressDetails}
+                </p>
+                <p className="text-sm text-gray-600">
+                  {shippingDetails.city}, {shippingDetails.postalCode}
+                </p>
+                <p className="text-sm text-gray-600">{shippingDetails.phone}</p>
+              </div>
+            ) : (
+              <div className="mb-2 p-4 bg-gray-50 rounded-lg flex items-center justify-between gap-4">
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-700 mb-1">
+                    Shipping details
+                  </h3>
+                  <p className="text-sm text-gray-600">
+                    No shipping details yet. Add an address to see shipping
+                    options.
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setModalMode("form");
+                    setShowShippingDetailsModal(true);
+                  }}
+                  className="shrink-0 text-sm text-acloblue hover:underline"
+                >
+                  Add now
+                </button>
+              </div>
+            )}
+          </div>
+
+          <div className="w-full">
+            <MyOrdersPage />
+          </div>
+        </div>
+
+        {showShippingDetailsModal && (
+          <ShippingDetailsModal
+            onClose={() => setShowShippingDetailsModal(false)}
+            onSubmit={handleShippingDetailsSubmit}
+            userEmail={user.email}
+            isCalculating={false}
+            initialMode={modalMode}
+          />
+        )}
+      </div>
+    </>
+  );
 };
 
 export default Profile;

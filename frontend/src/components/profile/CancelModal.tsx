@@ -42,10 +42,10 @@ const CancelModal = ({ onClose, onSubmit }: CancelModalProps) => {
           }}
           rows={5}
           className="w-full rounded-lg border p-3 text-sm outline-none"
-          placeholder="Please explain why you want to cancel this order..."
+          placeholder="Please explain why you want to cancel this order."
         />
 
-        {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
+        {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
 
         <div className="flex justify-end gap-2 mt-4">
           <button
