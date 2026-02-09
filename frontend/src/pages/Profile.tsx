@@ -90,7 +90,7 @@ const Profile = () => {
                   setModalMode("selection");
                   setShowShippingDetailsModal(true);
                 }}
-                className="text-sm text-white px-3 py-2 -mr-2 rounded-md bg-acloblue transition hover:opacity-80"
+                className="text-sm text-white px-3 py-2 -mr-2 rounded-md bg-acloblue transition hover:opacity-80 hover:cursor-pointer"
               >
                 Edit Shipping Details
               </button>

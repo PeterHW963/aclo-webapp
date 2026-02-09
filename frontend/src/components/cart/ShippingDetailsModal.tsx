@@ -704,7 +704,7 @@ const ShippingDetailsModal = ({
                               e.stopPropagation();
                               handleEditAddress(address);
                             }}
-                            className="text-acloblue text-sm font-medium shrink-0"
+                            className="text-acloblue text-sm font-medium shrink-0 px-3 py-2 -mx-1 -my-2 rounded hover:bg-gray-100 hover:cursor-pointer"
                           >
                             Edit
                           </button>
@@ -715,7 +715,7 @@ const ShippingDetailsModal = ({
 
                   <button
                     onClick={handleAddNewAddress}
-                    className="w-full bg-acloblue text-white py-3 rounded disabled:bg-gray-400 disabled:cursor-not-allowed transition hover:opacity-80"
+                    className="w-full bg-acloblue text-white py-3 rounded disabled:bg-gray-400 disabled:cursor-not-allowed transition hover:opacity-80 hover:cursor-pointer"
                   >
                     Add New Address
                   </button>
