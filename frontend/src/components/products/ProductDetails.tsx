@@ -9,9 +9,7 @@ import ProductGrid from "./ProductGrid";
 import { useAppDispatch, useAppSelector } from "../../redux/hooks";
 import {
   fetchProductDetails,
-  fetchSimilarProducts,
   fetchProductVariant,
-  fetchSimilarProductVariants,
   fetchProductVariants,
   fetchProducts,
 } from "../../redux/slices/productsSlice";
@@ -148,15 +146,15 @@ const ProductDetails = () => {
           await dispatch(fetchProductVariants({ productIds: ids })).unwrap();
         }
 
-        // similar products
-        const similarProds = await dispatch(
-          fetchSimilarProducts({ id }),
-        ).unwrap();
-        const productIds = (similarProds ?? []).map((p: Product) => p._id);
+        // similar products - NOT NEEDED NOW
+        // const similarProds = await dispatch(
+        //   fetchSimilarProducts({ id }),
+        // ).unwrap();
+        // const productIds = (similarProds ?? []).map((p: Product) => p._id);
 
-        if (productIds.length > 0) {
-          await dispatch(fetchSimilarProductVariants({ productIds })).unwrap();
-        }
+        // if (productIds.length > 0) {
+        //   await dispatch(fetchSimilarProductVariants({ productIds })).unwrap();
+        // }
       } catch (err) {
         console.error("ProductDetails load failed: ", err);
       } finally {
