@@ -2,6 +2,8 @@ import { IoMdClose } from "react-icons/io";
 import CartContents from "../cart/CartContents";
 import { useNavigate } from "react-router-dom";
 import { useAppSelector } from "../../redux/hooks";
+import { useState } from "react";
+import VerificationModal from "../common/VerificationModal";
 
 type CartDrawerProps = {
   drawerOpen: boolean;
@@ -13,14 +15,21 @@ const Cartdrawer = ({ drawerOpen, toggleCartDrawer }: CartDrawerProps) => {
   const { user, guestId } = useAppSelector((state) => state.auth);
   const { cart } = useAppSelector((state) => state.cart);
   const userId = user?._id;
+  const [showVerificationModal, setShowVerificationModal] = useState(false);
 
   const handleCheckout = () => {
     toggleCartDrawer();
     if (!user) {
       navigate("/login?redirect=checkout");
-    } else {
-      navigate(`/checkout/${cart._id}`);
+      return;
     }
+
+    if (!user.isVerified) {
+      setShowVerificationModal(true);
+      return;
+    }
+    
+    navigate(`/checkout/${cart._id}`);
   };
   return (
     <div
@@ -58,6 +67,10 @@ const Cartdrawer = ({ drawerOpen, toggleCartDrawer }: CartDrawerProps) => {
           </>
         )}
       </div>
+      <VerificationModal
+        isOpen={showVerificationModal}
+        onClose={() => setShowVerificationModal(false)}
+      />
     </div>
   );
 };

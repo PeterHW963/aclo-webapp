@@ -17,6 +17,7 @@ export interface User {
   name: string;
   email: string;
   role: "customer" | "admin";
+  isVerified: boolean;
   shippingAddresses?: ShippingAddress[];
   createdAt?: string; // backend currently doesn't return these, but maybe for future improvements
   updatedAt?: string;

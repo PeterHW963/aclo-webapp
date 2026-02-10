@@ -4,6 +4,11 @@ const jwt = require("jsonwebtoken");
 const { protect } = require("../middleware/authMiddleware");
 const crypto = require("crypto");
 const { sendEmail } = require("../utils/emailService.js");
+const { validatePassword } = require("../utils/passwordValidator.js");
+const {
+    getVerificationEmailTemplate,
+    getPasswordResetTemplate,
+} = require("../utils/emailTemplates.js");
 
 const router = express.Router();
 
@@ -18,11 +23,69 @@ router.post("/register", async (req, res) => {
         let user = await User.findOne({ email });
         if (user)
             return res.status(400).json({ message: "User already exists" });
-        user = new User({ name, email, password });
+
+        const passwordValidation = validatePassword(password);
+        if (!passwordValidation.isValid) {
+            return res.status(400).json({ 
+                message: "Password does not meet requirements",
+                errors: passwordValidation.errors 
+            });
+        }
+        
+        user = new User({ name, email, password, isVerified: false });
+        
+        // Generate verification token & URL
+        const verificationToken = user.getVerificationToken();
+        await user.save({ validateBeforeSave: false });
+
+        const verificationUrl = `${process.env.FRONTEND_URL}/verified?token=${verificationToken}`;
+        const textMessage = `Hi ${name},\n\nThank you for registering! Please verify your email by clicking the link below:\n\n${verificationUrl}\n\nThis link will expire in 24 hours.\n\nThanks!`;
+        const htmlMessage = getVerificationEmailTemplate(name, verificationUrl);
+
+        try {
+            await sendEmail(user.email, "Verify Your Email Address", textMessage, htmlMessage);
+            res.status(201).json({
+                success: true,
+                message: "Registration successful",
+            });
+        } catch (error) {
+            // delete the user if email sending fails
+            await User.findByIdAndDelete(user._id);
+            console.error(error);
+            return res.status(500).json({ message: "Verification email could not be sent" });
+        }
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ message: "Server Error" });
+    }
+});
+
+// @route GET /api/users/verify-email/:verificationToken
+// @desc Verify user's email address
+// @access Public
+router.get("/verify-email/:verificationToken", async (req, res) => {
+    try {
+        const verificationToken = crypto
+            .createHash("sha256")
+            .update(req.params.verificationToken)
+            .digest("hex");
+
+        const user = await User.findOne({
+            verificationToken,
+            verificationExpire: { $gt: Date.now() },
+        });
+
+        if (!user) {
+            return res.status(400).json({ message: "Invalid or expired verification token" });
+        }
+
+        user.isVerified = true;
+        user.verificationToken = undefined;
+        user.verificationExpire = undefined;
         await user.save();
 
         // create JWT payload - contains info about user id and role, embedded in token and decoded for authorizing user at backend
-        const payload = { user: { id: user._id, role: user.role } };
+        const payload = { user: { id: user._id, role: user.role, isVerified: user.isVerified } };
 
         // sign and return token along with user data
         jwt.sign(
@@ -33,12 +96,13 @@ router.post("/register", async (req, res) => {
                 if (err) throw err;
 
                 // send user and token in response
-                res.status(201).json({
+                res.status(200).json({
                     user: {
                         _id: user._id,
                         name: user.name,
                         email: user.email,
                         role: user.role,
+                        isVerified: user.isVerified,
                         shippingAddresses: [],
                     },
                     token,
@@ -47,6 +111,38 @@ router.post("/register", async (req, res) => {
         );
     } catch (error) {
         console.log(error);
+        res.status(500).json({ message: "Server Error" });
+    }
+});
+
+// @route POST /api/users/resend-verification
+// @desc Resend verification email
+// @access Private
+router.post("/resend-verification", protect, async (req, res) => {
+    try {
+        const user = await User.findById(req.user._id);
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        const verificationToken = user.getVerificationToken();
+        await user.save({ validateBeforeSave: false });
+
+        const verificationUrl = `${process.env.FRONTEND_URL}/verified?token=${verificationToken}`;
+        const textMessage = `Hi ${user.name},\n\nPlease verify your email by clicking the link below:\n\n${verificationUrl}\n\nThis link will expire in 24 hours.\n\nThanks!`;
+        const htmlMessage = getVerificationEmailTemplate(user.name, verificationUrl);
+
+        try {
+            await sendEmail(user.email, "Verify your email address", textMessage, htmlMessage);
+            res.status(200).json({
+                message: "Verification email sent",
+            });
+        } catch (error) {
+            console.error("Email sending failed", error);
+            return res.status(500).json({ message: "Email could not be sent" });
+        }
+    } catch (error) {
+        console.error(error);
         res.status(500).json({ message: "Server Error" });
     }
 });
@@ -66,10 +162,10 @@ router.post("/login", async (req, res) => {
         const isMatch = await user.matchPassword(password);
 
         if (!isMatch)
-            return res.status(400).json({ message: "Wrong user or password" });
+            return res.status(400).json({ message: "Wrong email or password" });
 
         // create JWT payload
-        const payload = { user: { id: user._id, role: user.role } };
+        const payload = { user: { id: user._id, role: user.role, isVerified: user.isVerified } };
 
         // sign and return token along with user data
         jwt.sign(
@@ -86,6 +182,7 @@ router.post("/login", async (req, res) => {
                         name: user.name,
                         email: user.email,
                         role: user.role,
+                        isVerified: user.isVerified,
                         shippingAddresses: user.shippingAddresses || [],
                     },
                     token,
@@ -196,29 +293,38 @@ router.patch("/profile/addresses/:addressId", protect, async (req, res) => {
 // @access Public
 router.post("/forgot-password", async (req, res) => {
     const { email } = req.body;
+    
+    // Generic response to prevent email enumeration (always returned to user)
+    const genericResponse = {
+        success: true,
+        message: "If an account with that email exists, a password reset link has been sent",
+    };
+    
     try {
         const user = await User.findOne({ email });
         if (!user) {
-            return res.status(404).json({ message: "User does not exist!" });
+            console.log(`User not found for email: ${email}`);
+            return res.status(200).json(genericResponse);
         }
 
         const resetToken = user.getResetPasswordToken();
         await user.save({ validateBeforeSave: false });
         const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
-        const message = `Click the link below to reset your password: \n\n ${resetUrl}`;
+        const textMessage = `Click the link below to reset your password: \n\n ${resetUrl}`;
+        const htmlMessage = getPasswordResetTemplate(resetUrl);
 
         try {
-            await sendEmail(user.email, "Reset your password", message);
-            res.status(200).json({
-                success: true,
-                data: "Email sent successfully",
-            });
+            await sendEmail(user.email, "Reset your password", textMessage, htmlMessage);
+            console.log(`Forgot Password Reset email sent successfully to: ${user.email}`);
         } catch (err) {
             user.resetPasswordToken = undefined;
             user.resetPasswordExpire = undefined;
             await user.save({ validateBeforeSave: false });
-            return res.status(500).json({ message: "Email could not be sent" });
+            console.error(`Failed to send Forgot Password Reset email to: ${user.email}`, err.message);
         }
+        
+        // Always return the same response for security
+        res.status(200).json(genericResponse);
     } catch (error) {
         console.error(error);
         return res.status(500).json({ message: "Server Error" });
@@ -243,6 +349,15 @@ router.put("/reset-password/:resetToken", async (req, res) => {
                 .status(400)
                 .json({ message: "Invalid or expired Token" });
         }
+        
+        const passwordValidation = validatePassword(req.body.password);
+        if (!passwordValidation.isValid) {
+            return res.status(400).json({ 
+                message: "Password does not meet requirements",
+                errors: passwordValidation.errors 
+            });
+        }
+        
         user.password = req.body.password;
         user.resetPasswordToken = undefined;
         user.resetPasswordExpire = undefined;

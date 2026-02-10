@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../redux/hooks";
 import { logoutAndReset } from "../utils/logoutReset";
+import { resendVerification } from "../redux/slices/authSlice";
+import { toast } from "sonner";
 
 import MyOrdersPage from "./MyOrdersPage";
 import ShippingDetailsModal from "../components/cart/ShippingDetailsModal";
@@ -12,6 +14,7 @@ import Navbar from "../components/common/Navbar";
 const Profile = () => {
   const { user } = useAppSelector((state) => state.auth);
   const { shippingDetails } = useAppSelector((state) => state.shipping);
+  const [sendingVerification, setSendingVerification] = useState(false);
 
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
@@ -24,8 +27,24 @@ const Profile = () => {
     if (!user) navigate("/login");
   }, [user, navigate]);
 
+	const handleResendVerification = async () => {
+		setSendingVerification(true);
+		try {
+			await dispatch(resendVerification()).unwrap();
+			toast.success("Verification email sent! Check your inbox to complete verification.");
+		} catch (err) {
+			console.error(err);
+			toast.error("Failed to send verification email. Please try again.");
+		} finally {
+			setSendingVerification(false);
+		}
+	};
+
   useEffect(() => {
-    if (!user) return;
+    if (!user) {
+      navigate("/login");
+      return;
+    }
 
     const addresses = user.shippingAddresses ?? [];
 
@@ -43,9 +62,7 @@ const Profile = () => {
       };
       dispatch(setShippingDetails(detailsToUse));
     }
-  }, [user, shippingDetails?.postalCode, dispatch]);
-
-  if (!user) return null;
+  }, [user, shippingDetails?.postalCode, dispatch, navigate]);
 
   const handleLogout = () => {
     dispatch(logoutAndReset());
@@ -56,6 +73,8 @@ const Profile = () => {
     dispatch(setShippingDetails(details));
     setShowShippingDetailsModal(false);
   };
+
+  if (!user) return null;
 
   return (
     <>
@@ -69,6 +88,26 @@ const Profile = () => {
                   {user.name}
                 </h1>
                 <p className="text-lg text-gray-600">{user.email}</p>
+                <div className="mt-2 flex items-center gap-2">
+                  <span
+                    className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
+                      user.isVerified
+                        ? "bg-green-100 text-green-800"
+                        : "bg-yellow-100 text-yellow-800"
+                    }`}
+                  >
+                    {user.isVerified ? "Verified" : "Unverified"}
+                  </span>
+                  {!user.isVerified && (
+                    <button
+                      onClick={handleResendVerification}
+                      disabled={sendingVerification}
+                      className="text-sm text-blue-600 hover:underline disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {sendingVerification ? "Sending..." : "Verify My Account"}
+                    </button>
+                  )}
+                </div>
               </div>
 
               <button

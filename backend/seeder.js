@@ -43,8 +43,9 @@ async function createAdminUser() {
     return User.create({
         name: "Admin User",
         email: "admin@example.com",
-        password: "123456",
+        password: "Password123",
         role: "admin",
+        isVerified: true,
     });
 }
 
