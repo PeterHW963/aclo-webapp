@@ -42,7 +42,7 @@ export const fetchProducts = createAsyncThunk<
 >("products/fetchAll", async (_, { rejectWithValue }) => {
   try {
     const response = await axios.get<Product[]>(
-      `${API_URL as string}/api/products`
+      `${API_URL as string}/api/products`,
     );
     return response.data;
   } catch (err) {
@@ -62,7 +62,7 @@ export const fetchProductDetails = createAsyncThunk<
 >("products/fetchProductDetails", async ({ id }, { rejectWithValue }) => {
   try {
     const response = await axios.get<Product>(
-      `${API_URL as string}/api/products/${id}`
+      `${API_URL as string}/api/products/${id}`,
     );
     return response.data;
   } catch (err) {
@@ -74,7 +74,8 @@ export const fetchProductDetails = createAsyncThunk<
   }
 });
 
-// async thunk to fetch similar products
+// async thunk to fetch similar products.
+// DON'T CALL THIS API. IT IS NOT REQUIRED
 export const fetchSimilarProducts = createAsyncThunk<
   Product[],
   { id: string },
@@ -82,7 +83,7 @@ export const fetchSimilarProducts = createAsyncThunk<
 >("products/fetchSimilarProducts", async ({ id }, { rejectWithValue }) => {
   try {
     const response = await axios.get<Product[]>(
-      `${API_URL as string}/api/products/similar/${id}`
+      `${API_URL as string}/api/products/similar/${id}`,
     );
     return response.data;
   } catch (err) {
@@ -103,7 +104,7 @@ export const fetchProductVariants = createAsyncThunk<
   try {
     const response = await axios.post<ProductVariant[]>(
       `${API_URL}/api/products/variants/bulk`,
-      { productIds }
+      { productIds },
     );
     return response.data;
   } catch (err) {
@@ -125,7 +126,7 @@ export const fetchSimilarProductVariants = createAsyncThunk<
     try {
       const response = await axios.post<ProductVariant[]>(
         `${API_URL}/api/products/variants/bulk`,
-        { productIds }
+        { productIds },
       );
       return response.data;
     } catch (err) {
@@ -135,7 +136,7 @@ export const fetchSimilarProductVariants = createAsyncThunk<
       }
       return rejectWithValue({ message: "Failed to fetch product variants" });
     }
-  }
+  },
 );
 
 // async thunk to fetch ONE product variant details
@@ -160,7 +161,7 @@ export const fetchProductVariant = createAsyncThunk<
       : { color, variant, ovenMitt, stabiliser };
     const response = await axios.get<ProductVariant>(
       `${API_URL as string}/api/products/${productId}/variant`,
-      { params: params }
+      { params: params },
     );
     return response.data;
   } catch (err) {
@@ -188,7 +189,7 @@ const productSlice = createSlice({
         (state, action: PayloadAction<Product[]>) => {
           state.loading = false;
           state.products = Array.isArray(action.payload) ? action.payload : [];
-        }
+        },
       )
       .addCase(fetchProducts.rejected, (state, action) => {
         state.loading = false;
@@ -205,7 +206,7 @@ const productSlice = createSlice({
         (state, action: PayloadAction<Product>) => {
           state.loading = false;
           state.selectedProduct = action.payload;
-        }
+        },
       )
       .addCase(fetchProductDetails.rejected, (state, action) => {
         state.loading = false;
@@ -222,7 +223,7 @@ const productSlice = createSlice({
         (state, action: PayloadAction<Product[]>) => {
           state.loading = false;
           state.similarProducts = action.payload;
-        }
+        },
       )
       .addCase(fetchSimilarProducts.rejected, (state, action) => {
         state.loading = false;
@@ -290,7 +291,7 @@ const productSlice = createSlice({
         (state, action: PayloadAction<ProductVariant>) => {
           state.variantLoading = false;
           state.selectedVariant = action.payload;
-        }
+        },
       )
       .addCase(fetchProductVariant.rejected, (state, action) => {
         state.variantLoading = false;

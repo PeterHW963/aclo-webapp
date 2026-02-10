@@ -35,6 +35,7 @@ router.post("/variants/bulk", async (req, res) => {
     }
 });
 
+// TODO: API NOT NEEDED
 // @route GET /api/products/similar/:id
 // @desc Retrieve similar products based on current product's default variant's category
 // @access Public

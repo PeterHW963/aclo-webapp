@@ -22,13 +22,6 @@ const router = express.Router();
 // @desc Get all orders (Admin only)
 // @access Private/Admin
 router.get("/", protect, admin, async (req, res) => {
-    // try {
-    //     const orders = await Order.find({}).populate("user", "name email");
-    //     res.json(orders);
-    // } catch (error) {
-    //     console.error(error);
-    //     res.status(500).json({ message: "Server Error" });
-    // }
     try {
         const { category = "all", status, page = 1, limit = 25 } = req.query;
         const categoryMap = {
@@ -72,9 +65,6 @@ router.get("/", protect, admin, async (req, res) => {
             total,
             totalPages: Math.ceil(total / limitNum),
         });
-
-        // const orders = await Order.find({}).populate("user", "name email");
-        // res.json(orders);
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: "Server Error" });
@@ -226,6 +216,21 @@ router.get("/:id/shipping-label", protect, admin, async (req, res) => {
     } catch (error) {
         console.error("Error generating shipping label:", error);
         res.status(500).json({ message: "Failed to generate shipping label" });
+    }
+});
+
+// @route GET /api/admin/orders/user/:userId
+// @desc Get a user's orders (admin only)
+// @access Private/Admin
+router.get("/user/:userId", protect, admin, async (req, res) => {
+    try {
+        const orders = await Order.find({ user: req.params.userId }).sort({
+            createdAt: -1,
+        });
+        res.json(orders);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Server Error" });
     }
 });
 
