@@ -13,6 +13,7 @@ import {
 import UserDetailsModal from "./UserDetailsModal";
 import { fetchOrdersByUserId } from "../../redux/slices/adminOrderSlice";
 import ActionConfirmationModal from "./ActionConfirmationModal";
+import LoadingOverlay from "../common/LoadingOverlay";
 
 interface NewUserFormData {
   name: string;
@@ -32,16 +33,13 @@ const UserManagement = () => {
   );
 
   useEffect(() => {
-    if (user && user.role !== "admin") {
+    if (!user || user.role !== "admin") {
       navigate("/");
+      return;
     }
-  }, [user, navigate]);
 
-  useEffect(() => {
-    if (user && user.role === "admin") {
-      dispatch(fetchUsers());
-    }
-  }, [dispatch, user]);
+    dispatch(fetchUsers());
+  }, [dispatch, navigate, user]);
 
   const [formData, setFormData] = useState<NewUserFormData>({
     name: "",
@@ -53,9 +51,9 @@ const UserManagement = () => {
   const [isAddOpen, setIsAddOpen] = useState<boolean>(false);
   const [isDetailsOpen, setIsDetailsOpen] = useState<boolean>(false);
   const [userToView, setUserToView] = useState<User | null>(null);
+
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState<boolean>(false);
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
-  const [deleteLoading, setDeleteLoading] = useState<boolean>(false);
 
   const handleChange = (
     e: ChangeEvent<HTMLInputElement | HTMLSelectElement>,
@@ -85,7 +83,7 @@ const UserManagement = () => {
   };
 
   const closeDeleteModal = () => {
-    if (deleteLoading) return; // optional: prevent closing while deleting
+    if (loading) return; // prevent closing while deleting
     setIsDeleteModalOpen(false);
     setUserToDelete(null);
   };
@@ -94,19 +92,19 @@ const UserManagement = () => {
     if (!userToDelete) return;
 
     try {
-      setDeleteLoading(true);
       await dispatch(deleteUser({ id: userToDelete._id })).unwrap();
       closeDeleteModal();
     } catch (err) {
       console.error(err);
-    } finally {
-      setDeleteLoading(false);
     }
   };
+
+  const showLoading = userOrdersLoading || loading;
+
   return (
     <div className="max-w-7xl mx-auto p-6">
       <h2 className="text-2xl font-bold mb-4">User Management</h2>
-      {loading && <p>Loading...</p>}
+      <LoadingOverlay show={showLoading} />
       {error && <p>Error: {error}</p>}
       {/* collapsible Add New User section */}
       <div className="mb-6 rounded-lg overflow-hidden">
@@ -272,7 +270,7 @@ const UserManagement = () => {
         <ActionConfirmationModal
           onClose={closeDeleteModal}
           onConfirm={confirmDeleteUser}
-          loading={deleteLoading}
+          loading={loading}
           title="Delete user?"
           message={`Are you sure you want to delete **${userToDelete.name}** (${userToDelete.email})?\n**This action cannot be undone.**`}
           confirmText="Yes, delete"
