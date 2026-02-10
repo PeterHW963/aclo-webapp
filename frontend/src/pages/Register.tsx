@@ -6,7 +6,7 @@ import type { RegisterPayload } from "../types/auth";
 import { assets, cloudinaryImageUrl } from "../constants/cloudinary";
 import Navbar from "../components/common/Navbar";
 import LoadingOverlay from "../components/common/LoadingOverlay";
-import { XMarkIcon } from "@heroicons/react/24/solid";
+import { XMarkIcon, EyeIcon, EyeSlashIcon } from "@heroicons/react/24/solid";
 import { validatePassword } from "../utils/passwordValidator";
 
 const Register = () => {
@@ -17,6 +17,7 @@ const Register = () => {
   });
 
   const [error, setError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
   const [passwordErrors, setPasswordErrors] = useState<string[]>([]);
   const [showEmailDialog, setShowEmailDialog] = useState(false);
   const [submittedEmail, setSubmittedEmail] = useState<string>("");
@@ -24,10 +25,7 @@ const Register = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const location = useLocation();
-  const {
-    user,
-    loading,
-  } = useAppSelector((state) => state.auth);
+  const { user, loading } = useAppSelector((state) => state.auth);
 
   const redirect = new URLSearchParams(location.search).get("redirect") || "/";
 
@@ -42,7 +40,7 @@ const Register = () => {
     setError(null);
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-    
+
     if (name === "password") {
       const validation = validatePassword(value);
       setPasswordErrors(validation.isValid ? [] : validation.errors);
@@ -53,12 +51,12 @@ const Register = () => {
     if (!formData.name || !formData.email || !formData.password) {
       return "Please fill in all fields.";
     }
-    
+
     const passwordValidation = validatePassword(formData.password);
     if (!passwordValidation.isValid) {
       return passwordValidation.errors[0];
     }
-    
+
     return null;
   };
 
@@ -97,9 +95,7 @@ const Register = () => {
           role="dialog"
           aria-modal="true"
         >
-          <div
-            className="absolute inset-0 bg-black/40"
-          />
+          <div className="absolute inset-0 bg-black/40" />
 
           <div className="relative w-full max-w-md rounded-xl bg-white p-6 shadow-lg border">
             <button
@@ -121,7 +117,8 @@ const Register = () => {
             <p className="mt-3 text-center text-sm text-gray-600">
               We sent a link to{" "}
               <span className="font-semibold text-ink">{submittedEmail}</span>.
-              Please click on the link to verify your account and complete your registration. The link will expire in 24 hours.
+              Please click on the link to verify your account and complete your
+              registration. The link will expire in 24 hours.
             </p>
 
             <div className="mt-6 flex flex-col gap-3">
@@ -188,18 +185,33 @@ const Register = () => {
               <label className="block text-sm font-semibold mb-2">
                 Password
               </label>
-              <input
-                type="password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                className={`w-full p-2 border rounded ${
-                  passwordErrors.length > 0 ? "border-red-300" : ""
-                }`}
-                placeholder="Enter your password"
-                autoComplete="new-password"
-                required
-              />
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  className={`w-full p-2 pr-11 border rounded ${
+                    passwordErrors.length > 0 ? "border-red-300" : ""
+                  }`}
+                  placeholder="Enter your password"
+                  autoComplete="new-password"
+                  required
+                />
+
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 inline-flex h-9 w-9 items-center justify-center rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition"
+                >
+                  {showPassword ? (
+                    <EyeSlashIcon className="h-5 w-5" />
+                  ) : (
+                    <EyeIcon className="h-5 w-5" />
+                  )}
+                </button>
+              </div>
               {passwordErrors.length > 0 && (
                 <ul className="mt-2 text-xs text-red-600 space-y-1">
                   {passwordErrors.map((err, idx) => (

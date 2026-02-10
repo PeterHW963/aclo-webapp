@@ -5,6 +5,7 @@ import LoadingOverlay from "../components/common/LoadingOverlay";
 import { assets, cloudinaryImageUrl } from "../constants/cloudinary";
 import type { ResetPasswordPayload } from "../types/auth";
 import { validatePassword } from "../utils/passwordValidator";
+import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/solid";
 import axios from "axios";
 import { API_URL } from "../constants/api";
 
@@ -17,6 +18,8 @@ const ResetPassword = () => {
   const [error, setError] = useState<string | null>(null);
   const [passwordErrors, setPasswordErrors] = useState<string[]>([]);
   const [success, setSuccess] = useState<string | null>(null);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -35,7 +38,7 @@ const ResetPassword = () => {
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-    
+
     if (name === "password") {
       const validation = validatePassword(value);
       setPasswordErrors(validation.isValid ? [] : validation.errors);
@@ -46,12 +49,12 @@ const ResetPassword = () => {
     if (!formData.password || !formData.confirmPassword) {
       return "Please fill in both password fields.";
     }
-    
+
     const passwordValidation = validatePassword(formData.password);
     if (!passwordValidation.isValid) {
       return passwordValidation.errors[0];
     }
-    
+
     if (formData.password !== formData.confirmPassword) {
       return "Passwords do not match.";
     }
@@ -85,10 +88,16 @@ const ResetPassword = () => {
         navigate(`/login?redirect=${encodeURIComponent(redirect)}`);
       }, 1200);
     } catch (err: any) {
-      if (err.response?.data?.errors && Array.isArray(err.response.data.errors)) {
+      if (
+        err.response?.data?.errors &&
+        Array.isArray(err.response.data.errors)
+      ) {
         setError(err.response.data.errors.join(", "));
       } else {
-        setError(err.response?.data?.message || "Something went wrong. Please try again.");
+        setError(
+          err.response?.data?.message ||
+            "Something went wrong. Please try again.",
+        );
       }
     } finally {
       setLoading(false);
@@ -137,18 +146,35 @@ const ResetPassword = () => {
               <label className="block text-sm font-semibold mb-2">
                 New password
               </label>
-              <input
-                type="password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                className={`w-full p-2 border rounded focus:outline-acloblue ${
-                  passwordErrors.length > 0 ? "border-red-300" : ""
-                }`}
-                placeholder="Enter a new password"
-                autoComplete="new-password"
-                required
-              />
+              <div className="relative">
+                <input
+                  type={showNewPassword ? "text" : "password"}
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  className={`w-full p-2 pr-11 border rounded focus:outline-acloblue ${
+                    passwordErrors.length > 0 ? "border-red-300" : ""
+                  }`}
+                  placeholder="Enter a new password"
+                  autoComplete="new-password"
+                  required
+                />
+
+                <button
+                  type="button"
+                  onClick={() => setShowNewPassword((prev) => !prev)}
+                  aria-label={
+                    showNewPassword ? "Hide new password" : "Show new password"
+                  }
+                  className="absolute right-2 top-1/2 -translate-y-1/2 inline-flex h-9 w-9 items-center justify-center rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition"
+                >
+                  {showNewPassword ? (
+                    <EyeSlashIcon className="h-5 w-5" />
+                  ) : (
+                    <EyeIcon className="h-5 w-5" />
+                  )}
+                </button>
+              </div>
               {passwordErrors.length > 0 && (
                 <ul className="mt-2 text-xs text-red-600 space-y-1">
                   {passwordErrors.map((err, idx) => (
@@ -167,16 +193,35 @@ const ResetPassword = () => {
               <label className="block text-sm font-semibold mb-2">
                 Confirm password
               </label>
-              <input
-                type="password"
-                name="confirmPassword"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                className="w-full p-2 border rounded focus:outline-acloblue"
-                placeholder="Re-enter your new password"
-                autoComplete="new-password"
-                required
-              />
+              <div className="relative">
+                <input
+                  type={showConfirmPassword ? "text" : "password"}
+                  name="confirmPassword"
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  className="w-full p-2 pr-11 border rounded focus:outline-acloblue"
+                  placeholder="Re-enter your new password"
+                  autoComplete="new-password"
+                  required
+                />
+
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword((prev) => !prev)}
+                  aria-label={
+                    showConfirmPassword
+                      ? "Hide confirm password"
+                      : "Show confirm password"
+                  }
+                  className="absolute right-2 top-1/2 -translate-y-1/2 inline-flex h-9 w-9 items-center justify-center rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition"
+                >
+                  {showConfirmPassword ? (
+                    <EyeSlashIcon className="h-5 w-5" />
+                  ) : (
+                    <EyeIcon className="h-5 w-5" />
+                  )}
+                </button>
+              </div>
             </div>
 
             <button

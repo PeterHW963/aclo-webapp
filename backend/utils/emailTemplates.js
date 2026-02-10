@@ -55,7 +55,7 @@ const getVerificationEmailTemplate = (name, verificationUrl) => {
         <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
             <tr>
                 <td style="text-align: center; padding: 0 0 24px;">
-                    <a href="${verificationUrl}" style="display: inline-block; padding: 14px 32px; background-color: #2563eb; color: #ffffff; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: 600;">
+                    <a href="${verificationUrl}" style="display: inline-block; padding: 14px 32px; background-color: #00b7e8; color: #ffffff; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: 600;">
                         Verify Email Address
                     </a>
                 </td>
@@ -66,7 +66,7 @@ const getVerificationEmailTemplate = (name, verificationUrl) => {
             This link will expire in 24 hours.
         </p>
     `;
-    
+
     return getBaseTemplate(content);
 };
 
@@ -84,7 +84,7 @@ const getPasswordResetTemplate = (resetUrl) => {
         <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
             <tr>
                 <td style="text-align: center; padding: 0 0 24px;">
-                    <a href="${resetUrl}" style="display: inline-block; padding: 14px 32px; background-color: #2563eb; color: #ffffff; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: 600;">
+                    <a href="${resetUrl}" style="display: inline-block; padding: 14px 32px; background-color: #00b7e8; color: #ffffff; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: 600;">
                         Reset Password
                     </a>
                 </td>
@@ -95,7 +95,7 @@ const getPasswordResetTemplate = (resetUrl) => {
             This link will expire in 2 minutes.
         </p>
     `;
-    
+
     return getBaseTemplate(content);
 };
 
