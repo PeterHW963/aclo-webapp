@@ -26,6 +26,9 @@ interface AdminOrderState {
   error: string | null;
   generatingLabelForOrder: string | null;
   orderDetails: Order | null;
+  userOrdersLoading: boolean;
+  userOrdersError: string | null;
+  userOrders: Order[];
 }
 
 const initialState: AdminOrderState = {
@@ -41,6 +44,9 @@ const initialState: AdminOrderState = {
   error: null,
   generatingLabelForOrder: null,
   orderDetails: null,
+  userOrdersLoading: false,
+  userOrdersError: null,
+  userOrders: [],
 };
 
 // async thunk to fetch all orders (admin only)
@@ -67,7 +73,7 @@ export const fetchAllOrders = createAsyncThunk<
           limit,
           ...(statusParam ? { status: statusParam } : {}),
         },
-      }
+      },
     );
     return response.data;
   } catch (err) {
@@ -90,7 +96,7 @@ export const fetchAdminOrderDetails = createAsyncThunk<
       `${API_URL}/api/admin/orders/${id}`,
       {
         headers: getAuthHeader(),
-      }
+      },
     );
     return response.data;
   } catch (err) {
@@ -114,7 +120,7 @@ export const updateAdminRemarks = createAsyncThunk<
       const response = await axios.put<Order>(
         `${API_URL}/api/admin/orders/${id}/remarks`,
         { adminRemarks },
-        { headers: getAuthHeader() }
+        { headers: getAuthHeader() },
       );
       return response.data; // updated order
     } catch (err) {
@@ -124,7 +130,7 @@ export const updateAdminRemarks = createAsyncThunk<
       }
       return rejectWithValue({ message: "Failed to update admin remarks" });
     }
-  }
+  },
 );
 
 // async thunk to update order trackingLink (admin only)
@@ -139,7 +145,7 @@ export const updateTrackingLink = createAsyncThunk<
       const response = await axios.put<Order>(
         `${API_URL}/api/admin/orders/${id}/trackingLink`,
         { trackingLink },
-        { headers: getAuthHeader() }
+        { headers: getAuthHeader() },
       );
       return response.data; // updated order
     } catch (err) {
@@ -149,7 +155,7 @@ export const updateTrackingLink = createAsyncThunk<
       }
       return rejectWithValue({ message: "Failed to update trackingId" });
     }
-  }
+  },
 );
 
 // async thunk to update order delivery status (admin only)
@@ -166,7 +172,7 @@ export const updateOrderStatus = createAsyncThunk<
         { status },
         {
           headers: getAuthHeader(),
-        }
+        },
       );
       return response.data;
     } catch (err) {
@@ -178,7 +184,7 @@ export const updateOrderStatus = createAsyncThunk<
         message: "Failed to fetch update order status",
       });
     }
-  }
+  },
 );
 
 // async thunk to delete an order (admin only)
@@ -215,7 +221,7 @@ export const generateShippingLabel = createAsyncThunk<
         {
           headers: getAuthHeader(),
           responseType: "blob",
-        }
+        },
       );
 
       // create blob and trigger download
@@ -238,7 +244,33 @@ export const generateShippingLabel = createAsyncThunk<
       }
       return rejectWithValue({ message: "Failed to generate shipping label" });
     }
-  }
+  },
+);
+
+// async thunk to fetch a specific user's orders (admin only)
+export const fetchOrdersByUserId = createAsyncThunk<
+  Order[],
+  { userId: string },
+  { rejectValue: AppError }
+>(
+  "adminOrders/fetchOrdersByUserId",
+  async ({ userId }, { rejectWithValue }) => {
+    try {
+      const response = await axios.get<Order[]>(
+        `${API_URL}/api/admin/orders/user/${userId}`,
+        {
+          headers: getAuthHeader(),
+        },
+      );
+      return response.data;
+    } catch (err) {
+      const error = err as AxiosError<AppError>;
+      if (error.response && error.response.data) {
+        return rejectWithValue(error.response.data);
+      }
+      return rejectWithValue({ message: "Failed to fetch user's orders" });
+    }
+  },
 );
 
 const adminOrderSlice = createSlice({
@@ -268,7 +300,7 @@ const adminOrderSlice = createSlice({
           }, 0);
 
           state.loading = false;
-        }
+        },
       )
 
       .addCase(fetchAllOrders.rejected, (state, action) => {
@@ -285,7 +317,7 @@ const adminOrderSlice = createSlice({
         (state, action: PayloadAction<Order>) => {
           state.orderDetailsLoading = false;
           state.orderDetails = action.payload;
-        }
+        },
       )
       .addCase(fetchAdminOrderDetails.rejected, (state, action) => {
         state.orderDetailsLoading = false;
@@ -303,13 +335,13 @@ const adminOrderSlice = createSlice({
           const updatedOrder = action.payload;
           // update the list
           const orderIndex = state.orders.findIndex(
-            (o) => o._id === updatedOrder._id
+            (o) => o._id === updatedOrder._id,
           );
           if (orderIndex !== -1) {
             state.orders[orderIndex] = updatedOrder;
           }
           state.loading = false;
-        }
+        },
       )
       .addCase(updateAdminRemarks.rejected, (state, action) => {
         state.loading = false;
@@ -327,13 +359,13 @@ const adminOrderSlice = createSlice({
           const updatedOrder = action.payload;
           // update the list
           const orderIndex = state.orders.findIndex(
-            (o) => o._id === updatedOrder._id
+            (o) => o._id === updatedOrder._id,
           );
           if (orderIndex !== -1) {
             state.orders[orderIndex] = updatedOrder;
           }
           state.trackingLinkLoading = false;
-        }
+        },
       )
       .addCase(updateTrackingLink.rejected, (state, action) => {
         state.trackingLinkLoading = false;
@@ -350,13 +382,13 @@ const adminOrderSlice = createSlice({
         (state, action: PayloadAction<Order>) => {
           const updatedOrder = action.payload;
           const orderIndex = state.orders.findIndex(
-            (order) => order._id === updatedOrder._id
+            (order) => order._id === updatedOrder._id,
           );
           if (orderIndex !== -1) {
             state.orders[orderIndex] = updatedOrder;
           }
           state.loading = false;
-        }
+        },
       )
       .addCase(updateOrderStatus.rejected, (state, action) => {
         state.loading = false;
@@ -373,15 +405,15 @@ const adminOrderSlice = createSlice({
         (state, action: PayloadAction<string>) => {
           const deletedId = action.payload;
           state.orders = state.orders.filter(
-            (order) => order._id !== deletedId
+            (order) => order._id !== deletedId,
           );
           state.totalOrders = state.orders.length;
           state.totalSales = state.orders.reduce(
             (acc, order) => acc + order.totalPrice,
-            0
+            0,
           );
           state.loading = false;
-        }
+        },
       )
       .addCase(deleteOrder.rejected, (state, action) => {
         state.loading = false;
@@ -399,6 +431,24 @@ const adminOrderSlice = createSlice({
         state.generatingLabelForOrder = null;
         state.error =
           action.payload?.message || "Failed to generate shipping label";
+      })
+      // fetch orders by user id (for User Details modal)
+      .addCase(fetchOrdersByUserId.pending, (state) => {
+        state.userOrdersLoading = true;
+        state.userOrdersError = null;
+        state.userOrders = [];
+      })
+      .addCase(
+        fetchOrdersByUserId.fulfilled,
+        (state, action: PayloadAction<Order[]>) => {
+          state.userOrdersLoading = false;
+          state.userOrders = action.payload ?? [];
+        },
+      )
+      .addCase(fetchOrdersByUserId.rejected, (state, action) => {
+        state.userOrdersLoading = false;
+        state.userOrdersError =
+          action.payload?.message || "Failed to fetch user's orders";
       });
   },
 });
