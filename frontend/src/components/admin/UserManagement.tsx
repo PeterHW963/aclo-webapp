@@ -9,11 +9,18 @@ import {
   fetchUsers,
   updateUser,
 } from "../../redux/slices/adminSlice";
+import {
+  fetchSubscribers,
+  sendAnnouncement,
+} from "../../redux/slices/subscriberSlice";
 // import type { Order } from "../../types/order";
 import UserDetailsModal from "./UserDetailsModal";
 import { fetchOrdersByUserId } from "../../redux/slices/adminOrderSlice";
 import ActionConfirmationModal from "./ActionConfirmationModal";
 import LoadingOverlay from "../common/LoadingOverlay";
+import SendAnnouncementModal from "./SendAnnouncementModal";
+import { toast } from "sonner";
+import { marked } from "marked";
 
 interface NewUserFormData {
   name: string;
@@ -31,6 +38,12 @@ const UserManagement = () => {
   const { userOrders, userOrdersLoading, userOrdersError } = useAppSelector(
     (state) => state.adminOrders,
   );
+  const {
+    subscribers,
+    loading: subscribersLoading,
+    error: subscribersError,
+    sendingAnnouncement,
+  } = useAppSelector((state) => state.subscribers);
 
   useEffect(() => {
     if (!user || user.role !== "admin") {
@@ -39,6 +52,7 @@ const UserManagement = () => {
     }
 
     dispatch(fetchUsers());
+    dispatch(fetchSubscribers());
   }, [dispatch, navigate, user]);
 
   const [formData, setFormData] = useState<NewUserFormData>({
@@ -54,6 +68,9 @@ const UserManagement = () => {
 
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState<boolean>(false);
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
+
+  const [isAnnouncementModalOpen, setIsAnnouncementModalOpen] =
+    useState<boolean>(false);
 
   const handleChange = (
     e: ChangeEvent<HTMLInputElement | HTMLSelectElement>,
@@ -99,13 +116,92 @@ const UserManagement = () => {
     }
   };
 
+  const handleSendAnnouncement = async (subject: string, content: string) => {
+    try {
+      // Convert markdown to HTML
+      const html = await marked(content);
+
+      const result = await dispatch(
+        sendAnnouncement({
+          subject,
+          text: content, // plain text version
+          html, // HTML version
+        })
+      ).unwrap();
+
+      toast.success(
+        `Announcement sent successfully! ${result.successful}/${result.totalSubscribers} emails delivered.`
+      );
+      setIsAnnouncementModalOpen(false);
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to send announcement. Please try again.");
+    }
+  };
+
   const showLoading = userOrdersLoading || loading;
 
   return (
     <div className="max-w-7xl mx-auto p-6">
       <h2 className="text-2xl font-bold mb-4">User Management</h2>
       <LoadingOverlay show={showLoading} />
-      {error && <p>Error: {error}</p>}
+
+      {/* Subscribers Section */}
+      <div className="mb-8">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-xl font-semibold text-gray-800">Subscribers</h3>
+          <button
+            onClick={() => setIsAnnouncementModalOpen(true)}
+            className="bg-acloblue text-white px-6 py-2 rounded hover:bg-acloblue/90 transition"
+            disabled={subscribers.length === 0}
+          >
+            Send Announcement
+          </button>
+        </div>
+
+        {subscribersError && (
+          <p className="text-red-500 mb-4">Error: {subscribersError}</p>
+        )}
+
+        <div className="overflow-x-auto shadow-md sm:rounded-lg">
+          <table className="min-w-full text-left text-gray-500">
+            <thead className="bg-gray-100 text-xs uppercase text-gray-700">
+              <tr>
+                <th className="py-3 px-4">Email</th>
+                <th className="py-3 px-4">Subscribed At</th>
+              </tr>
+            </thead>
+            <tbody>
+              {subscribers.length === 0 ? (
+                <tr>
+                  <td colSpan={2} className="p-4 text-center text-gray-500">
+                    No subscribers yet
+                  </td>
+                </tr>
+              ) : (
+                subscribers.map((subscriber) => (
+                  <tr
+                    key={subscriber._id}
+                    className="border-b hover:bg-gray-50"
+                  >
+                    <td className="p-4 font-medium text-gray-900">
+                      {subscriber.email}
+                    </td>
+                    <td className="p-4">
+                      {new Date(subscriber.subscribedAt).toLocaleString()}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Users Section */}
+      <div>
+        <h3 className="text-xl font-semibold text-gray-800 mb-4">Users</h3>
+        {error && <p className="text-red-500 mb-4">Error: {error}</p>}
       {/* collapsible Add New User section */}
       <div className="mb-6 rounded-lg overflow-hidden">
         <div
@@ -254,6 +350,8 @@ const UserManagement = () => {
           </tbody>
         </table>
       </div>
+      </div>
+
       {isDetailsOpen && userToView && (
         <UserDetailsModal
           user={userToView}
@@ -275,6 +373,14 @@ const UserManagement = () => {
           message={`Are you sure you want to delete **${userToDelete.name}** (${userToDelete.email})?\n**This action cannot be undone.**`}
           confirmText="Yes, delete"
           cancelText="Cancel"
+        />
+      )}
+
+      {isAnnouncementModalOpen && (
+        <SendAnnouncementModal
+          onClose={() => setIsAnnouncementModalOpen(false)}
+          onSend={handleSendAnnouncement}
+          loading={sendingAnnouncement}
         />
       )}
     </div>

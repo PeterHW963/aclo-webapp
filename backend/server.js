@@ -24,6 +24,7 @@ const adminRoutes = require("./routes/admin/adminRoutes");
 const productAdminRoutes = require("./routes/admin/productAdminRoutes");
 const orderAdminRoutes = require("./routes/admin/orderAdminRoutes");
 const checkoutAdminRoutes = require("./routes/admin/checkoutAdminRoutes");
+const subscriberAdminRoutes = require("./routes/admin/subscriberAdminRoutes");
 
 const { sendEmail } = require("./utils/emailService");
 
@@ -79,6 +80,7 @@ app.use("/api/admin/users", adminRoutes);
 app.use("/api/admin/products", productAdminRoutes);
 app.use("/api/admin/orders", orderAdminRoutes);
 app.use("/api/admin/checkouts", checkoutAdminRoutes);
+app.use("/api/admin/subscribers", subscriberAdminRoutes);
 
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
