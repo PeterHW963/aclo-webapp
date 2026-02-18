@@ -41,7 +41,6 @@ const UserManagement = () => {
   );
   const {
     subscribers,
-    loading: subscribersLoading,
     error: subscribersError,
     sendingAnnouncement,
   } = useAppSelector((state) => state.subscribers);

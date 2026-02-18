@@ -22,7 +22,7 @@ const Footer = () => {
     }
 
     try {
-      const result = await dispatch(addSubscriber({ email })).unwrap();
+      await dispatch(addSubscriber({ email })).unwrap();
       toast.success("Successfully subscribed to newsletter!");
       setEmail("");
     } catch (err) {
