@@ -23,6 +23,8 @@ router.post("/", protect, async (req, res) => {
             cartId,
             shippingDetails,
             paymentMethod,
+            subtotal,
+            discount,
             totalPrice,
             shippingCost,
             shippingMethod,
@@ -112,6 +114,8 @@ router.post("/", protect, async (req, res) => {
                 email: req.user.email, // add email
             },
             paymentMethod,
+            subtotal,
+            discount,
             totalPrice,
             noteToSeller: noteToSeller || "",
 
@@ -185,6 +189,8 @@ router.post("/:id/submit-proof", protect, async (req, res) => {
                         paymentMethod: checkout.paymentMethod,
                         paymentProof: checkout.paymentProof,
                         noteToSeller: checkout.noteToSeller,
+                        subtotal: checkout.subtotal,
+                        discount: checkout.discount,
                         totalPrice: checkout.totalPrice,
                         status: "pending",
                     },
