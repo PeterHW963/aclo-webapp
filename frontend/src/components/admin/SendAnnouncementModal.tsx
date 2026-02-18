@@ -38,26 +38,26 @@ const SendAnnouncementModal = ({
 				</button>
 
 				<h2 className="text-2xl text-acloblue font-semibold mb-6">
-					Send Announcement to All Subscribers
+					Send Announcement
 				</h2>
 
 				<form onSubmit={handleSubmit} className="space-y-6">
 					<div>
 						<label className="block text-sm font-medium text-gray-700 mb-2">
-							Subject <span className="text-red-500">*</span>
+							Email Subject <span className="text-red-500">*</span>
 						</label>
 						<input
 							type="text"
 							value={subject}
 							onChange={(e) => setSubject(e.target.value)}
-							placeholder="Enter email subject"
 							className="w-full border border-gray-300 rounded-md p-3 focus:outline-none focus:ring-2 focus:ring-acloblue"
 							required
 							disabled={loading}
 						/>
 					</div>
 
-					{/* Content with MDEditor */}
+					{/* Message content using MDEditor */}
+					{/* Markdown content will be converted into HTML for email sending */}
 					<div>
 						<label className="block text-sm font-medium text-gray-700 mb-2">
 							Message Content <span className="text-red-500">*</span>
@@ -70,14 +70,11 @@ const SendAnnouncementModal = ({
 								preview="edit"
 								textareaProps={{
 									disabled: loading,
-									placeholder:
-										"Write your announcement message here. You can use Markdown formatting.",
 								}}
 							/>
 						</div>
 						<p className="text-xs text-gray-500 mt-2">
-							Use Markdown to format your message. This will be converted to HTML
-							for email.
+							Use Markdown to format your message.
 						</p>
 					</div>
 					<div className="flex gap-3 pt-4">
@@ -100,7 +97,7 @@ const SendAnnouncementModal = ({
 									Sending...
 								</span>
 							) : (
-								"Send Announcement"
+								"Send to all subscribers"
 							)}
 						</button>
 					</div>

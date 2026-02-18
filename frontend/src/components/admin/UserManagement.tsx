@@ -10,6 +10,7 @@ import {
   updateUser,
 } from "../../redux/slices/adminSlice";
 import {
+  addSubscriber,
   fetchSubscribers,
   sendAnnouncement,
 } from "../../redux/slices/subscriberSlice";
@@ -62,15 +63,16 @@ const UserManagement = () => {
     role: "customer",
   });
 
-  const [isAddOpen, setIsAddOpen] = useState<boolean>(false);
+  const [subscriberEmail, setSubscriberEmail] = useState<string>("");
+  const [isAddSubscriberOpen, setIsAddSubscriberOpen] = useState<boolean>(false);
+
+  const [isAddUserOpen, setIsAddUserOpen] = useState<boolean>(false);
   const [isDetailsOpen, setIsDetailsOpen] = useState<boolean>(false);
   const [userToView, setUserToView] = useState<User | null>(null);
 
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState<boolean>(false);
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
-
-  const [isAnnouncementModalOpen, setIsAnnouncementModalOpen] =
-    useState<boolean>(false);
+  const [isAnnouncementModalOpen, setIsAnnouncementModalOpen] = useState<boolean>(false);
 
   const handleChange = (
     e: ChangeEvent<HTMLInputElement | HTMLSelectElement>,
@@ -116,6 +118,18 @@ const UserManagement = () => {
     }
   };
 
+  const handleAddSubscriber = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    try {
+      await dispatch(addSubscriber({ email: subscriberEmail })).unwrap();
+      setSubscriberEmail("");
+      await dispatch(fetchSubscribers()).unwrap();
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to add subscriber");
+    }
+  };
+
   const handleSendAnnouncement = async (subject: string, content: string) => {
     try {
       // Convert markdown to HTML
@@ -125,7 +139,7 @@ const UserManagement = () => {
         sendAnnouncement({
           subject,
           text: content, // plain text version
-          html, // HTML version
+          html,
         })
       ).unwrap();
 
@@ -162,6 +176,57 @@ const UserManagement = () => {
         {subscribersError && (
           <p className="text-red-500 mb-4">Error: {subscribersError}</p>
         )}
+
+        {/* collapsible Add New Subscriber section */}
+        <div className="mb-6 rounded-lg overflow-hidden">
+          <div
+            role="button"
+            tabIndex={0}
+            onClick={() => setIsAddSubscriberOpen((v) => !v)}
+            className="p-4 bg-gray-50 flex items-center justify-between cursor-pointer select-none"
+          >
+            <h3 className="text-lg font-bold">Add New Subscriber</h3>
+            <FiChevronDown
+              className={[
+                "text-gray-600 transition-transform duration-300",
+                isAddSubscriberOpen ? "rotate-180" : "rotate-0",
+              ].join(" ")}
+              size={18}
+            />
+          </div>
+          <div
+            id="add-subscriber-panel"
+            className={[
+              "transition-all duration-300 ease-in-out",
+              "overflow-hidden",
+              isAddSubscriberOpen ? "max-h-40 opacity-100" : "max-h-0 opacity-0",
+            ].join(" ")}
+          >
+            <div className="p-4">
+              <form onSubmit={handleAddSubscriber} className="space-y-4">
+                <div>
+                  <label className="block text-gray-700 mb-2">Email</label>
+                  <input
+                    type="email"
+                    value={subscriberEmail}
+                    onChange={(e) => setSubscriberEmail(e.target.value)}
+                    className="w-full p-2 border rounded"
+                    required
+                  />
+                </div>
+
+                <div className="flex justify-end">
+                  <button
+                    type="submit"
+                    className="bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600 hover:cursor-pointer"
+                  >
+                    Add Subscriber
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
 
         <div className="overflow-x-auto shadow-md sm:rounded-lg">
           <table className="min-w-full text-left text-gray-500">
@@ -207,14 +272,14 @@ const UserManagement = () => {
         <div
           role="button"
           tabIndex={0}
-          onClick={() => setIsAddOpen((v) => !v)}
+          onClick={() => setIsAddUserOpen((v) => !v)}
           className="p-4 bg-gray-50 flex items-center justify-between cursor-pointer select-none"
         >
           <h3 className="text-lg font-bold">Add New User</h3>
           <FiChevronDown
             className={[
               "text-gray-600 transition-transform duration-300",
-              isAddOpen ? "rotate-180" : "rotate-0",
+              isAddUserOpen ? "rotate-180" : "rotate-0",
             ].join(" ")}
             size={18}
           />
@@ -225,7 +290,7 @@ const UserManagement = () => {
           className={[
             "transition-all duration-300 ease-in-out",
             "overflow-hidden",
-            isAddOpen ? "max-h-130 opacity-100" : "max-h-0 opacity-0",
+            isAddUserOpen ? "max-h-130 opacity-100" : "max-h-0 opacity-0",
           ].join(" ")}
         >
           <div className="p-4">
