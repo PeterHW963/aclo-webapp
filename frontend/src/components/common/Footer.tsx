@@ -5,8 +5,31 @@ import { IoLogoInstagram } from "react-icons/io";
 import { ArrowRightIcon } from "@heroicons/react/24/solid";
 import { Link } from "react-router-dom";
 import { assets, cloudinaryImageUrl } from "../../constants/cloudinary";
+import { useState, type FormEvent } from "react";
+import { useAppDispatch, useAppSelector } from "../../redux/hooks";
+import { addSubscriber } from "../../redux/slices/subscriberSlice";
+import { toast } from "sonner";
 
 const Footer = () => {
+  const [email, setEmail] = useState("");
+  const dispatch = useAppDispatch();
+  const { loading } = useAppSelector((state) => state.subscribers);
+
+  const handleSubscribe = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!email.trim()) {
+      return;
+    }
+
+    try {
+      const result = await dispatch(addSubscriber({ email })).unwrap();
+      toast.success("Successfully subscribed to newsletter!");
+      setEmail("");
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   return (
     <footer className="bg-mutedbrown py-12">
       <div className="container mx-auto grid grid-cols-1 md:grid-cols-4 gap-8 justify-center px-6 sm:px-8 lg:px-16 xl:px-24 2xl:px-32">
@@ -82,24 +105,29 @@ const Footer = () => {
             Sign up and get 10% off your first order.
           </p> */}
           {/* Newsletter form */}
-          <form action="" className="flex">
+          <form onSubmit={handleSubscribe} className="flex">
             <input
               type="email"
               placeholder="Leave us your email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               className="w-full border-t border-l border-b border-acloblue rounded-l-md focus:outline-none transition-all p-4 text-base md:p-3 md:text-sm"
               required
+              disabled={loading}
             />
             <button
               type="submit"
               aria-label="Subscribe"
+              disabled={loading}
               className="
-					group
-					bg-acloblue text-white
-					border border-acloblue
-					px-3 py-3 rounded-r-md
+                group
+                bg-acloblue text-white
+                border border-acloblue
+                px-3 py-3 rounded-r-md
 
-					hover:bg-mutedbrown hover:text-acloblue
-				"
+                hover:bg-mutedbrown hover:text-acloblue
+                disabled:opacity-50 disabled:cursor-not-allowed
+              "
             >
               <ArrowRightIcon className="h-8 w-8 md:h-5 md:w-5" />
             </button>
