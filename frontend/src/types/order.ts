@@ -75,6 +75,8 @@ export interface Order {
   shippingMethod?: string;
   shippingCourier?: string;
   shippingDuration?: string;
+  subtotal: number;
+  discount?: number;
   totalPrice: number;
   isPaid: boolean; // not used until midtrans
   paidAt?: string;

@@ -46,6 +46,12 @@ const OrderDetailsPage = () => {
   }, [dispatch, id, orderDetails?._id, navigate]);
 
   if (error) return <p>Error: {error}</p>;
+
+  const subtotal = Number(orderDetails?.subtotal);
+  const discount = Number(orderDetails?.discount ?? 0);
+  const shipping = Number(orderDetails?.shippingCost);
+  const total = Number(orderDetails?.totalPrice);
+
   return (
     <div>
       <Navbar />
@@ -139,6 +145,51 @@ const OrderDetailsPage = () => {
                 </tbody>
               </table>
             </div>
+            {/* Price Summary */}
+            <div className="mb-2">
+              <div className="flex justify-between items-center">
+                <p className="text-gray-700">Subtotal</p>
+                <p className="text-lg font-medium text-gray-900">
+                  IDR {subtotal.toLocaleString("id-ID")}
+                </p>
+              </div>
+
+              {discount !== 0 && (
+                <div className="flex justify-between items-center mt-2">
+                  <p className="text-gray-700">Discount</p>
+                  <p className="text-lg font-medium text-gray-900">
+                    - IDR {Math.abs(discount).toLocaleString("id-ID")}
+                  </p>
+                </div>
+              )}
+
+              <div className="flex justify-between items-center mt-2">
+                <p className="text-gray-700">Shipping</p>
+                <div className="text-right">
+                  <p className="text-lg font-medium text-gray-900">
+                    IDR {shipping.toLocaleString("id-ID")}
+                  </p>
+                  {(orderDetails?.shippingMethod ||
+                    orderDetails?.shippingCourier) && (
+                    <p className="text-xs text-gray-500">
+                      {orderDetails.shippingCourier} •{" "}
+                      {orderDetails.shippingMethod}{" "}
+                      {orderDetails.shippingDuration
+                        ? `(${orderDetails.shippingDuration})`
+                        : ""}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <div className="mt-2 flex justify-between items-center">
+                <p className="text-lg font-semibold text-gray-900">Total</p>
+                <p className="text-2xl font-semibold text-acloblue">
+                  IDR {total.toLocaleString("id-ID")}
+                </p>
+              </div>
+            </div>
+
             {/* Note to Seller */}
             <div className="mb-6">
               <h4 className="text-lg font-semibold mb-2">Note to Seller</h4>
