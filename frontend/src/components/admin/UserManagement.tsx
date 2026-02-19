@@ -63,7 +63,8 @@ const UserManagement = () => {
   });
 
   const [subscriberEmail, setSubscriberEmail] = useState<string>("");
-  const [isAddSubscriberOpen, setIsAddSubscriberOpen] = useState<boolean>(false);
+  const [isAddSubscriberOpen, setIsAddSubscriberOpen] =
+    useState<boolean>(false);
 
   const [isAddUserOpen, setIsAddUserOpen] = useState<boolean>(false);
   const [isDetailsOpen, setIsDetailsOpen] = useState<boolean>(false);
@@ -71,7 +72,8 @@ const UserManagement = () => {
 
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState<boolean>(false);
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
-  const [isAnnouncementModalOpen, setIsAnnouncementModalOpen] = useState<boolean>(false);
+  const [isAnnouncementModalOpen, setIsAnnouncementModalOpen] =
+    useState<boolean>(false);
 
   const handleChange = (
     e: ChangeEvent<HTMLInputElement | HTMLSelectElement>,
@@ -139,11 +141,11 @@ const UserManagement = () => {
           subject,
           text: content, // plain text version
           html,
-        })
+        }),
       ).unwrap();
 
       toast.success(
-        `Announcement sent successfully! ${result.successful}/${result.totalSubscribers} emails delivered.`
+        `Announcement sent successfully! ${result.successful}/${result.totalSubscribers} emails delivered.`,
       );
       setIsAnnouncementModalOpen(false);
     } catch (err) {
@@ -165,7 +167,7 @@ const UserManagement = () => {
           <h3 className="text-xl font-semibold text-gray-800">Subscribers</h3>
           <button
             onClick={() => setIsAnnouncementModalOpen(true)}
-            className="bg-acloblue text-white px-6 py-2 rounded hover:bg-acloblue/90 transition"
+            className="bg-acloblue text-white px-6 py-2 rounded hover:bg-acloblue/90 transition hover:cursor-pointer"
             disabled={subscribers.length === 0}
           >
             Send Announcement
@@ -198,7 +200,9 @@ const UserManagement = () => {
             className={[
               "transition-all duration-300 ease-in-out",
               "overflow-hidden",
-              isAddSubscriberOpen ? "max-h-40 opacity-100" : "max-h-0 opacity-0",
+              isAddSubscriberOpen
+                ? "max-h-40 opacity-100"
+                : "max-h-0 opacity-0",
             ].join(" ")}
           >
             <div className="p-4">
@@ -266,154 +270,157 @@ const UserManagement = () => {
       <div>
         <h3 className="text-xl font-semibold text-gray-800 mb-4">Users</h3>
         {error && <p className="text-red-500 mb-4">Error: {error}</p>}
-      {/* collapsible Add New User section */}
-      <div className="mb-6 rounded-lg overflow-hidden">
-        <div
-          role="button"
-          tabIndex={0}
-          onClick={() => setIsAddUserOpen((v) => !v)}
-          className="p-4 bg-gray-50 flex items-center justify-between cursor-pointer select-none"
-        >
-          <h3 className="text-lg font-bold">Add New User</h3>
-          <FiChevronDown
+        {/* collapsible Add New User section */}
+        <div className="mb-6 rounded-lg overflow-hidden">
+          <div
+            role="button"
+            tabIndex={0}
+            onClick={() => setIsAddUserOpen((v) => !v)}
+            className="p-4 bg-gray-50 flex items-center justify-between cursor-pointer select-none"
+          >
+            <h3 className="text-lg font-bold">Add New User</h3>
+            <FiChevronDown
+              className={[
+                "text-gray-600 transition-transform duration-300",
+                isAddUserOpen ? "rotate-180" : "rotate-0",
+              ].join(" ")}
+              size={18}
+            />
+          </div>
+          {/* Add new user content */}
+          <div
+            id="add-user-panel"
             className={[
-              "text-gray-600 transition-transform duration-300",
-              isAddUserOpen ? "rotate-180" : "rotate-0",
+              "transition-all duration-300 ease-in-out",
+              "overflow-hidden",
+              isAddUserOpen ? "max-h-130 opacity-100" : "max-h-0 opacity-0",
             ].join(" ")}
-            size={18}
-          />
-        </div>
-        {/* Add new user content */}
-        <div
-          id="add-user-panel"
-          className={[
-            "transition-all duration-300 ease-in-out",
-            "overflow-hidden",
-            isAddUserOpen ? "max-h-130 opacity-100" : "max-h-0 opacity-0",
-          ].join(" ")}
-        >
-          <div className="p-4">
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {/* Row 1 */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-gray-700 mb-2">Name</label>
-                  <input
-                    type="text"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleChange}
-                    className="w-full p-2 border rounded"
-                    required
-                  />
+          >
+            <div className="p-4">
+              <form onSubmit={handleSubmit} className="space-y-4">
+                {/* Row 1 */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-gray-700 mb-2">Name</label>
+                    <input
+                      type="text"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleChange}
+                      className="w-full p-2 border rounded"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-gray-700 mb-2">Email</label>
+                    <input
+                      type="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleChange}
+                      className="w-full p-2 border rounded"
+                      required
+                    />
+                  </div>
                 </div>
 
-                <div>
-                  <label className="block text-gray-700 mb-2">Email</label>
-                  <input
-                    type="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    className="w-full p-2 border rounded"
-                    required
-                  />
-                </div>
-              </div>
+                {/* Row 2 */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-gray-700 mb-2">Password</label>
+                    <input
+                      type="password"
+                      name="password"
+                      value={formData.password}
+                      onChange={handleChange}
+                      className="w-full p-2 border rounded"
+                      required
+                    />
+                  </div>
 
-              {/* Row 2 */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-gray-700 mb-2">Password</label>
-                  <input
-                    type="password"
-                    name="password"
-                    value={formData.password}
-                    onChange={handleChange}
-                    className="w-full p-2 border rounded"
-                    required
-                  />
+                  <div>
+                    <label className="block text-gray-700 mb-2">Role</label>
+                    <select
+                      name="role"
+                      value={formData.role}
+                      onChange={handleChange}
+                      className="w-full p-2 border rounded"
+                    >
+                      <option value="customer">Customer</option>
+                      <option value="admin">Admin</option>
+                    </select>
+                  </div>
                 </div>
 
-                <div>
-                  <label className="block text-gray-700 mb-2">Role</label>
-                  <select
-                    name="role"
-                    value={formData.role}
-                    onChange={handleChange}
-                    className="w-full p-2 border rounded"
+                <div className="flex justify-end">
+                  <button
+                    type="submit"
+                    className="bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600 hover:cursor-pointer"
                   >
-                    <option value="customer">Customer</option>
-                    <option value="admin">Admin</option>
-                  </select>
+                    Add User
+                  </button>
                 </div>
-              </div>
-
-              <div className="flex justify-end">
-                <button
-                  type="submit"
-                  className="bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600 hover:cursor-pointer"
-                >
-                  Add User
-                </button>
-              </div>
-            </form>
+              </form>
+            </div>
           </div>
         </div>
-      </div>
-      {/* User list management */}
-      <div className="overflow-x-auto shadow-md sm:rounded-lg">
-        <table className="min-w-full text-left text-gray-500">
-          <thead className="bg-gray-100 text-xs uppercase text-gray-700">
-            <tr>
-              <th className="py-3 px-4">Name</th>
-              <th className="py-3 px-4">Email</th>
-              <th className="py-3 px-4">Role</th>
-              <th className="py-3 px-4">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {users.map((user) => (
-              <tr key={user._id} className="border-b hover:bg-gray-50">
-                <td className="p-4 font-medium text-gray-900 whitespace-nowrap">
-                  {user.name}
-                </td>
-                <td className="p-4">{user.email}</td>
-                <td className="p-4">
-                  <select
-                    value={user.role}
-                    onChange={(e) =>
-                      handleRoleChange(user._id, e.target.value as User["role"])
-                    }
-                    className="p-2 border rounded"
-                  >
-                    <option value="customer">Customer</option>
-                    <option value="admin">Admin</option>
-                  </select>
-                </td>
-                <td className="p-4 flex gap-2">
-                  <button
-                    onClick={async () => {
-                      setUserToView(user);
-                      dispatch(fetchOrdersByUserId({ userId: user._id }));
-                      setIsDetailsOpen(true);
-                    }}
-                    className="bg-acloblue text-white px-4 py-2 rounded hover:bg-acloblue/80 hover:cursor-pointer"
-                  >
-                    View
-                  </button>
-                  <button
-                    onClick={() => openDeleteModal(user)}
-                    className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 hover:cursor-pointer"
-                  >
-                    Delete
-                  </button>
-                </td>
+        {/* User list management */}
+        <div className="overflow-x-auto shadow-md sm:rounded-lg">
+          <table className="min-w-full text-left text-gray-500">
+            <thead className="bg-gray-100 text-xs uppercase text-gray-700">
+              <tr>
+                <th className="py-3 px-4">Name</th>
+                <th className="py-3 px-4">Email</th>
+                <th className="py-3 px-4">Role</th>
+                <th className="py-3 px-4">Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {users.map((user) => (
+                <tr key={user._id} className="border-b hover:bg-gray-50">
+                  <td className="p-4 font-medium text-gray-900 whitespace-nowrap">
+                    {user.name}
+                  </td>
+                  <td className="p-4">{user.email}</td>
+                  <td className="p-4">
+                    <select
+                      value={user.role}
+                      onChange={(e) =>
+                        handleRoleChange(
+                          user._id,
+                          e.target.value as User["role"],
+                        )
+                      }
+                      className="p-2 border rounded"
+                    >
+                      <option value="customer">Customer</option>
+                      <option value="admin">Admin</option>
+                    </select>
+                  </td>
+                  <td className="p-4 flex gap-2">
+                    <button
+                      onClick={async () => {
+                        setUserToView(user);
+                        dispatch(fetchOrdersByUserId({ userId: user._id }));
+                        setIsDetailsOpen(true);
+                      }}
+                      className="bg-acloblue text-white px-4 py-2 rounded hover:bg-acloblue/80 hover:cursor-pointer"
+                    >
+                      View
+                    </button>
+                    <button
+                      onClick={() => openDeleteModal(user)}
+                      className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 hover:cursor-pointer"
+                    >
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {isDetailsOpen && userToView && (
