@@ -231,7 +231,6 @@ const Checkout = () => {
   };
 
   const handleCreateCheckout = async () => {
-    setCreatingCheckout(true);
     if (!cart || !cart.products || cart.products.length === 0) {
       return;
     }
@@ -246,6 +245,7 @@ const Checkout = () => {
       return;
     }
 
+    setCreatingCheckout(true);
     try {
       const subtotal = Number(cart.totalPrice);
       const discount = Number(calculateDiscount(subtotal));
