@@ -72,6 +72,10 @@ const Checkout = () => {
       return;
     }
 
+    // ensure no infinite loop of cart loading state.
+    // If this effect runs while loading is still true, loading will stay true all the time
+    if (loading) return;
+
     if (!cart?._id || cart._id !== cartId) {
       dispatch(fetchCartById({ cartId }));
       return;
