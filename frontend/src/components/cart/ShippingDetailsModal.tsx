@@ -1,5 +1,11 @@
 /// <reference types="@types/google.maps" />
-import { useState, useEffect, useRef, type FormEvent } from "react";
+import {
+  useState,
+  useEffect,
+  useRef,
+  type FormEvent,
+  type MouseEvent,
+} from "react";
 import { IoMdClose } from "react-icons/io";
 import type { ShippingDetails } from "../../types/checkout";
 import type { ShippingAddress } from "../../types/user";
@@ -169,7 +175,8 @@ const ShippingDetailsModal = ({
     return true;
   };
 
-  const handleNextStep = () => {
+  const handleNextStep = (e: MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault(); // prevents "same-click-submission" due to mid-click re-rendering
     if (formStep === 1) {
       if (validateStep1()) setFormStep(2);
       return;
@@ -836,87 +843,85 @@ const ShippingDetailsModal = ({
                   )}
 
                   {/* STEP 2: Location & map */}
-                  {formStep === 2 && (
-                    <div>
-                      <div className="mb-4 relative">
-                        <label className="block text-gray-700">
-                          Delivery location *
-                        </label>
+                  <div className={formStep === 2 ? "block" : "hidden"}>
+                    <div className="mb-4 relative">
+                      <label className="block text-gray-700">
+                        Delivery location *
+                      </label>
 
-                        <input
-                          type="text"
-                          value={addressQuery || shippingDetails.address}
-                          onChange={(e) => {
-                            const next = e.target.value;
-                            setShippingDetails({
-                              ...shippingDetails,
-                              address: next,
-                            });
-                            setAddressQuery(next);
+                      <input
+                        type="text"
+                        value={addressQuery || shippingDetails.address}
+                        onChange={(e) => {
+                          const next = e.target.value;
+                          setShippingDetails({
+                            ...shippingDetails,
+                            address: next,
+                          });
+                          setAddressQuery(next);
 
-                            setSelectedPlaceId(null);
-                            setPinConfirmed(false);
-                            setAddressError("");
-                          }}
-                          className="mt-1 w-full p-2 border rounded focus:outline-none focus:ring-1 focus:ring-acloblue focus:border-acloblue"
-                          required
-                          placeholder="Type street / building / neighborhood name..."
-                        />
+                          setSelectedPlaceId(null);
+                          setPinConfirmed(false);
+                          setAddressError("");
+                        }}
+                        className="mt-1 w-full p-2 border rounded focus:outline-none focus:ring-1 focus:ring-acloblue focus:border-acloblue"
+                        required
+                        placeholder="Type street / building / neighborhood name..."
+                      />
 
-                        {suggestions.length > 0 && (
-                          <div className="absolute z-20 mt-1 w-full max-h-56 overflow-auto rounded border bg-white shadow">
-                            {suggestions.map((s) => (
-                              <button
-                                type="button"
-                                key={s.placeId}
-                                className="w-full text-left px-3 py-2 hover:bg-gray-50"
-                                onClick={() => handlePickSuggestion(s)}
-                              >
-                                {s.text}
-                              </button>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="mb-2">
-                        <label className="block text-gray-700 mb-2">
-                          Pinpoint delivery location
-                        </label>
-
-                        <div
-                          ref={mapDivRef}
-                          className="w-full h-72 rounded-lg overflow-hidden border"
-                        />
-
-                        <div className="flex items-center gap-3 mt-3">
-                          <button
-                            type="button"
-                            onClick={confirmPinAndValidate}
-                            className="bg-black text-white px-4 py-2 rounded hover:bg-gray-800 transition"
-                          >
-                            Confirm location
-                          </button>
-
-                          {pinConfirmed ? (
-                            <span className="text-sm text-green-700">
-                              Location confirmed ✓
-                            </span>
-                          ) : (
-                            <span className="text-sm text-gray-600">
-                              Drag the pin, then confirm.
-                            </span>
-                          )}
+                      {suggestions.length > 0 && (
+                        <div className="absolute z-20 mt-1 w-full max-h-56 overflow-auto rounded border bg-white shadow">
+                          {suggestions.map((s) => (
+                            <button
+                              type="button"
+                              key={s.placeId}
+                              className="w-full text-left px-3 py-2 hover:bg-gray-50"
+                              onClick={() => handlePickSuggestion(s)}
+                            >
+                              {s.text}
+                            </button>
+                          ))}
                         </div>
+                      )}
+                    </div>
 
-                        {pinLabel && (
-                          <p className="mt-2 text-sm text-gray-600">
-                            Pinned near: {pinLabel}
-                          </p>
+                    <div className="mb-2">
+                      <label className="block text-gray-700 mb-2">
+                        Pinpoint delivery location
+                      </label>
+
+                      <div
+                        ref={mapDivRef}
+                        className="w-full h-72 rounded-lg overflow-hidden border"
+                      />
+
+                      <div className="flex items-center gap-3 mt-3">
+                        <button
+                          type="button"
+                          onClick={confirmPinAndValidate}
+                          className="bg-black text-white px-4 py-2 rounded hover:bg-gray-800 transition"
+                        >
+                          Confirm location
+                        </button>
+
+                        {pinConfirmed ? (
+                          <span className="text-sm text-green-700">
+                            Location confirmed ✓
+                          </span>
+                        ) : (
+                          <span className="text-sm text-gray-600">
+                            Drag the pin, then confirm.
+                          </span>
                         )}
                       </div>
+
+                      {pinLabel && (
+                        <p className="mt-2 text-sm text-gray-600">
+                          Pinned near: {pinLabel}
+                        </p>
+                      )}
                     </div>
-                  )}
+                  </div>
 
                   {/* STEP 3: Address details */}
                   {formStep === 3 && (
