@@ -8,6 +8,7 @@ const Order = require("./models/Order");
 const Review = require("./models/Review");
 const Checkout = require("./models/Checkout");
 const OrderCounter = require("./models/OrderCounter");
+const Subscriber = require("./models/Subscriber");
 const products = require("./data/products");
 const productVariants = require("./data/productVariants");
 const reviews = require("./data/reviews");
@@ -36,6 +37,7 @@ async function clearCollections() {
         Review.deleteMany(),
         Order.deleteMany(),
         OrderCounter.deleteMany(),
+        Subscriber.deleteMany(),
     ]);
 }
 

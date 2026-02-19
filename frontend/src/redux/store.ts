@@ -10,6 +10,7 @@ import adminReducer from "./slices/adminSlice";
 import adminProductReducer from "./slices/adminProductSlice";
 import adminOrderReducer from "./slices/adminOrderSlice";
 import adminCheckoutReducer from "./slices/adminCheckoutSlice";
+import subscriberReducer from "./slices/subscriberSlice";
 
 export const store = configureStore({
   reducer: {
@@ -24,6 +25,7 @@ export const store = configureStore({
     adminProducts: adminProductReducer,
     adminOrders: adminOrderReducer,
     adminCheckouts: adminCheckoutReducer,
+    subscribers: subscriberReducer,
   },
 });
 
