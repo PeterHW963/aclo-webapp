@@ -125,7 +125,7 @@ const ShippingDetailsModal = ({
     const hasAddressText = !!shippingDetails.address?.trim();
 
     const locationChosen = !!selectedPlaceId || hasAddressText;
-    const locationConfirmed = pinConfirmed || hasCoords;
+    const locationConfirmed = pinConfirmed && hasCoords;
 
     if (!locationChosen) {
       setAddressError("Please select an address from the suggestions.");
@@ -231,7 +231,7 @@ const ShippingDetailsModal = ({
   useEffect(() => {
     const t = setTimeout(async () => {
       const q = addressQuery.trim();
-      if (selectedPlaceId) {
+      if (selectedPlaceId || pinConfirmed) {
         setSuggestions([]);
         return;
       }
