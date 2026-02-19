@@ -340,6 +340,10 @@ const adminOrderSlice = createSlice({
           if (orderIndex !== -1) {
             state.orders[orderIndex] = updatedOrder;
           }
+
+          if (state.orderDetails?._id === updatedOrder._id) {
+            state.orderDetails = updatedOrder;
+          }
           state.loading = false;
         },
       )

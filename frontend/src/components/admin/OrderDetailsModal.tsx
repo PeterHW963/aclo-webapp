@@ -26,12 +26,24 @@ const OrderDetailsModal = ({
   const [remarksError, setRemarksError] = useState<string>("");
 
   useEffect(() => {
+    if (!orderDetails) return;
+    if (isEditingRemarks || savingRemarks) return;
     const current = orderDetails?.adminRemarks ?? "";
     setRemarksDraft(current);
     setRemarksSaved(current);
-    setIsEditingRemarks(false);
     setRemarksError("");
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    orderDetails?._id,
+    orderDetails?.adminRemarks,
+    isEditingRemarks,
+    savingRemarks,
+  ]);
+
+  useEffect(() => {
+    // reset state upon opening a new order's details
+    setIsEditingRemarks(false);
+    setRemarksError("");
   }, [orderDetails?._id]);
 
   const handleEditRemarks = () => {
