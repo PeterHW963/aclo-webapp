@@ -1,6 +1,7 @@
 require("../../models/User");
 const Checkout = require("../../models/Checkout");
 const { sendEmail } = require("../../utils/emailService");
+const { getCheckoutReminderTemplate } = require("../../utils/emailTemplates");
 const connectDB = require("../../config/db");
 
 function cronAuth(req) {
@@ -51,10 +52,19 @@ module.exports = async (req, res) => {
 
             if (!locked) continue;
 
+            const paymentUrl3h = `${process.env.FRONTEND_URL}/payment/${checkout._id}`;
+            const htmlContent3h = getCheckoutReminderTemplate(
+                checkout.user.name,
+                locked.expiresAt,
+                '3 hours',
+                paymentUrl3h
+            );
+            
             await sendEmail(
                 checkout.user.email,
                 "Reminder: Your checkout will expire in less than 3 hours",
-                `Hi ${checkout.user.name}, your checkout with ACLOKids will expire at ${locked.expiresAt.toISOString()}. Please complete your checkout to confirm your order.`,
+                `Hi ${checkout.user.name}, your checkout with ACLOKids will expire at ${locked.expiresAt.toISOString()}. Please complete your checkout to confirm your order. ${paymentUrl3h}`,
+                htmlContent3h
             );
 
             sent3h++;
@@ -78,10 +88,19 @@ module.exports = async (req, res) => {
 
             if (!locked) continue;
 
+            const paymentUrl1h = `${process.env.FRONTEND_URL}/payment/${checkout._id}`;
+            const htmlContent1h = getCheckoutReminderTemplate(
+                checkout.user.name,
+                locked.expiresAt,
+                '1 hour',
+                paymentUrl1h
+            );
+            
             await sendEmail(
                 checkout.user.email,
                 "Reminder: Your checkout will expire soon",
-                `Hi ${checkout.user.name}, your checkout with ACLOKids will expire at ${locked.expiresAt.toISOString()}. Please complete your checkout to confirm your order.`,
+                `Hi ${checkout.user.name}, your checkout with ACLOKids will expire at ${locked.expiresAt.toISOString()}. Please complete your checkout to confirm your order. ${paymentUrl1h}`,
+                htmlContent1h
             );
 
             sent1h++;
