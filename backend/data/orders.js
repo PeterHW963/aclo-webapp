@@ -28,6 +28,7 @@ const orders = [
             reason: "I decided that I will not be needing the Learning Tower.",
         },
 
+        subtotal: 599000,
         totalPrice: 621500,
         isPaid: false,
 
