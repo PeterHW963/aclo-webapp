@@ -35,6 +35,7 @@ const checkouts = [
         shippingCourier: "anteraja",
         shippingDuration: "8 - 12 hours",
 
+        subtotal: 599000,
         totalPrice: 621500,
         isPaid: false,
 
