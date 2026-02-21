@@ -5,7 +5,6 @@ import { HiOutlineShoppingBag } from "react-icons/hi2";
 
 import CartContents from "../../../features/cart/components/CartContents";
 import VerificationModal from "../common/VerificationModal";
-
 import { useAppSelector } from "../../../app/hooks";
 
 type CartDrawerProps = {
@@ -20,6 +19,8 @@ const Cartdrawer = ({ drawerOpen, toggleCartDrawer }: CartDrawerProps) => {
   const userId = user?._id;
 
   const [showVerificationModal, setShowVerificationModal] = useState(false);
+
+  const isEmpty = !cart || !cart.products || cart.products.length === 0;
 
   const handleCheckout = () => {
     toggleCartDrawer();
@@ -37,42 +38,50 @@ const Cartdrawer = ({ drawerOpen, toggleCartDrawer }: CartDrawerProps) => {
     navigate(`/checkout/${cart._id}`);
   };
 
-  const isEmpty = !cart || !cart.products || cart.products.length === 0;
-
   return (
     <>
-      {drawerOpen && (
+      <div
+        className={[
+          "fixed inset-0 z-40 transition-opacity duration-300",
+          drawerOpen
+            ? "opacity-100 pointer-events-auto"
+            : "opacity-0 pointer-events-none",
+        ].join(" ")}
+      >
         <button
           type="button"
           aria-label="Close cart"
           onClick={toggleCartDrawer}
-          className="fixed inset-0 z-40 bg-black/30 backdrop-blur-[1px]"
+          className="h-full w-full bg-black/30 backdrop-blur-[1px]"
         />
-      )}
+      </div>
 
-      <div
+      <aside
         className={[
           "fixed top-0 right-0 z-50 h-full",
-          "w-[88%] max-w-[420px] sm:w-[420px] md:w-[460px]",
+          "w-[92%] max-w-[420px] sm:w-[420px] md:w-[460px]",
           "bg-white shadow-2xl",
           "transform transition-transform duration-300 ease-out",
           "flex flex-col",
           drawerOpen ? "translate-x-0" : "translate-x-full",
         ].join(" ")}
+        aria-hidden={!drawerOpen}
       >
-        <div className="flex items-center justify-between px-5 py-4 border-b">
-          <div>
-            <h2 className="text-lg font-semibold text-acloblue">Your Cart</h2>
-          </div>
+        <div className="px-5 pt-5 pb-4 border-b">
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="text-lg font-semibold text-acloblue tracking-tight">
+              Your Cart
+            </h2>
 
-          <button
-            type="button"
-            onClick={toggleCartDrawer}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-full hover:bg-gray-100 active:scale-[0.98]"
-            aria-label="Close cart drawer"
-          >
-            <IoMdClose className="h-6 w-6 text-gray-600" />
-          </button>
+            <button
+              type="button"
+              onClick={toggleCartDrawer}
+              className="inline-flex h-10 w-10 items-center justify-center rounded-full hover:bg-gray-100 active:scale-[0.98]"
+              aria-label="Close cart drawer"
+            >
+              <IoMdClose className="h-6 w-6 text-gray-600" />
+            </button>
+          </div>
         </div>
 
         <div className="grow px-5 py-5 overflow-y-auto">
@@ -88,7 +97,8 @@ const Cartdrawer = ({ drawerOpen, toggleCartDrawer }: CartDrawerProps) => {
                 Your cart is empty
               </h3>
               <p className="mt-1 text-sm text-gray-600 max-w-[260px]">
-                Browse our shop and add your favorites
+                Browse the shop and add your favourites — we’ll keep them here
+                ✨
               </p>
 
               <div className="mt-6 w-full flex flex-col gap-3">
@@ -104,7 +114,7 @@ const Cartdrawer = ({ drawerOpen, toggleCartDrawer }: CartDrawerProps) => {
           )}
         </div>
 
-        <div className="p-5 bg-white border-t">
+        <div className="border-t bg-white px-5 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
           {!isEmpty ? (
             <>
               <button
@@ -119,7 +129,7 @@ const Cartdrawer = ({ drawerOpen, toggleCartDrawer }: CartDrawerProps) => {
             </>
           ) : (
             <p className="text-xs text-gray-500 text-center">
-              Tip: free shipping & promos show up at checkout 💌
+              No rush - take your time picking the perfect pieces
             </p>
           )}
         </div>
@@ -128,7 +138,7 @@ const Cartdrawer = ({ drawerOpen, toggleCartDrawer }: CartDrawerProps) => {
           isOpen={showVerificationModal}
           onClose={() => setShowVerificationModal(false)}
         />
-      </div>
+      </aside>
     </>
   );
 };
