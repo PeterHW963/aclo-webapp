@@ -41,7 +41,6 @@ const Cartdrawer = ({ drawerOpen, toggleCartDrawer }: CartDrawerProps) => {
 
   return (
     <>
-      {/* Backdrop */}
       {drawerOpen && (
         <button
           type="button"
@@ -61,7 +60,6 @@ const Cartdrawer = ({ drawerOpen, toggleCartDrawer }: CartDrawerProps) => {
           drawerOpen ? "translate-x-0" : "translate-x-full",
         ].join(" ")}
       >
-        {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b">
           <div>
             <h2 className="text-lg font-semibold text-acloblue">Your Cart</h2>
@@ -77,7 +75,6 @@ const Cartdrawer = ({ drawerOpen, toggleCartDrawer }: CartDrawerProps) => {
           </button>
         </div>
 
-        {/* Body */}
         <div className="grow px-5 py-5 overflow-y-auto">
           {!isEmpty ? (
             <CartContents cart={cart} userId={userId} guestId={guestId} />
@@ -107,7 +104,6 @@ const Cartdrawer = ({ drawerOpen, toggleCartDrawer }: CartDrawerProps) => {
           )}
         </div>
 
-        {/* Footer */}
         <div className="p-5 bg-white border-t">
           {!isEmpty ? (
             <>
