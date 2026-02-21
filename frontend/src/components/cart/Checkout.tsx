@@ -72,6 +72,10 @@ const Checkout = () => {
       return;
     }
 
+    // ensure no infinite loop of cart loading state.
+    // If this effect runs while loading is still true, loading will stay true all the time
+    if (loading) return;
+
     if (!cart?._id || cart._id !== cartId) {
       dispatch(fetchCartById({ cartId }));
       return;
@@ -227,7 +231,6 @@ const Checkout = () => {
   };
 
   const handleCreateCheckout = async () => {
-    setCreatingCheckout(true);
     if (!cart || !cart.products || cart.products.length === 0) {
       return;
     }
@@ -242,19 +245,22 @@ const Checkout = () => {
       return;
     }
 
+    setCreatingCheckout(true);
     try {
-      const totalWithShipping = cart.totalPrice + selectedShipping.price;
+      const subtotal = Number(cart.totalPrice);
+      const discount = Number(calculateDiscount(subtotal));
+      const shippingCost = Number(selectedShipping.price);
+
+      const totalPrice = subtotal - discount + shippingCost;
 
       const createdCheckout: Checkout = await dispatch(
         createCheckout({
           cartId: cart._id,
-          // checkoutItems: cart.products.map((p) => ({
-          //   ...p,
-          //   options: p.options ?? {},
-          // })),
           shippingDetails,
           paymentMethod: "BankTransfer",
-          totalPrice: totalWithShipping,
+          subtotal: subtotal,
+          discount: discount,
+          totalPrice: totalPrice,
           shippingCost: selectedShipping.price,
           shippingMethod: selectedShipping.courierServiceName,
           shippingCourier: selectedShipping.courierCode,
@@ -270,11 +276,24 @@ const Checkout = () => {
     }
   };
 
+  const calculateDiscount = (totalPrice: number): number => {
+    if (totalPrice >= 1500000) {
+      return (5 / 100) * totalPrice; // 5% discount
+    }
+    return 0;
+  };
+
   if (loading) return <p>Loading cart...</p>;
   if (error) return <p>Error: {error}</p>;
   if (!cart || !cart.products || cart.products.length === 0) {
     return <p>Your cart is empty</p>;
   }
+
+  const subtotal = Number(cart.totalPrice);
+  const discount = Number(calculateDiscount(cart.totalPrice));
+  const shippingCost = Number(selectedShipping?.price || 0);
+
+  const total = subtotal - discount + shippingCost;
 
   return (
     <>
@@ -399,11 +418,19 @@ const Checkout = () => {
             <div className="flex justify-between items-center">
               <p className="text-gray-700">Subtotal</p>
               <p className="text-lg font-medium text-gray-900">
-                IDR {Number(cart.totalPrice).toLocaleString("id-ID")}
+                IDR {Number(subtotal).toLocaleString("id-ID")}
               </p>
             </div>
+            {discount !== 0 && (
+              <div className="flex justify-between items-center mt-2">
+                <p className="text-gray-700">Discount</p>
+                <p className="text-lg font-medium text-gray-900">
+                  - IDR {Number(discount).toLocaleString("id-ID")}
+                </p>
+              </div>
+            )}
 
-            <div className="mt-3 flex justify-between items-start">
+            <div className="mt-2 flex justify-between items-start">
               <p className="text-gray-700">Shipping</p>
               <div className="text-right">
                 {selectedShipping ? (
@@ -431,10 +458,7 @@ const Checkout = () => {
             <div className="mt-5 pt-4 border-t border-gray-100 flex justify-between items-center">
               <p className="text-lg font-semibold text-gray-900">Total</p>
               <p className="text-2xl font-semibold text-acloblue">
-                IDR{" "}
-                {Number(
-                  cart.totalPrice + (selectedShipping?.price || 0),
-                ).toLocaleString("id-ID")}
+                IDR {Number(total).toLocaleString("id-ID")}
               </p>
             </div>
           </div>

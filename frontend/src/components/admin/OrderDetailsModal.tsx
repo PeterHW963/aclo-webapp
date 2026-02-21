@@ -26,12 +26,24 @@ const OrderDetailsModal = ({
   const [remarksError, setRemarksError] = useState<string>("");
 
   useEffect(() => {
+    if (!orderDetails) return;
+    if (isEditingRemarks || savingRemarks) return;
     const current = orderDetails?.adminRemarks ?? "";
     setRemarksDraft(current);
     setRemarksSaved(current);
-    setIsEditingRemarks(false);
     setRemarksError("");
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    orderDetails?._id,
+    orderDetails?.adminRemarks,
+    isEditingRemarks,
+    savingRemarks,
+  ]);
+
+  useEffect(() => {
+    // reset state upon opening a new order's details
+    setIsEditingRemarks(false);
+    setRemarksError("");
   }, [orderDetails?._id]);
 
   const handleEditRemarks = () => {
@@ -67,6 +79,11 @@ const OrderDetailsModal = ({
       setSavingRemarks(false);
     }
   };
+
+  const subtotal = Number(orderDetails?.subtotal);
+  const discount = Number(orderDetails?.discount ?? 0);
+  const shipping = Number(orderDetails?.shippingCost);
+  const total = Number(orderDetails?.totalPrice);
 
   return (
     <div
@@ -214,6 +231,51 @@ const OrderDetailsModal = ({
                   ))}
                 </tbody>
               </table>
+            </div>
+
+            {/* Price Summary */}
+            <div className="mb-2">
+              <div className="flex justify-between items-center">
+                <p className="text-gray-700">Subtotal</p>
+                <p className="text-lg font-medium text-gray-900">
+                  IDR {subtotal.toLocaleString("id-ID")}
+                </p>
+              </div>
+
+              {discount !== 0 && (
+                <div className="flex justify-between items-center mt-2">
+                  <p className="text-gray-700">Discount</p>
+                  <p className="text-lg font-medium text-gray-900">
+                    - IDR {Math.abs(discount).toLocaleString("id-ID")}
+                  </p>
+                </div>
+              )}
+
+              <div className="flex justify-between items-center mt-2">
+                <p className="text-gray-700">Shipping</p>
+                <div className="text-right">
+                  <p className="text-lg font-medium text-gray-900">
+                    IDR {shipping.toLocaleString("id-ID")}
+                  </p>
+                  {(orderDetails?.shippingMethod ||
+                    orderDetails?.shippingCourier) && (
+                    <p className="text-xs text-gray-500">
+                      {orderDetails.shippingCourier} •{" "}
+                      {orderDetails.shippingMethod}{" "}
+                      {orderDetails.shippingDuration
+                        ? `(${orderDetails.shippingDuration})`
+                        : ""}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <div className="mt-2 flex justify-between items-center">
+                <p className="text-lg font-semibold text-gray-900">Total</p>
+                <p className="text-2xl font-semibold text-acloblue">
+                  IDR {total.toLocaleString("id-ID")}
+                </p>
+              </div>
             </div>
 
             {/* Note to Seller */}

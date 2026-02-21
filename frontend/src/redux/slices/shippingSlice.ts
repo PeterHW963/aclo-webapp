@@ -111,23 +111,31 @@ const shippingSlice = createSlice({
             JSON.stringify(action.payload.options),
           );
 
-          // keep previous selection if it still exists in new options
+          // If gojek is disabled, treat gojek options as not selectable
+          const isSelectable = (opt: ShippingOption) =>
+            !(state.gojekDisabled && opt.courierCode === "gojek");
+
+          const options = action.payload.options;
           const prev = state.selectedShipping;
-          state.selectedShipping =
-            (prev &&
-              action.payload.options.find(
-                (opt) =>
-                  opt.courierCode === prev.courierCode &&
-                  opt.courierServiceName === prev.courierServiceName,
-              )) ||
-            action.payload.options[0] ||
-            null;
+          // keep previous selection if it still exists in new options AND is selectable
+          const keptPrev =
+            prev &&
+            options.find(
+              (opt) =>
+                opt.courierCode === prev.courierCode &&
+                opt.courierServiceName === prev.courierServiceName &&
+                isSelectable(opt),
+            );
+          const defaultOpt = options.find(isSelectable) || null;
+          state.selectedShipping = keptPrev || defaultOpt;
 
           if (state.selectedShipping) {
             localStorage.setItem(
               "selectedShipping",
               JSON.stringify(state.selectedShipping),
             );
+          } else {
+            localStorage.removeItem("selectedShipping");
           }
         },
       )

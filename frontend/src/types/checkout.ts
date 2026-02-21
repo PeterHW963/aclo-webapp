@@ -34,6 +34,8 @@ export interface Checkout {
   paymentMethod: string;
   paymentProof?: PaymentProof;
   noteToSeller?: string;
+  subtotal: number;
+  discount?: number;
   totalPrice: number;
   isPaid: boolean; // keep this field but will alw stay false until midtrans implemented
   paidAt?: string;
@@ -85,6 +87,8 @@ export interface CreateCheckoutPayload {
   cartId: string;
   shippingDetails: ShippingDetails;
   paymentMethod: string;
+  subtotal: number;
+  discount: number;
   totalPrice: number;
   shippingCost?: number;
   shippingMethod?: string;
