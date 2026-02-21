@@ -2,6 +2,9 @@ import { useEffect, useState, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 
+import { HiOutlineShoppingBag } from "react-icons/hi2";
+import { Link } from "react-router-dom";
+
 import ShippingOptionsModal from "./ShippingOptionsModal";
 import ShippingDetailsModal from "./ShippingDetailsModal";
 
