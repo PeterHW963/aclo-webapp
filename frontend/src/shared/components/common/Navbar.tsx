@@ -32,7 +32,6 @@ const Navbar = () => {
   return (
     <>
       <nav className="container mx-auto flex justify-between py-4 px-6">
-        {/* Left - logo */}
         <div>
           <Link
             to="/"
@@ -46,7 +45,7 @@ const Navbar = () => {
             />
           </Link>
         </div>
-        {/* Center - navigation */}
+
         <div className="hidden md:flex items-center space-x-10">
           <Link
             to="/"
@@ -73,7 +72,7 @@ const Navbar = () => {
             CONTACT
           </Link>
         </div>
-        {/* Right - Icons */}
+
         <div className="flex items-center space-x-4">
           {user && user.role === "admin" && (
             <Link
@@ -90,6 +89,7 @@ const Navbar = () => {
           >
             <HiOutlineUser className="h-6 w-6" />
           </Link>
+
           <button
             onClick={toggleCartDrawer}
             className="relative hover:text-gray-600 hover:cursor-pointer"
@@ -101,58 +101,94 @@ const Navbar = () => {
               </span>
             )}
           </button>
-          {/* Search */}
+
           <button onClick={toggleNavDrawer} className="md:hidden">
             <HiBars3BottomRight className="h-6 w-6 hover:text-gray-600" />
           </button>
         </div>
       </nav>
+
       <Cartdrawer drawerOpen={drawerOpen} toggleCartDrawer={toggleCartDrawer} />
-      {/* Mobile navigation */}
+
+      {navDrawerOpen && (
+        <button
+          type="button"
+          aria-label="Close menu"
+          onClick={toggleNavDrawer}
+          className="fixed inset-0 z-40 bg-black/30 backdrop-blur-[1px] md:hidden"
+        />
+      )}
+
       <div
-        className={`fixed top-0 left-0 w-3/4 sm:w-1/2 md:w-1/3 h-full bg-white shadow-lg transform transition-transform duration-300 z-50 ${
-          navDrawerOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
+        className={[
+          "fixed top-0 left-0 z-50 h-full md:hidden",
+          "w-[82%] max-w-[360px] sm:w-[380px]",
+          "bg-white shadow-2xl",
+          "transition-transform duration-300 ease-out",
+          navDrawerOpen ? "translate-x-0" : "-translate-x-full",
+        ].join(" ")}
       >
-        <div className="flex justify-end p-4">
-          <button onClick={toggleNavDrawer}>
+        <div className="flex items-center justify-between px-5 py-4 border-b">
+          <Link
+            to="/"
+            onClick={toggleNavDrawer}
+            className="flex items-center gap-3"
+          >
+            <img
+              src={cloudinaryImageUrl(assets.logos.horizontal.publicId)}
+              alt={assets.logos.horizontal.alt}
+              className="h-7 w-auto object-contain"
+              loading="eager"
+            />
+          </Link>
+
+          <button
+            type="button"
+            onClick={toggleNavDrawer}
+            className="inline-flex h-10 w-10 items-center justify-center rounded-full hover:bg-gray-100 active:scale-[0.98]"
+            aria-label="Close navigation"
+          >
             <IoMdClose className="h-6 w-6 text-gray-600" />
           </button>
         </div>
-        <div className="p-4">
-          <h2 className="text-xl font-semibold mb-4">Menu</h2>
-          <nav className="space-y-4">
-            {/* {CATEGORIES.map((category) => (
-              <Link
-                key={category}
-                // to={`/collections/${category.toLowerCase().replace(/\s+/g, "-")}`}
-                to="#"
-                onClick={toggleNavDrawer}
-                className="block hover:text-gray-600"
-              >
-                {category}
-              </Link>
-            ))} */}
-            <ul>
-              <Link to="/" className="block hover:text-gray-600">
-                HOME
-              </Link>
-            </ul>
-            <ul>
-              <Link to="/story" className="block hover:text-gray-600">
-                STORY
-              </Link>
-            </ul>
-            <ul>
-              <Link to="/shop" className="block hover:text-gray-600">
-                SHOP
-              </Link>
-            </ul>
-            <ul>
-              <Link to="/contact" className="block hover:text-gray-600">
-                CONTACT US
-              </Link>
-            </ul>
+
+        <div className="px-5 py-5">
+          <nav className="space-y-2">
+            <Link
+              to="/"
+              onClick={toggleNavDrawer}
+              className="group flex items-center justify-between rounded-xl px-4 py-3 text-ink hover:bg-gray-50 transition"
+            >
+              <span className="uppercase tracking-widest text-sm">Home</span>
+              <span className="text-gray-400 group-hover:text-gray-500">→</span>
+            </Link>
+
+            <Link
+              to="/story"
+              onClick={toggleNavDrawer}
+              className="group flex items-center justify-between rounded-xl px-4 py-3 text-ink hover:bg-gray-50 transition"
+            >
+              <span className="uppercase tracking-widest text-sm">Story</span>
+              <span className="text-gray-400 group-hover:text-gray-500">→</span>
+            </Link>
+
+            <Link
+              to="/shop"
+              onClick={toggleNavDrawer}
+              className="group flex items-center justify-between rounded-xl px-4 py-3 text-ink hover:bg-gray-50 transition"
+            >
+              <span className="uppercase tracking-widest text-sm">Shop</span>
+              <span className="text-gray-400 group-hover:text-gray-500">→</span>
+            </Link>
+
+            <Link
+              to="/contact"
+              onClick={toggleNavDrawer}
+              className="group flex items-center justify-between rounded-xl px-4 py-3 text-ink hover:bg-gray-50 transition"
+            >
+              <span className="uppercase tracking-widest text-sm">Contact</span>
+              <span className="text-gray-400 group-hover:text-gray-500">→</span>
+            </Link>
           </nav>
         </div>
       </div>
