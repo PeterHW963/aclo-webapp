@@ -1,5 +1,3 @@
-import { RiDeleteBinLine } from "react-icons/ri";
-
 import { useAppDispatch } from "../../../app/hooks";
 
 import { removeFromCart, updateCartItemQuantity } from "../slices/cartSlice";
