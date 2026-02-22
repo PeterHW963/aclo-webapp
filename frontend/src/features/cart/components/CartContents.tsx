@@ -41,13 +41,6 @@ const CartContents = ({ cart, userId, guestId }: CartContentsProps) => {
     }
   };
 
-  const handleRemoveFromCart = (
-    productVariantId: string,
-    options?: Record<string, any>,
-  ) => {
-    dispatch(removeFromCart({ productVariantId, options, guestId, userId }));
-  };
-
   return (
     <div>
       {cart.products.map((product, index) => (
