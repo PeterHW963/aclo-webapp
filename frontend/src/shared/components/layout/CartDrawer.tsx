@@ -69,14 +69,14 @@ const Cartdrawer = ({ drawerOpen, toggleCartDrawer }: CartDrawerProps) => {
       >
         <div className="px-5 pt-5 pb-4 border-b">
           <div className="flex items-center justify-between gap-3">
-            <h2 className="text-lg font-semibold text-acloblue tracking-tight">
+            <h2 className="text-2xl font-semibold text-acloblue tracking-tight">
               Your Cart
             </h2>
 
             <button
               type="button"
               onClick={toggleCartDrawer}
-              className="inline-flex h-10 w-10 items-center justify-center rounded-full hover:bg-gray-100 active:scale-[0.98]"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-full hover:bg-gray-100 hover:cursor-pointer active:scale-[0.98]"
               aria-label="Close cart drawer"
             >
               <IoMdClose className="h-6 w-6 text-gray-600" />
