@@ -111,7 +111,7 @@ const NewsletterPopup = () => {
                         bg-acloblue text-white
                         border border-acloblue
                         px-3 py-3 rounded-r-md
-                        hover:bg-mutedbrown hover:text-acloblue
+                        hover:opacity-70 hover:cursor-pointer
                         disabled:opacity-50 disabled:cursor-not-allowed
                       "
                     >
@@ -128,7 +128,7 @@ const NewsletterPopup = () => {
       <div className="hidden sm:block">
         {!open ? null : (
           <div className="fixed bottom-4 right-4 z-50 w-[92vw] max-w-[360px] sm:max-w-[400px]">
-            <div className="bg-mutedbrown shadow-lg">
+            <div className="bg-mutedbrown shadow-lg rounded-lg">
               <div className="flex items-start justify-between gap-3 p-4">
                 <div className="min-w-0">
                   <p className="text-md md:text-xl font-semibold text-acloblue">
@@ -144,7 +144,7 @@ const NewsletterPopup = () => {
                 <button
                   type="button"
                   onClick={close}
-                  className="inline-flex h-9 w-9 items-center justify-center rounded-full hover:bg-acloblue hover:opacity-70"
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-full hover:cursor-pointer hover:opacity-70"
                   aria-label="Close newsletter popup"
                 >
                   <XMarkIcon className="h-5 w-5 text-gray-600" />
@@ -171,7 +171,7 @@ const NewsletterPopup = () => {
                       bg-acloblue text-white
                       border border-acloblue
                       px-3 py-3 rounded-r-md
-                      hover:bg-mutedbrown hover:text-acloblue
+                      hover:opacity-70 hover:cursor-pointer
                       disabled:opacity-50 disabled:cursor-not-allowed
                     "
                   >

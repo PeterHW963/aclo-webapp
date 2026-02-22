@@ -126,8 +126,7 @@ const Footer = () => {
                 bg-acloblue text-white
                 border border-acloblue
                 px-3 py-3 rounded-r-md
-
-                hover:bg-mutedbrown hover:text-acloblue
+                hover:opacity-70 hover:cursor-pointer
                 disabled:opacity-50 disabled:cursor-not-allowed
               "
             >
