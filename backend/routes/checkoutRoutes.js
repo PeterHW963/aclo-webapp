@@ -320,6 +320,29 @@ router.post("/:id/submit-proof", protect, async (req, res) => {
 //     }
 // });
 
+// @route GET /api/checkout
+// @desc Fetch current user's active (not finalized) checkout
+// @access Private
+router.get("/", protect, async (req, res) => {
+    try {
+        const checkout = await Checkout.findOne({
+            user: req.user._id,
+            isFinalized: false,
+        });
+
+        if (!checkout) {
+            return res
+                .status(404)
+                .json({ message: "No active checkout found" });
+        }
+
+        return res.status(200).json(checkout);
+    } catch (err) {
+        console.error("GET /api/checkout error:", err);
+        return res.status(500).json({ message: "Server Error" });
+    }
+});
+
 // @router GET /api/checkout/:id
 // @desc Fetch checkout info by id
 // @access Private

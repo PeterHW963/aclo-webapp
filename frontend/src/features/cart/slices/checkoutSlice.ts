@@ -48,6 +48,26 @@ export const fetchCheckoutById = createAsyncThunk<
   }
 });
 
+// Async thunk to fetch the current user's active checkout
+export const fetchActiveUserCheckout = createAsyncThunk<
+  Checkout,
+  void,
+  { rejectValue: AppError }
+>("checkout/fetchActiveUserCheckout", async (_, { rejectWithValue }) => {
+  try {
+    const res = await axios.get<Checkout>(`${API_URL}/api/checkout`, {
+      headers: getAuthHeader(),
+    });
+    return res.data;
+  } catch (err) {
+    const error = err as AxiosError<AppError>;
+    if (error.response && error.response.data) {
+      return rejectWithValue(error.response.data);
+    }
+    return rejectWithValue({ message: "Failed to fetch active checkout" });
+  }
+});
+
 // Async thunk to create a checkout session
 export const createCheckout = createAsyncThunk<
   Checkout,
@@ -92,6 +112,19 @@ const checkoutSlice = createSlice({
       .addCase(fetchCheckoutById.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload?.message || "Failed to fetch checkout";
+      })
+      .addCase(fetchActiveUserCheckout.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchActiveUserCheckout.fulfilled, (state, action) => {
+        state.loading = false;
+        state.checkout = action.payload;
+      })
+      .addCase(fetchActiveUserCheckout.rejected, (state, action) => {
+        state.loading = false;
+        state.error =
+          action.payload?.message || "Failed to fetch active user checkout";
       })
       .addCase(createCheckout.pending, (state) => {
         state.loading = true;
