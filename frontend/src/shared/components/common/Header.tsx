@@ -6,9 +6,6 @@ const Header = () => {
     <header>
       {/* Topbar */}
       <Topbar />
-      {/* navbar */}
-      {/* <Navbar /> */}
-      {/* cart drawer */}
     </header>
   );
 };

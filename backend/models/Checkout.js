@@ -164,5 +164,10 @@ const checkoutSchema = new mongoose.Schema(
 checkoutSchema.index({ expiresAt: 1, isFinalized: 1 });
 checkoutSchema.index({ reminder3hSentAt: 1, createdAt: 1 });
 checkoutSchema.index({ reminder1hSentAt: 1, expiresAt: 1 });
+// unique partial index on user field - only documents where isFinalized is false gets indexed
+checkoutSchema.index(
+    { user: 1 },
+    { unique: true, partialFilterExpression: { isFinalized: false } },
+);
 
 module.exports = mongoose.model("Checkout", checkoutSchema);

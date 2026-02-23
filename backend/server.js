@@ -61,20 +61,6 @@ app.use("/api/calculate-shipping", biteshipRoutes); // prepends /api/calculate-s
 // Maps API route
 app.use("/api/maps", mapsRoutes); // prepends /api/maps for shipping delivery address routes
 
-// TO REMOVE
-app.get("/api/test-email", async (req, res) => {
-    try {
-        const result = await sendEmail(
-            "peterhadiwijaya963@gmail.com", // Replace with your actual target email
-            "Test Button Clicked",
-            "The button on the login page works!",
-        );
-        res.json(result);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
-
 // Admin API routes
 app.use("/api/admin/users", adminRoutes);
 app.use("/api/admin/products", productAdminRoutes);

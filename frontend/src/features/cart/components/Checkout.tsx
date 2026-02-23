@@ -14,7 +14,11 @@ import {
   setShippingDetails,
   clearShipping,
 } from "../slices/shippingSlice";
-import { fetchCartById } from "../slices/cartSlice";
+import {
+  fetchCartById,
+  removeFromCart,
+  updateCartItemQuantity,
+} from "../slices/cartSlice";
 
 import type { Checkout, ShippingDetails } from "../../../shared/types/checkout";
 import { cloudinaryImageUrl } from "../../../shared/constants/cloudinary";
@@ -22,6 +26,7 @@ import { cloudinaryImageUrl } from "../../../shared/constants/cloudinary";
 import LoadingOverlay from "../../../shared/components/common/LoadingOverlay";
 import Navbar from "../../../shared/components/common/Navbar";
 import type { CartItem } from "../../../shared/types/cart";
+import { getDisplayServiceName } from "../../../shared/utils/shippingService";
 
 const Checkout = () => {
   const navigate = useNavigate();
@@ -288,6 +293,37 @@ const Checkout = () => {
     return 0;
   };
 
+  const handleChangeQty = (
+    productVariantId: string,
+    delta: number,
+    quantity: number,
+    options?: Record<string, any>,
+  ) => {
+    if (!user && !cart?.guestId) {
+      toast.error("Missing user id for cart update");
+      return;
+    }
+
+    const newQuantity = quantity + delta;
+    const userId = user?._id;
+
+    if (newQuantity === 0) {
+      dispatch(removeFromCart({ productVariantId, options, userId }));
+      return;
+    }
+
+    if (newQuantity >= 1) {
+      dispatch(
+        updateCartItemQuantity({
+          productVariantId,
+          quantity: newQuantity,
+          options,
+          userId,
+        }),
+      );
+    }
+  };
+
   if (loading) return <p>Loading cart...</p>;
   if (error) return <p>Error: {error}</p>;
   if (!cart || !cart.products || cart.products.length === 0) {
@@ -410,10 +446,46 @@ const Checkout = () => {
                         )}
                     </div>
                   </div>
+                  <div className="flex h-24 flex-col items-end">
+                    <p className="text-xl text-acloblue font-semibold">
+                      IDR {Number(product.price).toLocaleString("id-ID")}
+                    </p>
+                    <div className="mt-3 flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          handleChangeQty(
+                            product.productVariantId,
+                            -1,
+                            product.quantity,
+                            product.options,
+                          )
+                        }
+                        className="px-2.5 py-1 bg-gray-200 rounded text-lg hover:bg-gray-300"
+                      >
+                        -
+                      </button>
 
-                  <p className="text-xl text-acloblue font-semibold">
-                    IDR {Number(product.price).toLocaleString("id-ID")}
-                  </p>
+                      <span className="text-base font-medium w-8 text-center">
+                        {product.quantity}
+                      </span>
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          handleChangeQty(
+                            product.productVariantId,
+                            1,
+                            product.quantity,
+                            product.options,
+                          )
+                        }
+                        className="px-2.5 py-1 bg-gray-200 rounded text-lg hover:bg-gray-300"
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>
@@ -443,6 +515,9 @@ const Checkout = () => {
                     <p className="text-lg font-medium text-gray-900">
                       IDR{" "}
                       {Number(selectedShipping.price).toLocaleString("id-ID")}
+                    </p>
+                    <p className="text-sm text-gray-400">
+                      Shipping option: {getDisplayServiceName(selectedShipping)}
                     </p>
                     <button
                       type="button"

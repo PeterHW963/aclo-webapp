@@ -283,6 +283,7 @@ const ShippingDetailsModal = ({
       longitude: p.lng,
     }));
   };
+
   useEffect(() => {
     if (formStep !== 2) return; // <-- only run when step 2 is visible
     if (!mapDivRef.current) return;
