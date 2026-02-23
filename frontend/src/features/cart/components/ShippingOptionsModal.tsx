@@ -1,6 +1,6 @@
 import type { ShippingOption } from "../../../shared/types/checkout";
 import { IoMdClose } from "react-icons/io";
-
+import { getDisplayServiceName } from "../../../shared/utils/shippingService";
 
 interface ShippingOptionsModalProps {
   isOpen: boolean;
@@ -10,17 +10,6 @@ interface ShippingOptionsModalProps {
   onSelectShipping: (option: ShippingOption) => void;
   gojekDisabled: boolean;
 }
-
-// helper function for changing courier option display
-const getDisplayServiceName = (option: ShippingOption) => {
-  // prioritize service code (more stable than names)
-  if (option.courierCode.toLowerCase() === "jne") {
-    if (option.courierServiceCode === "jtr") return "Cargo";
-    if (option.courierServiceCode === "reg") return "Reguler";
-  }
-  // fallback: show the courier & service name
-  return `${option.courierName} - ${option.courierServiceName}`;
-};
 
 const ShippingOptionsModal = ({
   isOpen,

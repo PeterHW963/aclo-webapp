@@ -11,6 +11,7 @@ import Cartdrawer from "../layout/CartDrawer";
 import { useAppDispatch, useAppSelector } from "../../../app/hooks";
 import { assets, cloudinaryImageUrl } from "../../constants/cloudinary";
 import { fetchActiveUserCheckout } from "../../../features/cart/slices/checkoutSlice";
+import { clamp, formatCountdown } from "../../utils/timerCountdown";
 
 const Navbar = () => {
   const [drawerOpen, setDrawerOpen] = useState<boolean>(false);
@@ -31,21 +32,6 @@ const Navbar = () => {
       dispatch(fetchActiveUserCheckout());
     }
   }, [user?._id, checkout?._id, checkout?.isFinalized, dispatch]);
-
-  // payment countdown timer helper
-  const clamp = (n: number) => Math.max(0, n);
-
-  const formatCountdown = (ms: number) => {
-    const totalSeconds = Math.floor(ms / 1000);
-    const hours = Math.floor(totalSeconds / 3600);
-    const minutes = Math.floor((totalSeconds % 3600) / 60);
-    const seconds = totalSeconds % 60;
-
-    const pad = (x: number) => String(x).padStart(2, "0");
-
-    if (hours > 0) return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
-    return `${pad(minutes)}:${pad(seconds)}`;
-  };
 
   useEffect(() => {
     if (!checkout?.expiresAt) {

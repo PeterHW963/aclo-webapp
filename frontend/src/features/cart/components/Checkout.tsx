@@ -20,16 +20,13 @@ import {
   updateCartItemQuantity,
 } from "../slices/cartSlice";
 
-import type {
-  Checkout,
-  ShippingDetails,
-  ShippingOption,
-} from "../../../shared/types/checkout";
+import type { Checkout, ShippingDetails } from "../../../shared/types/checkout";
 import { cloudinaryImageUrl } from "../../../shared/constants/cloudinary";
 
 import LoadingOverlay from "../../../shared/components/common/LoadingOverlay";
 import Navbar from "../../../shared/components/common/Navbar";
 import type { CartItem } from "../../../shared/types/cart";
+import { getDisplayServiceName } from "../../../shared/utils/shippingService";
 
 const Checkout = () => {
   const navigate = useNavigate();
@@ -241,17 +238,6 @@ const Checkout = () => {
       console.error("Error in handleShippingDetails:", error);
       throw error;
     }
-  };
-
-  // helper function for changing courier option display
-  const getDisplayServiceName = (option: ShippingOption) => {
-    // prioritize service code (more stable than names)
-    if (option.courierCode.toLowerCase() === "jne") {
-      if (option.courierServiceCode === "jtr") return "Cargo";
-      if (option.courierServiceCode === "reg") return "Reguler";
-    }
-    // fallback: show the courier & service name
-    return `${option.courierName} - ${option.courierServiceName}`;
   };
 
   const handleCreateCheckout = async () => {
