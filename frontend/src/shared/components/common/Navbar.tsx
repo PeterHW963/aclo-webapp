@@ -4,18 +4,69 @@ import {
   HiBars3BottomRight,
 } from "react-icons/hi2";
 import { Link } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { IoMdClose } from "react-icons/io";
 
 import Cartdrawer from "../layout/CartDrawer";
-import { useAppSelector } from "../../../app/hooks";
+import { useAppDispatch, useAppSelector } from "../../../app/hooks";
 import { assets, cloudinaryImageUrl } from "../../constants/cloudinary";
+import { fetchActiveUserCheckout } from "../../../features/cart/slices/checkoutSlice";
 
 const Navbar = () => {
   const [drawerOpen, setDrawerOpen] = useState<boolean>(false);
   const [navDrawerOpen, setNavDrawerOpen] = useState<boolean>(false);
   const { cart } = useAppSelector((state) => state.cart);
   const { user } = useAppSelector((state) => state.auth);
+  const { checkout } = useAppSelector((state) => state.checkout);
+
+  const [timeLeftMs, setTimeLeftMs] = useState<number | null>(null);
+  const [expired, setExpired] = useState<boolean>(false);
+
+  const dispatch = useAppDispatch();
+
+  useEffect(() => {
+    if (!user?._id) return;
+
+    if (!checkout?._id || checkout.isFinalized) {
+      dispatch(fetchActiveUserCheckout());
+    }
+  }, [user?._id, checkout?._id, checkout?.isFinalized, dispatch]);
+
+  // payment countdown timer helper
+  const clamp = (n: number) => Math.max(0, n);
+
+  const formatCountdown = (ms: number) => {
+    const totalSeconds = Math.floor(ms / 1000);
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+
+    const pad = (x: number) => String(x).padStart(2, "0");
+
+    if (hours > 0) return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+    return `${pad(minutes)}:${pad(seconds)}`;
+  };
+
+  useEffect(() => {
+    if (!checkout?.expiresAt) {
+      setTimeLeftMs(null);
+      setExpired(false);
+      return;
+    }
+
+    // if backend sends isExpired, you can early-exit too
+    const expiresAtMs = new Date(checkout.expiresAt).getTime();
+
+    const tick = () => {
+      const remaining = clamp(expiresAtMs - Date.now());
+      setTimeLeftMs(remaining);
+      setExpired(remaining <= 0);
+    };
+
+    tick();
+    const interval = setInterval(tick, 1000);
+    return () => clearInterval(interval);
+  }, [checkout?.expiresAt]);
 
   const cartItemCount =
     cart?.products?.reduce((total, product) => total + product.quantity, 0) ||
@@ -92,14 +143,28 @@ const Navbar = () => {
 
           <button
             onClick={toggleCartDrawer}
-            className="relative hover:text-gray-600 hover:cursor-pointer"
+            className="relative inline-flex items-center gap-2 hover:text-gray-600 hover:cursor-pointer"
           >
-            <HiOutlineShoppingBag className="h-6 w-6" />
-            {cartItemCount > 0 && (
-              <span className="absolute -top-1 bg-red-600 text-white text-xs rounded-full px-1 py-0.5">
-                {cartItemCount}
-              </span>
-            )}
+            {/* Bag + badge (badge stays attached to bag) */}
+            <span className="relative inline-flex">
+              <HiOutlineShoppingBag className="h-6 w-6" />
+
+              {cartItemCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs rounded-full px-1 py-0.5">
+                  {cartItemCount}
+                </span>
+              )}
+            </span>
+
+            {/* Countdown to the right */}
+            {checkout?._id &&
+              !checkout.isFinalized &&
+              timeLeftMs !== null &&
+              !expired && (
+                <span className="text-sm font-semibold text-acloblue tabular-nums">
+                  {formatCountdown(timeLeftMs)}
+                </span>
+              )}
           </button>
 
           <button onClick={toggleNavDrawer} className="md:hidden">
