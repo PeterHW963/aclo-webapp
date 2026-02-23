@@ -131,7 +131,7 @@ const Navbar = () => {
             onClick={toggleCartDrawer}
             className="relative inline-flex items-center gap-2 hover:text-gray-600 hover:cursor-pointer"
           >
-            {/* Bag + badge (badge stays attached to bag) */}
+            {/* bag + badge (badge stays attached to bag) */}
             <span className="relative inline-flex">
               <HiOutlineShoppingBag className="h-6 w-6" />
 
@@ -142,12 +142,13 @@ const Navbar = () => {
               )}
             </span>
 
-            {/* Countdown to the right */}
+            {/* countdown to the right */}
             {checkout?._id &&
+              cartItemCount > 0 &&
               !checkout.isFinalized &&
               timeLeftMs !== null &&
               !expired && (
-                <span className="text-sm font-semibold text-acloblue tabular-nums">
+                <span className="text-sm font-semibold text-gray-800 tabular-nums">
                   {formatCountdown(timeLeftMs)}
                 </span>
               )}
