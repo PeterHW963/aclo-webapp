@@ -31,15 +31,15 @@ const checkouts = [
         noteToSeller: "",
 
         shippingCost: 22500,
-        shippingMethod: "Same Day",
-        shippingCourier: "anteraja",
-        shippingDuration: "8 - 12 hours",
+        shippingMethod: "Reguler",
+        shippingCourier: "jne",
+        shippingDuration: "1 - 2 days",
 
         subtotal: 599000,
         totalPrice: 621500,
-        isPaid: false,
+        isPaid: true,
 
-        isFinalized: false,
+        isFinalized: true,
         finalizedAt: null,
     },
 ];

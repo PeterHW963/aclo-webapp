@@ -45,18 +45,25 @@ router.post("/", protect, async (req, res) => {
 
         // check for existing checkout with same cart (id & contents) and same user
         const existingCheckout = await Checkout.findOne({
-            cartId: cartId,
+            // cartId: cartId,
             user: req.user._id,
-            cartSnapshotHash: cartSnapshotHash,
+            // cartSnapshotHash: cartSnapshotHash,
             isFinalized: false,
             expiresAt: { $gt: new Date() },
         });
 
-        if (existingCheckout) {
+        if (
+            existingCheckout &&
+            existingCheckout.cartSnapshotHash === cartSnapshotHash
+        ) {
             return res.status(200).json(existingCheckout);
         }
 
-        if (!shippingDetails?.postalCode) {
+        if (
+            !shippingDetails?.postalCode ||
+            !shippingDetails?.latitude ||
+            !shippingDetails?.longitude
+        ) {
             return res
                 .status(400)
                 .json({ message: "Shipping details missing" });
@@ -104,32 +111,30 @@ router.post("/", protect, async (req, res) => {
             });
         }
 
-        const createdCheckout = await Checkout.create({
-            user: req.user._id,
+        const payload = {
             cartId,
             cartSnapshotHash,
             checkoutItems: checkoutItemsWithWeight,
-            shippingDetails: {
-                ...shippingDetails,
-                email: req.user.email, // add email
-            },
+            shippingDetails: { ...shippingDetails, email: req.user.email },
             paymentMethod,
             subtotal,
             discount,
             totalPrice,
             noteToSeller: noteToSeller || "",
-
             shippingCost: shippingCost || 0,
             shippingMethod: shippingMethod || "",
             shippingCourier: shippingCourier || "",
             shippingDuration: shippingDuration || "",
-
-            isFinalized: false,
             expiresAt: new Date(Date.now() + CHECKOUT_EXPIRATION_TIME),
-            isExpired: false,
-        });
+        };
 
-        res.status(201).json(createdCheckout);
+        const checkout = await Checkout.findOneAndUpdate(
+            { user: req.user._id, isFinalized: false }, // the “active slot”
+            { $set: payload, $unset: { isExpired: false } },
+            { new: true, upsert: true },
+        );
+
+        res.status(201).json(checkout);
     } catch (err) {
         console.error("createCheckout error:", err);
         res.status(500).json({ message: "Server Error" });
