@@ -64,6 +64,7 @@ const userSchema = new mongoose.Schema(
             type: String,
             required: true,
             minLength: 8,
+            select: false,
         },
         role: {
             type: String,
@@ -121,5 +122,12 @@ userSchema.methods.getVerificationToken = function () {
     this.verificationExpire = Date.now() + 24 * 60 * 60 * 1000; // 24 hours expiry time
     return verificationToken;
 };
+
+userSchema.set("toJSON", {
+    transform: function (doc, ret) {
+        delete ret.password;
+        return ret;
+    },
+});
 
 module.exports = mongoose.model("User", userSchema);

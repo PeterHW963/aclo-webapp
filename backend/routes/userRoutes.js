@@ -178,7 +178,7 @@ router.post("/login", async (req, res) => {
 
     try {
         // find user by email
-        let user = await User.findOne({ email });
+        let user = await User.findOne({ email }).select("+password");
 
         if (!user)
             return res.status(400).json({ message: "User does not exist" });
@@ -264,13 +264,7 @@ router.post("/profile/addresses", protect, async (req, res) => {
 
         await user.save();
 
-        res.status(201).json({
-            _id: user._id,
-            name: user.name,
-            email: user.email,
-            role: user.role,
-            shippingAddresses: user.shippingAddresses,
-        });
+        res.status(201).json(user);
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: "Server Error" });
