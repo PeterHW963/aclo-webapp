@@ -1,5 +1,3 @@
-import { RiDeleteBinLine } from "react-icons/ri";
-
 import { useAppDispatch } from "../../../app/hooks";
 
 import { removeFromCart, updateCartItemQuantity } from "../slices/cartSlice";
@@ -24,6 +22,12 @@ const CartContents = ({ cart, userId, guestId }: CartContentsProps) => {
     options?: Record<string, any>,
   ) => {
     const newQuantity = quantity + delta;
+    if (newQuantity === 0) {
+      // if quantity becomes 0, remove the item from cart
+      dispatch(removeFromCart({ productVariantId, options, guestId, userId }));
+      return;
+    }
+
     if (newQuantity >= 1) {
       dispatch(
         updateCartItemQuantity({
@@ -37,13 +41,6 @@ const CartContents = ({ cart, userId, guestId }: CartContentsProps) => {
     }
   };
 
-  const handleRemoveFromCart = (
-    productVariantId: string,
-    options?: Record<string, any>,
-  ) => {
-    dispatch(removeFromCart({ productVariantId, options, guestId, userId }));
-  };
-
   return (
     <div>
       {cart.products.map((product, index) => (
@@ -51,11 +48,11 @@ const CartContents = ({ cart, userId, guestId }: CartContentsProps) => {
           key={index}
           className="flex items-start justify-between py-4 border-b"
         >
-          <div className="flex items-start">
+          <div className="flex items-center">
             <img
               src={cloudinaryImageUrl(product.image)}
               alt={product.name}
-              className="w-20 h-24 object-cover mr-4 rounded"
+              className="w-20 h-30 object-cover mr-4 rounded"
             />
             <div>
               <h3>{product.name}</h3>
@@ -72,6 +69,8 @@ const CartContents = ({ cart, userId, guestId }: CartContentsProps) => {
                 </p>
               )}
 
+              <p>IDR {Number(product.price).toLocaleString("id-ID")}</p>
+
               <div className="flex items-center mt-2 gap-1">
                 <button
                   onClick={() =>
@@ -82,13 +81,11 @@ const CartContents = ({ cart, userId, guestId }: CartContentsProps) => {
                       product.options,
                     )
                   }
-                  className="border rounded px-2 py-0.5 text-xl font-medium"
+                  className="px-2.5 py-1 bg-gray-200 rounded text-lg hover:bg-gray-300"
                 >
                   -
                 </button>
-                <span className="border rounded px-4 py-1">
-                  {product.quantity}
-                </span>
+                <span className="text-lg p-2">{product.quantity}</span>
                 <button
                   onClick={() =>
                     handleAddToCart(
@@ -98,22 +95,12 @@ const CartContents = ({ cart, userId, guestId }: CartContentsProps) => {
                       product.options,
                     )
                   }
-                  className="border rounded px-1.75 py-0.5 text-xl font-medium"
+                  className="px-2 py-1 bg-gray-200 rounded text-lg hover:bg-gray-300"
                 >
                   +
                 </button>
               </div>
             </div>
-          </div>
-          <div>
-            <p>IDR {Number(product.price).toLocaleString("id-ID")}</p>
-            <button
-              onClick={() =>
-                handleRemoveFromCart(product.productVariantId, product.options)
-              }
-            >
-              <RiDeleteBinLine className="h-6 w-6 mt-2 text-red-700 hover:text-red-900" />
-            </button>
           </div>
         </div>
       ))}

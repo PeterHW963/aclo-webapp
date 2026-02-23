@@ -28,16 +28,19 @@ import SendAnnouncementModal from "../components/SendAnnouncementModal";
 
 import LoadingOverlay from "../../../shared/components/common/LoadingOverlay";
 
+import useMediaQuery from "@mui/material/useMediaQuery";
+
 interface NewUserFormData {
   name: string;
   email: string;
   password: string;
-  role: User["role"]; // reuses role type from User
+  role: User["role"];
 }
 
 const UserManagement = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
+  const isMobile = useMediaQuery("(max-width: 640px)");
 
   const { user } = useAppSelector((state) => state.auth);
   const { users, loading, error } = useAppSelector((state) => state.admin);
@@ -88,10 +91,10 @@ const UserManagement = () => {
       [e.target.name]: e.target.value,
     });
   };
+
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     dispatch(addUser(formData));
-    // reset form after submission
     setFormData({
       name: "",
       email: "",
@@ -99,16 +102,18 @@ const UserManagement = () => {
       role: "customer",
     });
   };
+
   const handleRoleChange = (userId: string, newRole: User["role"]) => {
     dispatch(updateUser({ id: userId, role: newRole }));
   };
+
   const openDeleteModal = (u: User) => {
     setUserToDelete(u);
     setIsDeleteModalOpen(true);
   };
 
   const closeDeleteModal = () => {
-    if (loading) return; // prevent closing while deleting
+    if (loading) return;
     setIsDeleteModalOpen(false);
     setUserToDelete(null);
   };
@@ -138,13 +143,12 @@ const UserManagement = () => {
 
   const handleSendAnnouncement = async (subject: string, content: string) => {
     try {
-      // Convert markdown to HTML
       const html = await marked(content);
 
       const result = await dispatch(
         sendAnnouncement({
           subject,
-          text: content, // plain text version
+          text: content,
           html,
         }),
       ).unwrap();
@@ -161,6 +165,76 @@ const UserManagement = () => {
 
   const showLoading = userOrdersLoading || loading;
 
+  const MobileSubscriberCard = ({
+    subscriber,
+  }: {
+    subscriber: (typeof subscribers)[number];
+  }) => {
+    return (
+      <div className="rounded-xl border bg-white p-4 shadow-sm">
+        <p className="text-xs text-gray-500">Email</p>
+        <p className="font-semibold text-gray-900 break-all">
+          {subscriber.email}
+        </p>
+
+        <p className="mt-3 text-xs text-gray-500">Subscribed At</p>
+        <p className="text-sm text-gray-700">
+          {new Date(subscriber.subscribedAt).toLocaleString()}
+        </p>
+      </div>
+    );
+  };
+
+  const MobileUserCard = ({ u }: { u: User }) => {
+    return (
+      <div className="rounded-xl border bg-white p-4 shadow-sm">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-xs text-gray-500">Name</p>
+            <p className="font-semibold text-gray-900 truncate">{u.name}</p>
+
+            <p className="mt-2 text-xs text-gray-500">Email</p>
+            <p className="text-sm text-gray-700 break-all">{u.email}</p>
+          </div>
+
+          <div className="shrink-0">
+            <p className="text-xs text-gray-500 mb-1 text-right">Role</p>
+            <select
+              value={u.role}
+              onChange={(e) =>
+                handleRoleChange(u._id, e.target.value as User["role"])
+              }
+              className="p-2 border rounded text-sm"
+            >
+              <option value="customer">Customer</option>
+              <option value="admin">Admin</option>
+            </select>
+          </div>
+        </div>
+
+        <div className="mt-4 flex flex-wrap gap-2">
+          <button
+            onClick={async () => {
+              setUserToView(u);
+              dispatch(fetchOrdersByUserId({ userId: u._id }));
+              setIsDetailsOpen(true);
+            }}
+            className="px-4 py-2 rounded-md text-sm font-medium bg-acloblue text-white hover:bg-acloblue/80 hover:cursor-pointer"
+          >
+            View
+          </button>
+
+          <button
+            onClick={() => openDeleteModal(u)}
+            className="px-4 py-2 rounded-md text-sm font-medium bg-red-500 text-white hover:bg-red-600 hover:cursor-pointer"
+          >
+            Delete
+          </button>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="max-w-7xl mx-auto p-6">
       <h2 className="text-2xl font-bold mb-4">User Management</h2>
@@ -172,7 +246,7 @@ const UserManagement = () => {
           <h3 className="text-xl font-semibold text-gray-800">Subscribers</h3>
           <button
             onClick={() => setIsAnnouncementModalOpen(true)}
-            className="bg-acloblue text-white px-6 py-2 rounded hover:bg-acloblue/90 transition hover:cursor-pointer"
+            className="bg-acloblue text-white px-6 py-2 rounded hover:bg-acloblue/90 transition hover:cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             disabled={subscribers.length === 0}
           >
             Send Announcement
@@ -236,45 +310,63 @@ const UserManagement = () => {
           </div>
         </div>
 
-        <div className="overflow-x-auto shadow-md sm:rounded-lg">
-          <table className="min-w-full text-left text-gray-500">
-            <thead className="bg-gray-100 text-xs uppercase text-gray-700">
-              <tr>
-                <th className="py-3 px-4">Email</th>
-                <th className="py-3 px-4">Subscribed At</th>
-              </tr>
-            </thead>
-            <tbody>
-              {subscribers.length === 0 ? (
+        {isMobile ? (
+          <div className="space-y-3">
+            {subscribers.length === 0 ? (
+              <p className="text-center text-gray-500 py-6">
+                No subscribers yet
+              </p>
+            ) : (
+              subscribers.map((subscriber) => (
+                <MobileSubscriberCard
+                  key={subscriber._id}
+                  subscriber={subscriber}
+                />
+              ))
+            )}
+          </div>
+        ) : (
+          <div className="overflow-x-auto shadow-md sm:rounded-lg">
+            <table className="min-w-full text-left text-gray-500">
+              <thead className="bg-gray-100 text-xs uppercase text-gray-700">
                 <tr>
-                  <td colSpan={2} className="p-4 text-center text-gray-500">
-                    No subscribers yet
-                  </td>
+                  <th className="py-3 px-4">Email</th>
+                  <th className="py-3 px-4">Subscribed At</th>
                 </tr>
-              ) : (
-                subscribers.map((subscriber) => (
-                  <tr
-                    key={subscriber._id}
-                    className="border-b hover:bg-gray-50"
-                  >
-                    <td className="p-4 font-medium text-gray-900">
-                      {subscriber.email}
-                    </td>
-                    <td className="p-4">
-                      {new Date(subscriber.subscribedAt).toLocaleString()}
+              </thead>
+              <tbody>
+                {subscribers.length === 0 ? (
+                  <tr>
+                    <td colSpan={2} className="p-4 text-center text-gray-500">
+                      No subscribers yet
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+                ) : (
+                  subscribers.map((subscriber) => (
+                    <tr
+                      key={subscriber._id}
+                      className="border-b hover:bg-gray-50"
+                    >
+                      <td className="p-4 font-medium text-gray-900">
+                        {subscriber.email}
+                      </td>
+                      <td className="p-4">
+                        {new Date(subscriber.subscribedAt).toLocaleString()}
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
       {/* Users Section */}
       <div>
         <h3 className="text-xl font-semibold text-gray-800 mb-4">Users</h3>
         {error && <p className="text-red-500 mb-4">Error: {error}</p>}
+
         {/* collapsible Add New User section */}
         <div className="mb-6 rounded-lg overflow-hidden">
           <div
@@ -292,7 +384,7 @@ const UserManagement = () => {
               size={18}
             />
           </div>
-          {/* Add new user content */}
+
           <div
             id="add-user-panel"
             className={[
@@ -303,7 +395,6 @@ const UserManagement = () => {
           >
             <div className="p-4">
               <form onSubmit={handleSubmit} className="space-y-4">
-                {/* Row 1 */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-gray-700 mb-2">Name</label>
@@ -330,7 +421,6 @@ const UserManagement = () => {
                   </div>
                 </div>
 
-                {/* Row 2 */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-gray-700 mb-2">Password</label>
@@ -370,62 +460,73 @@ const UserManagement = () => {
             </div>
           </div>
         </div>
+
         {/* User list management */}
-        <div className="overflow-x-auto shadow-md sm:rounded-lg">
-          <table className="min-w-full text-left text-gray-500">
-            <thead className="bg-gray-100 text-xs uppercase text-gray-700">
-              <tr>
-                <th className="py-3 px-4">Name</th>
-                <th className="py-3 px-4">Email</th>
-                <th className="py-3 px-4">Role</th>
-                <th className="py-3 px-4">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {users.map((user) => (
-                <tr key={user._id} className="border-b hover:bg-gray-50">
-                  <td className="p-4 font-medium text-gray-900 whitespace-nowrap">
-                    {user.name}
-                  </td>
-                  <td className="p-4">{user.email}</td>
-                  <td className="p-4">
-                    <select
-                      value={user.role}
-                      onChange={(e) =>
-                        handleRoleChange(
-                          user._id,
-                          e.target.value as User["role"],
-                        )
-                      }
-                      className="p-2 border rounded"
-                    >
-                      <option value="customer">Customer</option>
-                      <option value="admin">Admin</option>
-                    </select>
-                  </td>
-                  <td className="p-4 flex gap-2">
-                    <button
-                      onClick={async () => {
-                        setUserToView(user);
-                        dispatch(fetchOrdersByUserId({ userId: user._id }));
-                        setIsDetailsOpen(true);
-                      }}
-                      className="bg-acloblue text-white px-4 py-2 rounded hover:bg-acloblue/80 hover:cursor-pointer"
-                    >
-                      View
-                    </button>
-                    <button
-                      onClick={() => openDeleteModal(user)}
-                      className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 hover:cursor-pointer"
-                    >
-                      Delete
-                    </button>
-                  </td>
+        {isMobile ? (
+          <div className="space-y-3">
+            {users.length === 0 ? (
+              <p className="text-center text-gray-500 py-6">No users found</p>
+            ) : (
+              users.map((u) => <MobileUserCard key={u._id} u={u} />)
+            )}
+          </div>
+        ) : (
+          <div className="overflow-x-auto shadow-md sm:rounded-lg">
+            <table className="min-w-full text-left text-gray-500">
+              <thead className="bg-gray-100 text-xs uppercase text-gray-700">
+                <tr>
+                  <th className="py-3 px-4">Name</th>
+                  <th className="py-3 px-4">Email</th>
+                  <th className="py-3 px-4">Role</th>
+                  <th className="py-3 px-4">Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {users.map((u) => (
+                  <tr key={u._id} className="border-b hover:bg-gray-50">
+                    <td className="p-4 font-medium text-gray-900 whitespace-nowrap">
+                      {u.name}
+                    </td>
+                    <td className="p-4">{u.email}</td>
+                    <td className="p-4">
+                      <select
+                        value={u.role}
+                        onChange={(e) =>
+                          handleRoleChange(
+                            u._id,
+                            e.target.value as User["role"],
+                          )
+                        }
+                        className="p-2 border rounded"
+                      >
+                        <option value="customer">Customer</option>
+                        <option value="admin">Admin</option>
+                      </select>
+                    </td>
+                    <td className="p-4 flex gap-2">
+                      <button
+                        onClick={async () => {
+                          setUserToView(u);
+                          dispatch(fetchOrdersByUserId({ userId: u._id }));
+                          setIsDetailsOpen(true);
+                        }}
+                        className="bg-acloblue text-white px-4 py-2 rounded hover:bg-acloblue/80 hover:cursor-pointer"
+                      >
+                        View
+                      </button>
+                      <button
+                        onClick={() => openDeleteModal(u)}
+                        className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 hover:cursor-pointer"
+                      >
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
       {isDetailsOpen && userToView && (
@@ -440,6 +541,7 @@ const UserManagement = () => {
           error={userOrdersError}
         />
       )}
+
       {isDeleteModalOpen && userToDelete && (
         <ActionConfirmationModal
           onClose={closeDeleteModal}

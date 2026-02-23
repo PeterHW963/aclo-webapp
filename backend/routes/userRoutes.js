@@ -26,14 +26,14 @@ router.post("/register", async (req, res) => {
 
         const passwordValidation = validatePassword(password);
         if (!passwordValidation.isValid) {
-            return res.status(400).json({ 
+            return res.status(400).json({
                 message: "Password does not meet requirements",
-                errors: passwordValidation.errors 
+                errors: passwordValidation.errors,
             });
         }
-        
+
         user = new User({ name, email, password, isVerified: false });
-        
+
         // Generate verification token & URL
         const verificationToken = user.getVerificationToken();
         await user.save({ validateBeforeSave: false });
@@ -43,7 +43,12 @@ router.post("/register", async (req, res) => {
         const htmlMessage = getVerificationEmailTemplate(name, verificationUrl);
 
         try {
-            await sendEmail(user.email, "Verify Your Email Address", textMessage, htmlMessage);
+            await sendEmail(
+                user.email,
+                "Verify Your Email Address",
+                textMessage,
+                htmlMessage,
+            );
             res.status(201).json({
                 success: true,
                 message: "Registration successful",
@@ -52,7 +57,9 @@ router.post("/register", async (req, res) => {
             // delete the user if email sending fails
             await User.findByIdAndDelete(user._id);
             console.error(error);
-            return res.status(500).json({ message: "Verification email could not be sent" });
+            return res
+                .status(500)
+                .json({ message: "Verification email could not be sent" });
         }
     } catch (error) {
         console.log(error);
@@ -76,7 +83,9 @@ router.get("/verify-email/:verificationToken", async (req, res) => {
         });
 
         if (!user) {
-            return res.status(400).json({ message: "Invalid or expired verification token" });
+            return res
+                .status(400)
+                .json({ message: "Invalid or expired verification token" });
         }
 
         user.isVerified = true;
@@ -85,7 +94,13 @@ router.get("/verify-email/:verificationToken", async (req, res) => {
         await user.save();
 
         // create JWT payload - contains info about user id and role, embedded in token and decoded for authorizing user at backend
-        const payload = { user: { id: user._id, role: user.role, isVerified: user.isVerified } };
+        const payload = {
+            user: {
+                id: user._id,
+                role: user.role,
+                isVerified: user.isVerified,
+            },
+        };
 
         // sign and return token along with user data
         jwt.sign(
@@ -130,10 +145,18 @@ router.post("/resend-verification", protect, async (req, res) => {
 
         const verificationUrl = `${process.env.FRONTEND_URL}/verified?token=${verificationToken}`;
         const textMessage = `Hi ${user.name},\n\nPlease verify your email by clicking the link below:\n\n${verificationUrl}\n\nThis link will expire in 24 hours.\n\nThanks!`;
-        const htmlMessage = getVerificationEmailTemplate(user.name, verificationUrl);
+        const htmlMessage = getVerificationEmailTemplate(
+            user.name,
+            verificationUrl,
+        );
 
         try {
-            await sendEmail(user.email, "Verify your email address", textMessage, htmlMessage);
+            await sendEmail(
+                user.email,
+                "Verify your email address",
+                textMessage,
+                htmlMessage,
+            );
             res.status(200).json({
                 message: "Verification email sent",
             });
@@ -165,7 +188,13 @@ router.post("/login", async (req, res) => {
             return res.status(400).json({ message: "Wrong email or password" });
 
         // create JWT payload
-        const payload = { user: { id: user._id, role: user.role, isVerified: user.isVerified } };
+        const payload = {
+            user: {
+                id: user._id,
+                role: user.role,
+                isVerified: user.isVerified,
+            },
+        };
 
         // sign and return token along with user data
         jwt.sign(
@@ -293,13 +322,14 @@ router.patch("/profile/addresses/:addressId", protect, async (req, res) => {
 // @access Public
 router.post("/forgot-password", async (req, res) => {
     const { email } = req.body;
-    
+
     // Generic response to prevent email enumeration (always returned to user)
     const genericResponse = {
         success: true,
-        message: "If an account with that email exists, a password reset link has been sent",
+        message:
+            "If an account with that email exists, a password reset link has been sent",
     };
-    
+
     try {
         const user = await User.findOne({ email });
         if (!user) {
@@ -314,15 +344,25 @@ router.post("/forgot-password", async (req, res) => {
         const htmlMessage = getPasswordResetTemplate(resetUrl);
 
         try {
-            await sendEmail(user.email, "Reset your password", textMessage, htmlMessage);
-            console.log(`Forgot Password Reset email sent successfully to: ${user.email}`);
+            await sendEmail(
+                user.email,
+                "Reset your password",
+                textMessage,
+                htmlMessage,
+            );
+            console.log(
+                `Forgot Password Reset email sent successfully to: ${user.email}`,
+            );
         } catch (err) {
             user.resetPasswordToken = undefined;
             user.resetPasswordExpire = undefined;
             await user.save({ validateBeforeSave: false });
-            console.error(`Failed to send Forgot Password Reset email to: ${user.email}`, err.message);
+            console.error(
+                `Failed to send Forgot Password Reset email to: ${user.email}`,
+                err.message,
+            );
         }
-        
+
         // Always return the same response for security
         res.status(200).json(genericResponse);
     } catch (error) {
@@ -349,15 +389,15 @@ router.put("/reset-password/:resetToken", async (req, res) => {
                 .status(400)
                 .json({ message: "Invalid or expired Token" });
         }
-        
+
         const passwordValidation = validatePassword(req.body.password);
         if (!passwordValidation.isValid) {
-            return res.status(400).json({ 
+            return res.status(400).json({
                 message: "Password does not meet requirements",
-                errors: passwordValidation.errors 
+                errors: passwordValidation.errors,
             });
         }
-        
+
         user.password = req.body.password;
         user.resetPasswordToken = undefined;
         user.resetPasswordExpire = undefined;
