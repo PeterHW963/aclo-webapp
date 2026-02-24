@@ -46,7 +46,7 @@ const UserDetailsModal = ({
       onMouseDown={onClose}
     >
       <div
-        className="w-full max-w-7xl h-[80vh] bg-white rounded-lg shadow-lg overflow-hidden flex flex-col min-h-0"
+        className="w-[min(96vw,72rem)] max-h-[80vh] bg-white rounded-lg shadow-lg overflow-hidden flex flex-col min-h-0"
         onMouseDown={(e) => e.stopPropagation()}
         role="dialog"
       >
@@ -64,8 +64,7 @@ const UserDetailsModal = ({
           </button>
         </div>
 
-        {/* Body (NOT scrollable) */}
-        <div className="p-4 sm:p-6 flex-1 overflow-hidden flex flex-col gap-6">
+        <div className="p-4 sm:p-6 flex-1 overflow-y-auto flex flex-col gap-6">
           {/* Profile-like section (fixed) */}
           <div className="shadow-md rounded-lg p-6 shrink-0">
             <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
@@ -109,12 +108,11 @@ const UserDetailsModal = ({
           </div>
 
           {/* Orders section (takes remaining space) */}
-          <div className="flex-1 min-h-0 flex flex-col">
+          <div>
             <h2 className="text-xl sm:text-2xl font-bold mb-4 text-acloblue shrink-0">
               Orders
             </h2>
 
-            {/* ✅ Only the orders list/table scrolls */}
             <div className="flex-1 min-h-0 overflow-hidden">
               <div className="h-full overflow-y-auto pr-1">
                 {/* Mobile cards */}
