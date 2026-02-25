@@ -77,7 +77,11 @@ const ProductCard = ({ product, variants }: ProductCardProps) => {
     stockCount > 0 &&
     stockCount <= LOW_STOCK_THRESHOLD;
 
-  const stockLabel = isSoldOut ? "Sold out" : isLowStock ? "Low stock" : null;
+  const stockLabel = isSoldOut
+    ? "Sold out"
+    : isLowStock
+      ? `Low stock: ${stockCount} left`
+      : null;
 
   const isLearningTower = product.category?.trim() === "Learning Tower";
 
@@ -107,7 +111,7 @@ const ProductCard = ({ product, variants }: ProductCardProps) => {
                 <>
                   <GoAlert className="text-orange-500 text-lg" aria-hidden />
                   <span className="text-orange-500 font-semibold tracking-widest uppercase text-md">
-                    Low stock
+                    {stockLabel}
                   </span>
                 </>
               )}

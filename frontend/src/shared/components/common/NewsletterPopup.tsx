@@ -46,6 +46,7 @@ const NewsletterPopup = () => {
 
   return (
     <>
+      {/* Mobile */}
       <div className="sm:hidden">
         {!mobileOpen && (
           <button
@@ -74,10 +75,9 @@ const NewsletterPopup = () => {
                     <p className="text-md font-semibold text-acloblue">
                       ✨ Psst… want promos?
                     </p>
-                    <p className="mt-1 text-sm text-black-600-">
-                      {" "}
+                    <p className="mt-1 text-sm text-black-600">
                       Join our newsletter for exclusive offers and new releases
-                      - straight to your inbox.{" "}
+                      - straight to your inbox.
                     </p>
                   </div>
 
@@ -124,9 +124,19 @@ const NewsletterPopup = () => {
           </>
         )}
       </div>
-      \{" "}
+
+      {/* Desktop */}
       <div className="hidden sm:block">
-        {!open ? null : (
+        {!open ? (
+          <button
+            type="button"
+            onClick={() => setOpen(true)}
+            className="fixed bottom-4 right-4 z-50 rounded-lg bg-acloblue px-4 py-3 text-white shadow-lg text-sm font-semibold hover:opacity-95 active:scale-[0.98]"
+            aria-label="Open newsletter signup"
+          >
+            ✨ Get promos
+          </button>
+        ) : (
           <div className="fixed bottom-4 right-4 z-50 w-[92vw] max-w-[360px] sm:max-w-[400px]">
             <div className="bg-mutedbrown shadow-lg rounded-lg">
               <div className="flex items-start justify-between gap-3 p-4">
@@ -135,9 +145,8 @@ const NewsletterPopup = () => {
                     ✨ Psst… want promos?
                   </p>
                   <p className="mt-1 text-sm text-black-600">
-                    {" "}
                     Join our newsletter for exclusive offers and new releases -
-                    straight to your inbox.{" "}
+                    straight to your inbox.
                   </p>
                 </div>
 

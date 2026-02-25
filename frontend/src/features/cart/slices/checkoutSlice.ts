@@ -123,6 +123,7 @@ const checkoutSlice = createSlice({
       })
       .addCase(fetchActiveUserCheckout.rejected, (state, action) => {
         state.loading = false;
+        state.checkout = null;
         state.error =
           action.payload?.message || "Failed to fetch active user checkout";
       })

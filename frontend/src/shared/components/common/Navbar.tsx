@@ -8,51 +8,51 @@ import { useState, useEffect } from "react";
 import { IoMdClose } from "react-icons/io";
 
 import Cartdrawer from "../layout/CartDrawer";
-import { useAppDispatch, useAppSelector } from "../../../app/hooks";
+import { useAppSelector } from "../../../app/hooks";
 import { assets, cloudinaryImageUrl } from "../../constants/cloudinary";
-import { fetchActiveUserCheckout } from "../../../features/cart/slices/checkoutSlice";
-import { clamp, formatCountdown } from "../../utils/timerCountdown";
+// import { fetchActiveUserCheckout } from "../../../features/cart/slices/checkoutSlice";
+// import { clamp, formatCountdown } from "../../utils/timerCountdown";
 
 const Navbar = () => {
   const [drawerOpen, setDrawerOpen] = useState<boolean>(false);
   const [navDrawerOpen, setNavDrawerOpen] = useState<boolean>(false);
   const { cart } = useAppSelector((state) => state.cart);
   const { user } = useAppSelector((state) => state.auth);
-  const { checkout } = useAppSelector((state) => state.checkout);
+  // const { checkout } = useAppSelector((state) => state.checkout);
+  // on click -> navigate to /payment/checkout._id
+  // const [timeLeftMs, setTimeLeftMs] = useState<number | null>(null);
+  // const [expired, setExpired] = useState<boolean>(false);
 
-  const [timeLeftMs, setTimeLeftMs] = useState<number | null>(null);
-  const [expired, setExpired] = useState<boolean>(false);
+  // const dispatch = useAppDispatch();
 
-  const dispatch = useAppDispatch();
+  // useEffect(() => {
+  //   if (!user?._id) return;
 
-  useEffect(() => {
-    if (!user?._id) return;
+  //   if (!checkout?._id || checkout.isFinalized) {
+  //     dispatch(fetchActiveUserCheckout());
+  //   }
+  // }, [user?._id, checkout?._id, checkout?.isFinalized, dispatch]);
 
-    if (!checkout?._id || checkout.isFinalized) {
-      dispatch(fetchActiveUserCheckout());
-    }
-  }, [user?._id, checkout?._id, checkout?.isFinalized, dispatch]);
+  // useEffect(() => {
+  //   if (!checkout?.expiresAt) {
+  //     setTimeLeftMs(null);
+  //     setExpired(false);
+  //     return;
+  //   }
 
-  useEffect(() => {
-    if (!checkout?.expiresAt) {
-      setTimeLeftMs(null);
-      setExpired(false);
-      return;
-    }
+  //   // if backend sends isExpired, you can early-exit too
+  //   const expiresAtMs = new Date(checkout.expiresAt).getTime();
 
-    // if backend sends isExpired, you can early-exit too
-    const expiresAtMs = new Date(checkout.expiresAt).getTime();
+  //   const tick = () => {
+  //     const remaining = clamp(expiresAtMs - Date.now());
+  //     setTimeLeftMs(remaining);
+  //     setExpired(remaining <= 0);
+  //   };
 
-    const tick = () => {
-      const remaining = clamp(expiresAtMs - Date.now());
-      setTimeLeftMs(remaining);
-      setExpired(remaining <= 0);
-    };
-
-    tick();
-    const interval = setInterval(tick, 1000);
-    return () => clearInterval(interval);
-  }, [checkout?.expiresAt]);
+  //   tick();
+  //   const interval = setInterval(tick, 1000);
+  //   return () => clearInterval(interval);
+  // }, [checkout?.expiresAt]);
 
   const cartItemCount =
     cart?.products?.reduce((total, product) => total + product.quantity, 0) ||
@@ -143,7 +143,7 @@ const Navbar = () => {
             </span>
 
             {/* countdown to the right */}
-            {checkout?._id &&
+            {/* {checkout?._id &&
               cartItemCount > 0 &&
               !checkout.isFinalized &&
               timeLeftMs !== null &&
@@ -151,7 +151,7 @@ const Navbar = () => {
                 <span className="text-sm font-semibold text-gray-800 tabular-nums">
                   {formatCountdown(timeLeftMs)}
                 </span>
-              )}
+              )} */}
           </button>
 
           <button onClick={toggleNavDrawer} className="md:hidden">

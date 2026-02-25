@@ -33,6 +33,7 @@ import Contact from "../features/landing/pages/Contact";
 import LearnMore from "../features/landing/pages/LearnMore";
 import ScrollToTop from "../shared/utils/scrollToTop";
 import NewsletterPopup from "../shared/components/common/NewsletterPopup";
+import PaymentPendingBanner from "../shared/components/common/PaymentPendingBanner";
 
 function AppInner() {
   const location = useLocation();
@@ -92,6 +93,7 @@ function AppInner() {
       </Routes>
 
       {isHome && <NewsletterPopup key={location.key} />}
+      {<PaymentPendingBanner hideOnPaths={["/admin", "/login", "/register"]} />}
     </>
   );
 }
