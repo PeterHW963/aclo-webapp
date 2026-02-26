@@ -77,7 +77,7 @@ router.post("/", protect, async (req, res) => {
                 !productId ||
                 !productVariantId ||
                 !quantity ||
-                !options ||
+                // !options ||
                 quantity < 1
             ) {
                 return res

@@ -8,7 +8,7 @@ import { cloudinaryImageUrl } from "../../../shared/constants/cloudinary";
 
 import LoadingOverlay from "../../../shared/components/common/LoadingOverlay";
 import Navbar from "../../../shared/components/common/Navbar";
-
+import { fetchActiveUserCheckout } from "../../../features/cart/slices/checkoutSlice";
 
 const OrderConfirmation = () => {
   const { orderId } = useParams<{ orderId: string }>();
@@ -31,6 +31,7 @@ const OrderConfirmation = () => {
         // Fetch if missing OR wrong checkout currently in redux
         if (!orderDetails?.orderId || orderDetails.orderId !== orderId) {
           await dispatch(fetchOrderDetails({ orderId })).unwrap();
+          await dispatch(fetchActiveUserCheckout()).unwrap();
         }
       } catch (err) {
         console.error(err);

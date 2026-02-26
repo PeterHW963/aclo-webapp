@@ -445,7 +445,7 @@ const ProductDetails = () => {
                     )}
                     {isLowStock && (
                       <p className="text-md text-yellow-500 font-medium">
-                        Low stock
+                        Low stock: {stockCount} left
                       </p>
                     )}
                   </div>
