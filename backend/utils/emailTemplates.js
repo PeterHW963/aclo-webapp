@@ -100,19 +100,24 @@ const getPasswordResetTemplate = (resetUrl) => {
 };
 
 // Checkout reminder template
-const getCheckoutReminderTemplate = (name, expiresAt, timeRemaining, paymentUrl) => {
-    const formattedExpiry = new Date(expiresAt).toLocaleString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-        timeZone: 'Asia/Jakarta',
-        timeZoneName: 'short'
+const getCheckoutReminderTemplate = (
+    name,
+    expiresAt,
+    timeRemaining,
+    paymentUrl,
+) => {
+    const formattedExpiry = new Date(expiresAt).toLocaleString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        timeZone: "Asia/Jakarta",
+        timeZoneName: "short",
     });
-    
-    const urgencyColor = timeRemaining === '1 hour' ? '#ff6b6b' : '#ffa726';
-    
+
+    const urgencyColor = timeRemaining === "1 hour" ? "#ff6b6b" : "#ffa726";
+
     const content = `
         <h2 style="margin: 0 0 20px; font-size: 24px; font-weight: 600; color: #1a1a1a;">
             Reminder: Your Checkout Will Expire Soon
@@ -153,8 +158,164 @@ const getCheckoutReminderTemplate = (name, expiresAt, timeRemaining, paymentUrl)
     return getBaseTemplate(content);
 };
 
+// Order status change template
+const getOrderStatusTemplate = ({ name, orderId, status, trackingLink }) => {
+    const normalizedStatus = (status || "").toLowerCase();
+
+    let title = "";
+    let intro = "";
+    let body = "";
+    let accentColor = "#00b7e8";
+
+    switch (normalizedStatus) {
+        case "processing":
+            title = "Payment Accepted";
+            intro = `Hi ${name},`;
+            body = `
+                <p style="margin: 0 0 24px; font-size: 16px; color: #4a4a4a; line-height: 1.6;">
+                    Your payment proof for <strong>Order #${orderId}</strong> has been accepted.
+                    Your order is now <strong style="color: ${accentColor};">Processing</strong>.
+                </p>
+            `;
+            break;
+
+        case "rejected":
+            title = "Payment Rejected";
+            intro = `Hi ${name},`;
+            accentColor = "#ff6b6b";
+            body = `
+                <p style="margin: 0 0 24px; font-size: 16px; color: #4a4a4a; line-height: 1.6;">
+                    Your payment proof for <strong>Order #${orderId}</strong> was
+                    <strong style="color: ${accentColor};">rejected</strong>.
+                </p>
+                <p style="margin: 0 0 24px; font-size: 16px; color: #4a4a4a; line-height: 1.6;">
+                    Please contact support for further clarification.
+                </p>
+            `;
+            break;
+
+        case "shipping":
+            title = "Your Order Is on the Way";
+            intro = `Hi ${name},`;
+            accentColor = "#ffa726";
+            body = `
+                <p style="margin: 0 0 24px; font-size: 16px; color: #4a4a4a; line-height: 1.6;">
+                    Your items for <strong>Order #${orderId}</strong> have been passed to the shipping courier.
+                </p>
+                ${
+                    trackingLink
+                        ? `
+                <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                    <tr>
+                        <td style="text-align: center; padding: 0 0 24px;">
+                            <a href="${trackingLink}" style="display: inline-block; padding: 14px 32px; background-color: #00b7e8; color: #ffffff; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: 600;">
+                                Track Your Order
+                            </a>
+                        </td>
+                    </tr>
+                </table>
+
+                <p style="margin: 0 0 16px; font-size: 14px; color: #666666; line-height: 1.6;">
+                    If you're having trouble clicking the button, copy and paste this URL into your browser:
+                </p>
+                <p style="margin: 0 0 16px; text-align:center; font-size: 14px; color: #00b7e8; word-break: break-all;">
+                    ${trackingLink}
+                </p>
+                `
+                        : `
+                <p style="margin: 0 0 24px; font-size: 16px; color: #4a4a4a; line-height: 1.6;">
+                    Tracking information will be shared once available.
+                </p>
+                `
+                }
+            `;
+            break;
+
+        case "delivered":
+            title = "Order Delivered";
+            intro = `Hi ${name},`;
+            accentColor = "#4caf50";
+            body = `
+                <p style="margin: 0 0 24px; font-size: 16px; color: #4a4a4a; line-height: 1.6;">
+                    Your items for <strong>Order #${orderId}</strong> have been
+                    <strong style="color: ${accentColor};">delivered</strong>.
+                </p>
+                <p style="margin: 0 0 24px; font-size: 16px; color: #4a4a4a; line-height: 1.6;">
+                    Thank you for your purchase!
+                </p>
+            `;
+            break;
+
+        case "cancelled":
+            title = "Cancellation Approved";
+            intro = `Hi ${name},`;
+            accentColor = "#9e9e9e";
+            body = `
+                <p style="margin: 0 0 24px; font-size: 16px; color: #4a4a4a; line-height: 1.6;">
+                    Your request to cancel <strong>Order #${orderId}</strong> has been approved.
+                </p>
+            `;
+            break;
+
+        default:
+            return null;
+    }
+
+    const content = `
+        <h2 style="margin: 0 0 20px; font-size: 24px; font-weight: 600; color: #1a1a1a;">
+            ${title}
+        </h2>
+
+        <p style="margin: 0 0 20px; font-size: 16px; color: #4a4a4a; line-height: 1.6;">
+            ${intro}
+        </p>
+
+        ${body}
+    `;
+
+    return getBaseTemplate(content);
+};
+
+// Tracking link updated template
+const getTrackingLinkChangeTemplate = (name, orderId, newLink) => {
+    const content = `
+        <h2 style="margin: 0 0 20px; font-size: 24px; font-weight: 600; color: #1a1a1a;">
+            Tracking Link Updated
+        </h2>
+
+        <p style="margin: 0 0 20px; font-size: 16px; color: #4a4a4a; line-height: 1.6;">
+            Hi ${name},
+        </p>
+
+        <p style="margin: 0 0 24px; font-size: 16px; color: #4a4a4a; line-height: 1.6;">
+            There has been an update to the tracking link for <strong>Order #${orderId}</strong>.
+        </p>
+
+        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+            <tr>
+                <td style="text-align: center; padding: 0 0 24px;">
+                    <a href="${newLink}" style="display: inline-block; padding: 14px 32px; background-color: #00b7e8; color: #ffffff; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: 600;">
+                        View Updated Tracking Link
+                    </a>
+                </td>
+            </tr>
+        </table>
+
+        <p style="margin: 0 0 16px; font-size: 14px; color: #666666; line-height: 1.6;">
+            If you're having trouble clicking the button, copy and paste this URL into your browser:
+        </p>
+        <p style="margin: 0 0 16px; text-align:center; font-size: 14px; color: #00b7e8; word-break: break-all;">
+            ${newLink}
+        </p>
+    `;
+
+    return getBaseTemplate(content);
+};
+
 module.exports = {
     getVerificationEmailTemplate,
     getPasswordResetTemplate,
     getCheckoutReminderTemplate,
+    getOrderStatusTemplate,
+    getTrackingLinkChangeTemplate,
 };
