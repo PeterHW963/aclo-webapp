@@ -208,7 +208,7 @@ const getOrderStatusTemplate = ({ name, orderId, status, trackingLink }) => {
             body = `
                 <p style="margin: 0 0 24px; font-size: 16px; color: #4a4a4a; line-height: 1.6;">
                     Your payment proof for <strong>Order #${orderId}</strong> has been accepted.
-                    Your order is now <strong style="color: ${accentColor};">Processing</strong>.
+                    We are now <strong style="color: ${accentColor};">processing</strong> your order.
                 </p>
             `;
             break;
@@ -223,7 +223,7 @@ const getOrderStatusTemplate = ({ name, orderId, status, trackingLink }) => {
                     <strong style="color: ${accentColor};">rejected</strong>.
                 </p>
                 <p style="margin: 0 0 24px; font-size: 16px; color: #4a4a4a; line-height: 1.6;">
-                    Please contact support for further clarification.
+                    Please contact us at +6282128528968 for further clarification.
                 </p>
             `;
             break;
@@ -287,6 +287,9 @@ const getOrderStatusTemplate = ({ name, orderId, status, trackingLink }) => {
             body = `
                 <p style="margin: 0 0 24px; font-size: 16px; color: #4a4a4a; line-height: 1.6;">
                     Your request to cancel <strong>Order #${orderId}</strong> has been approved.
+                </p>
+                <p style="margin: 0 0 24px; font-size: 16px; color: #4a4a4a; line-height: 1.6;">
+                    Our team will contact you soon to provide you with a refund.
                 </p>
             `;
             break;
