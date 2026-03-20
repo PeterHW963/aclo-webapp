@@ -89,7 +89,7 @@ const sendOrderStatusEmail = async (order) => {
     const html = getOrderStatusTemplate({
         name: order.user.name,
         orderId: order.orderId,
-        status: normalizedStatus,
+        status: order.status,
         trackingLink: order.trackingLink,
     });
 

@@ -1,5 +1,9 @@
 // Base email template
-const getBaseTemplate = (content) => `
+const getBaseTemplate = (content) => {
+    const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
+    const logoPublicId = "ACLO_LOGO_HORIZONTAL-06_1_mdrbx8";
+    const logoUrl = `https://res.cloudinary.com/${cloudName}/image/upload/f_auto,q_auto/${logoPublicId}`;
+    return `
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -12,6 +16,17 @@ const getBaseTemplate = (content) => `
         <tr>
             <td style="padding: 40px 20px;">
                 <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+
+                    <tr>
+                        <td style="padding: 32px 40px 0; text-align: center;">
+                            <img
+                                src="${logoUrl}"
+                                alt="ACLO logo"
+                                width="160"
+                                style="display: block; margin: 0 auto; height: auto; border: 0; outline: none; text-decoration: none;"
+                            />
+                        </td>
+                    </tr>
                     
                     <!-- Content -->
                     <tr>
@@ -36,6 +51,7 @@ const getBaseTemplate = (content) => `
 </body>
 </html>
 `;
+};
 
 // Email verification template
 const getVerificationEmailTemplate = (name, verificationUrl) => {
@@ -160,14 +176,32 @@ const getCheckoutReminderTemplate = (
 
 // Order status change template
 const getOrderStatusTemplate = ({ name, orderId, status, trackingLink }) => {
-    const normalizedStatus = (status || "").toLowerCase();
+    // const normalizedStatus = (status || "").toLowerCase();
 
     let title = "";
     let intro = "";
     let body = "";
     let accentColor = "#00b7e8";
 
-    switch (normalizedStatus) {
+    switch (status) {
+        case "pending":
+            title = "Order Confirmation";
+            intro = `Hi ${name},`;
+            accentColor = "#ffa726";
+            body = `
+                <p style="margin: 0 0 24px; font-size: 16px; color: #4a4a4a; line-height: 1.6;">
+                    Your order with <strong>Order ID #${orderId}</strong> has been placed successfully.
+                </p>
+                <p style="margin: 0 0 24px; font-size: 16px; color: #4a4a4a; line-height: 1.6;">
+                    We have received your payment proof and your order is currently
+                    <strong style="color: ${accentColor};">pending verification</strong>.
+                </p>
+                <p style="margin: 0; font-size: 14px; color: #666666; line-height: 1.6;">
+                    We'll notify you again once your payment has been reviewed.
+                </p>
+            `;
+            break;
+
         case "processing":
             title = "Payment Accepted";
             intro = `Hi ${name},`;
@@ -195,7 +229,7 @@ const getOrderStatusTemplate = ({ name, orderId, status, trackingLink }) => {
             break;
 
         case "shipping":
-            title = "Your Order Is on the Way";
+            title = "Your order is on the way";
             intro = `Hi ${name},`;
             accentColor = "#ffa726";
             body = `
