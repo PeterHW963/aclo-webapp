@@ -163,7 +163,10 @@ router.put("/:id", protect, admin, async (req, res) => {
         const updatedOrder = await order.save();
 
         if (prevStatus !== nextStatus) {
-            await sendOrderStatusEmail(updatedOrder);
+            await sendOrderStatusEmail(
+                updatedOrder,
+                prevStatus === "cancelling", // if previously its cancelling, covers cancelling --> cancel req rejected --> pending flow
+            );
         }
         res.json(updatedOrder);
     } catch (error) {

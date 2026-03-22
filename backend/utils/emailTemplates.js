@@ -174,6 +174,35 @@ const getCheckoutReminderTemplate = (
     return getBaseTemplate(content);
 };
 
+const getPaymentCompleteTemplate = ({ name, orderId }) => {
+    const accentColor = "#ffa726";
+
+    const content = `
+        <h2 style="margin: 0 0 20px; font-size: 24px; font-weight: 600; color: #1a1a1a;">
+            Order Confirmation
+        </h2>
+
+        <p style="margin: 0 0 20px; font-size: 16px; color: #4a4a4a; line-height: 1.6;">
+            Hi ${name},
+        </p>
+
+        <p style="margin: 0 0 24px; font-size: 16px; color: #4a4a4a; line-height: 1.6;">
+            Your order with <strong>Order ID #${orderId}</strong> has been placed successfully.
+        </p>
+
+        <p style="margin: 0 0 24px; font-size: 16px; color: #4a4a4a; line-height: 1.6;">
+            We have received your payment proof and your order is currently
+            <strong style="color: ${accentColor};">pending verification</strong>.
+        </p>
+
+        <p style="margin: 0; font-size: 14px; color: #666666; line-height: 1.6;">
+            We'll notify you again once your payment has been reviewed.
+        </p>
+    `;
+
+    return getBaseTemplate(content);
+};
+
 // Order status change template
 const getOrderStatusTemplate = ({ name, orderId, status, trackingLink }) => {
     // const normalizedStatus = (status || "").toLowerCase();
@@ -185,19 +214,19 @@ const getOrderStatusTemplate = ({ name, orderId, status, trackingLink }) => {
 
     switch (status) {
         case "pending":
-            title = "Order Confirmation";
+            title = "Cancellation Request Rejected";
             intro = `Hi ${name},`;
             accentColor = "#ffa726";
             body = `
                 <p style="margin: 0 0 24px; font-size: 16px; color: #4a4a4a; line-height: 1.6;">
-                    Your order with <strong>Order ID #${orderId}</strong> has been placed successfully.
+                    Your request to cancel <strong>Order #${orderId}</strong> has been rejected.
                 </p>
                 <p style="margin: 0 0 24px; font-size: 16px; color: #4a4a4a; line-height: 1.6;">
-                    We have received your payment proof and your order is currently
-                    <strong style="color: ${accentColor};">pending verification</strong>.
+                    This order is now marked as
+                    <strong style="color: #ffa726;">pending</strong>.
                 </p>
-                <p style="margin: 0; font-size: 14px; color: #666666; line-height: 1.6;">
-                    We'll notify you again once your payment has been reviewed.
+                <p style="margin: 0; font-size: 16px; color: #4a4a4a; line-height: 1.6;">
+                    If you have any questions, feel free to contact us at +6282128528968.
                 </p>
             `;
             break;
@@ -286,10 +315,13 @@ const getOrderStatusTemplate = ({ name, orderId, status, trackingLink }) => {
             accentColor = "#9e9e9e";
             body = `
                 <p style="margin: 0 0 24px; font-size: 16px; color: #4a4a4a; line-height: 1.6;">
-                    Your request to cancel <strong>Order #${orderId}</strong> has been approved.
+                    Your cancellation request for <strong>Order #${orderId}</strong> has been approved.
                 </p>
                 <p style="margin: 0 0 24px; font-size: 16px; color: #4a4a4a; line-height: 1.6;">
-                    Our team will contact you soon to provide you with a refund.
+                    This order has now been <strong style="color: ${accentColor};">cancelled</strong>.
+                </p>
+                <p style="margin: 0; font-size: 16px; color: #4a4a4a; line-height: 1.6;">
+                    If you have any questions, feel free to contact our team.
                 </p>
             `;
             break;
@@ -353,6 +385,7 @@ module.exports = {
     getVerificationEmailTemplate,
     getPasswordResetTemplate,
     getCheckoutReminderTemplate,
+    getPaymentCompleteTemplate,
     getOrderStatusTemplate,
     getTrackingLinkChangeTemplate,
 };

@@ -7,7 +7,10 @@ const ProductVariant = require("../models/ProductVariant");
 const Order = require("../models/Order");
 const { protect } = require("../middleware/authMiddleware");
 const { sendEmail } = require("../utils/emailService");
-const { getOrderStatusTemplate } = require("../utils/emailTemplates");
+const {
+    getOrderStatusTemplate,
+    getPaymentCompleteTemplate,
+} = require("../utils/emailTemplates");
 const {
     generateCartSnapshotHash,
 } = require("../utils/generateCartSnapshotHash");
@@ -213,10 +216,9 @@ router.post("/:id/submit-proof", protect, async (req, res) => {
             );
         });
         if (createdOrder && req.user.email) {
-            const html = getOrderStatusTemplate({
+            const html = getPaymentCompleteTemplate({
                 name: req.user.name,
                 orderId: createdOrder.orderId,
-                status: createdOrder.status,
             });
             sendEmail(
                 req.user.email,
