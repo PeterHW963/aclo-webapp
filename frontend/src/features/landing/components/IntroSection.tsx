@@ -1,3 +1,4 @@
+import CloudinaryImage from "../../../shared/components/common/CloudinaryImage";
 import {
   assets,
   cloudinaryImageUrl,
@@ -10,10 +11,13 @@ const IntroSection = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 items-center gap-8 md:gap-5 lg:gap-5 xl:gap-6">
           {/* image */}
           <div className="flex justify-center">
-            <img
-              src={cloudinaryImageUrl(assets.intro.publicId)}
+            <CloudinaryImage
+              publicId={assets.intro.publicId}
               alt={assets.intro.alt}
-              className="w-[360px] h-[360px] md:w-[420px] md:h-[420px] object-cover"
+              size="medium"
+              className="w-[360px] h-[360px] md:w-[420px] md:h-[420px]"
+              usePlaceholder={true}
+              lazy={true}
             />
           </div>
 

@@ -4,6 +4,7 @@ import {
   cloudinaryImageUrl,
   assets,
 } from "../../../shared/constants/cloudinary";
+import CloudinaryImage from "../../../shared/components/common/CloudinaryImage";
 
 const Story: React.FC = () => {
   return (
@@ -22,9 +23,13 @@ const Story: React.FC = () => {
 
             <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-10 sm:gap-12 lg:gap-16 items-center">
               <div className="flex justify-center md:justify-start">
-                <img
-                  src={cloudinaryImageUrl(assets.story.story_1.publicId)}
-                  className="h-[400px] w-full object-cover"
+                <CloudinaryImage
+                  publicId={assets.story.story_1.publicId}
+                  alt=""
+                  size="large"
+                  className="h-[400px] w-full"
+                  usePlaceholder={true}
+                  lazy={true}
                 />
               </div>
 
@@ -101,9 +106,13 @@ const Story: React.FC = () => {
               </div>
 
               <div className="flex justify-center md:justify-end order-1 md:order-2">
-                <img
-                  src={cloudinaryImageUrl(assets.story.story_2.publicId)}
-                  className="h-[400px] w-full object-cover"
+                <CloudinaryImage
+                  publicId={assets.story.story_2.publicId}
+                  alt=""
+                  size="large"
+                  className="h-[400px] w-full"
+                  usePlaceholder={true}
+                  lazy={true}
                 />
               </div>
             </div>
@@ -112,9 +121,13 @@ const Story: React.FC = () => {
           <section>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-16 xl:gap-20 items-center">
               <div className="flex justify-center md:justify-start">
-                <img
-                  src={cloudinaryImageUrl(assets.story.story_3.publicId)}
-                  className="h-[400px] w-full object-cover"
+                <CloudinaryImage
+                  publicId={assets.story.story_3.publicId}
+                  alt=""
+                  size="large"
+                  className="h-[400px] w-full"
+                  usePlaceholder={true}
+                  lazy={true}
                 />
               </div>
 

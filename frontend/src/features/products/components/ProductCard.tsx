@@ -9,6 +9,7 @@ import { LOW_STOCK_THRESHOLD } from "../../../shared/constants/products";
 
 import type { Product } from "../../../shared/types/product";
 import type { ProductVariant } from "../../../shared/types/productVariant";
+import CloudinaryImage from "../../../shared/components/common/CloudinaryImage";
 
 type ProductCardProps = {
   product: Product;
@@ -89,10 +90,13 @@ const ProductCard = ({ product, variants }: ProductCardProps) => {
     <Link to={productUrl} className="block">
       <div className="bg-white p-4">
         <div className="relative w-full aspect-7/8 mb-3 overflow-hidden">
-          <img
-            src={cloudinaryImageUrl(displayImageId)}
+          <CloudinaryImage
+            publicId={displayImageId}
             alt={displayAlt}
-            className="w-full h-full object-cover"
+            size="large"
+            className="w-full h-full"
+            usePlaceholder={true}
+            lazy={true}
           />
 
           {/* SOLD OUT / LOW STOCK OVERLAY */}
