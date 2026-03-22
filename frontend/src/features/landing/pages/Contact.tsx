@@ -1,9 +1,7 @@
 import React from "react";
 import Navbar from "../../../shared/components/common/Navbar";
-import {
-  cloudinaryImageUrl,
-  assets,
-} from "../../../shared/constants/cloudinary";
+import { assets } from "../../../shared/constants/cloudinary";
+import CloudinaryImage from "../../../shared/components/common/CloudinaryImage";
 
 const Contact: React.FC = () => {
   return (
@@ -13,11 +11,13 @@ const Contact: React.FC = () => {
       <section className="mx-auto w-full max-w-7xl 2xl:max-w-[1400px] px-6 sm:px-8 lg:px-16 xl:px-24 2xl:px-32 py-14 sm:py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-10 lg:gap-16 xl:gap-24 items-center">
           <div className="w-full">
-            <img
-              src={cloudinaryImageUrl(assets.contact.publicId)}
+            <CloudinaryImage
+              publicId={assets.contact.publicId}
               alt={assets.contact.alt}
-              className="w-full h-[320px] sm:h-[380px] md:h-[420px] object-cover"
-              loading="lazy"
+              size="medium"
+              className="w-full h-[320px] sm:h-[380px] md:h-[420px]"
+              usePlaceholder={true}
+              lazy={true}
             />
           </div>
 

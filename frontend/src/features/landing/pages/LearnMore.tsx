@@ -1,11 +1,9 @@
 import React from "react";
 
 import Navbar from "../../../shared/components/common/Navbar";
-import {
-  cloudinaryImageUrl,
-  assets,
-} from "../../../shared/constants/cloudinary";
+import { assets } from "../../../shared/constants/cloudinary";
 import { DesignFeaturesCarousel } from "../../../shared/components/common/DesignFeaturesCarousel";
+import CloudinaryImage from "../../../shared/components/common/CloudinaryImage";
 
 const LearnMore: React.FC = () => {
   return (
@@ -44,11 +42,13 @@ const LearnMore: React.FC = () => {
                 is the best.
               </p>
 
-              <img
-                src={cloudinaryImageUrl(assets.learnMore.learnMore_1.publicId)}
+              <CloudinaryImage
+                publicId={assets.learnMore.learnMore_1.publicId}
                 alt="Learning tower comparison"
+                size="medium"
                 className="w-full max-w-2xl h-auto object-cover"
-                loading="lazy"
+                usePlaceholder={true}
+                lazy={true}
               />
             </div>
 
@@ -59,13 +59,13 @@ const LearnMore: React.FC = () => {
               </h3>
 
               <div className="flex flex-col items-center text-justify md:text-center">
-                <img
-                  src={cloudinaryImageUrl(
-                    assets.learnMore.learnMore_2.publicId,
-                  )}
+                <CloudinaryImage
+                  publicId={assets.learnMore.learnMore_2.publicId}
                   alt="Why ACLO is best wooden foldable learning tower"
+                  size="medium"
                   className="w-full max-w-2xl h-auto object-cover"
-                  loading="lazy"
+                  usePlaceholder={true}
+                  lazy={true}
                 />
               </div>
             </section>

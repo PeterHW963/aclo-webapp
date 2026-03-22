@@ -1,8 +1,6 @@
 import { Link } from "react-router-dom";
-import {
-  assets,
-  cloudinaryImageUrl,
-} from "../../../shared/constants/cloudinary";
+import { assets } from "../../../shared/constants/cloudinary";
+import CloudinaryImage from "../../../shared/components/common/CloudinaryImage";
 
 const ShopNowSection = () => {
   return (
@@ -38,10 +36,13 @@ const ShopNowSection = () => {
 
           {/* image */}
           <div className="flex justify-center order-1 md:order-2">
-            <img
-              src={cloudinaryImageUrl(assets.littleHelpers.publicId)}
+            <CloudinaryImage
+              publicId={assets.littleHelpers.publicId}
               alt={assets.littleHelpers.alt}
-              className="w-[360px] h-[360px] md:w-[420px] md:h-[420px] object-cover"
+              size="medium"
+              className="w-[360px] h-[360px] md:w-[420px] md:h-[420px]"
+              usePlaceholder={true}
+              lazy={true}
             />
           </div>
         </div>

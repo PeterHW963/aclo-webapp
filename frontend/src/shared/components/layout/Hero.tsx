@@ -1,15 +1,19 @@
 import { Link } from "react-router-dom";
 // import heroImg from "../../assets/hero-img1.jpg";
 import Navbar from "../common/Navbar";
-import { assets, cloudinaryImageUrl } from "../../constants/cloudinary";
+import { assets } from "../../constants/cloudinary";
+import CloudinaryImage from "../common/CloudinaryImage";
 
 const Hero = () => {
   return (
     <section className="relative">
-      <img
-        src={cloudinaryImageUrl(assets.hero.publicId)}
+      <CloudinaryImage
+        publicId={assets.hero.publicId}
         alt={assets.hero.alt}
-        className="w-full h-[500px] md:h-[700px] lg:h-[760px] object-cover"
+        size="hero"
+        className="w-full h-[500px] md:h-[700px] lg:h-[760px]"
+        usePlaceholder={true}
+        lazy={false}
       />
 
       <div className="absolute top-0 left-0 right-0 z-50">
