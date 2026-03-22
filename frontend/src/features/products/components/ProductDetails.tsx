@@ -1,75 +1,116 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
-import { GoAlert } from "react-icons/go";
+import { useEffect, useMemo, useState, useRef } from "react";
+import { useParams, useSearchParams } from "react-router-dom";
+import { toast } from "sonner";
 
-import ColorSwatch from "./ColorSwatch";
+import Navbar from "../../../shared/components/common/Navbar";
+import LoadingOverlay from "../../../shared/components/common/LoadingOverlay";
+
+import ProductDescription from "./ProductDescription";
+import ProductGrid from "./ProductGrid";
+
+import { useAppDispatch, useAppSelector } from "../../../app/hooks";
+
+import {
+  fetchProductDetails,
+  fetchProductVariant,
+  fetchProductVariants,
+  fetchProducts,
+} from "../slices/productsSlice";
+
+import { addToCart } from "../../cart/slices/cartSlice";
 
 import { cloudinaryImageUrl } from "../../../shared/constants/cloudinary";
 import { LOW_STOCK_THRESHOLD } from "../../../shared/constants/products";
 
-import type { Product } from "../../../shared/types/product";
-import type { ProductVariant } from "../../../shared/types/productVariant";
+import type { Product, ProductImage } from "../../../shared/types/product";
 
-type ProductCardProps = {
-  product: Product;
-  variants: ProductVariant[];
-};
+const ProductDetails = () => {
+  const [loading, setLoading] = useState<boolean>(true);
+  const { id } = useParams<{ id: string }>();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const dispatch = useAppDispatch();
 
-const CHECKED_KEYS = ["color", "variant", "ovenMitt"];
+  const {
+    selectedProduct,
+    selectedVariant,
+    products,
+    productVariants,
+    loading: productsLoading,
+    error,
+  } = useAppSelector((state) => state.products);
 
-const ProductCard = ({ product, variants }: ProductCardProps) => {
-  const [selections, setSelections] = useState<Record<string, string>>({});
-  const queryString = new URLSearchParams(selections).toString();
-  const productUrl = queryString
-    ? `/product/${product._id}?${queryString}`
-    : `/product/${product._id}`;
+  const { user, guestId } = useAppSelector((state) => state.auth);
 
-  const handleOptionSelect = (
-    e: React.MouseEvent,
-    key: string,
-    value: string,
-  ) => {
-    e.preventDefault(); // Stop Link navigation
-    e.stopPropagation();
-    setSelections((prev) => ({
-      ...prev,
-      [key]: value,
-    }));
-  };
+  const [mainImage, setMainImage] = useState<string>("");
+  const [quantity, setQuantity] = useState<number>(1);
+  const [isButtonDisabled, setIsButtonDisabled] = useState<boolean>(false);
 
-  // find default variant
-  const defaultVariant = variants.find((v) => v.isDefault);
+  const hasUserSelectedOption = useMemo(() => {
+    if (!selectedProduct?.options) return false;
 
-  // find selected variant, if any
-  const selectedVariant = variants.find((v) => {
-    if (Object.keys(selections).length === 0) return false;
-
-    return Object.entries(selections).every(([optKey, optValue]) => {
-      const variantKey = optKey as keyof ProductVariant;
-      return v[variantKey] === optValue;
+    return Object.keys(selectedProduct.options).some((key) => {
+      const v = searchParams.get(key);
+      return v !== null && v !== "";
     });
-  });
+  }, [selectedProduct, searchParams]);
 
-  // determine image to display
-  // If an option is selected, show the image of selected variant
-  // But if no option is selected, show image of the product
-  const displayImageId =
-    selectedVariant?.images?.[0]?.publicId || product.images[0]?.publicId;
-  const displayAlt =
-    selectedVariant?.images?.[0]?.alt || product.images[0]?.alt || product.name;
+  const hasAllRequiredOptionsSelected = useMemo(() => {
+    if (!selectedProduct?.options) return false;
+    return Object.keys(selectedProduct.options).every((key) => {
+      const v = searchParams.get(key);
+      return v !== null && v !== "";
+    });
+  }, [selectedProduct, searchParams]);
 
-  // determine price to display
-  let discountPrice = defaultVariant?.discountPrice ?? null;
-  if (selectedVariant) {
-    discountPrice = selectedVariant.discountPrice ?? selectedVariant.price;
-  }
+  const displayName = useMemo(() => {
+    if (hasAllRequiredOptionsSelected && selectedVariant?.name) {
+      return selectedVariant.name;
+    }
+    return selectedProduct?.name ?? "";
+  }, [
+    hasAllRequiredOptionsSelected,
+    selectedVariant?.name,
+    selectedProduct?.name,
+  ]);
 
-  let originalPrice = defaultVariant?.price;
-  if (selectedVariant) {
-    originalPrice = selectedVariant.price;
-  }
+  const displayedImages = useMemo(() => {
+    const productImgs = selectedProduct?.images?.length
+      ? selectedProduct.images
+      : [];
+    const variantImgs = selectedVariant?.images?.length
+      ? selectedVariant.images
+      : [];
 
-  // stock status
+    if (!hasUserSelectedOption) return productImgs;
+
+    const variantIds = new Set(
+      variantImgs.map((img: ProductImage) => img.publicId),
+    );
+    const merged = [
+      ...variantImgs,
+      ...productImgs.filter(
+        (img: ProductImage) => !variantIds.has(img.publicId),
+      ),
+    ];
+
+    return merged.length ? merged : productImgs;
+  }, [selectedProduct, selectedVariant, hasUserSelectedOption]);
+
+  // Don't show first image in product details
+  const blockedProductFirstId = selectedProduct?.images?.[0]?.publicId || null;
+
+  const carouselImages = useMemo(() => {
+    if (!displayedImages?.length) return [];
+    if (!blockedProductFirstId) return displayedImages;
+
+    const filtered = displayedImages.filter(
+      (img: ProductImage) => img.publicId !== blockedProductFirstId,
+    );
+
+    return filtered.length ? filtered : displayedImages;
+  }, [displayedImages, blockedProductFirstId]);
+
+  // Stock status
   const stockCount = selectedVariant?.countInStock;
   const isSoldOut = stockCount === 0;
   const isLowStock =
@@ -77,110 +118,437 @@ const ProductCard = ({ product, variants }: ProductCardProps) => {
     stockCount > 0 &&
     stockCount <= LOW_STOCK_THRESHOLD;
 
-  const stockLabel = isSoldOut
-    ? "Sold out"
-    : isLowStock
-      ? `Low stock: ${stockCount} left`
-      : null;
+  useEffect(() => {
+    let cancelled = false;
+    const load = async () => {
+      if (!id) return;
 
-  const isLearningTower = product.category?.trim() === "Learning Tower";
+      setLoading(true);
+      try {
+        // curr product details
+        await dispatch(fetchProductDetails({ id })).unwrap();
+
+        // product variant (based on URL params)
+        const color = searchParams.get("color") || undefined;
+        const variant = searchParams.get("variant") || undefined;
+        const ovenMitt = searchParams.get("ovenMitt") || undefined;
+        const stabiliser = searchParams.get("stabiliser") || undefined;
+
+        await dispatch(
+          fetchProductVariant({
+            productId: id,
+            color,
+            variant,
+            ovenMitt,
+            stabiliser,
+          }),
+        ).unwrap();
+
+        const all = await dispatch(fetchProducts()).unwrap();
+        const listed = all.filter((p: Product) => p.isListed && p._id !== id);
+        const ids = listed.map((p: Product) => p._id);
+
+        if (ids.length > 0) {
+          await dispatch(fetchProductVariants({ productIds: ids })).unwrap();
+        }
+
+        // similar products - NOT NEEDED NOW
+        // const similarProds = await dispatch(
+        //   fetchSimilarProducts({ id }),
+        // ).unwrap();
+        // const productIds = (similarProds ?? []).map((p: Product) => p._id);
+
+        // if (productIds.length > 0) {
+        //   await dispatch(fetchSimilarProductVariants({ productIds })).unwrap();
+        // }
+      } catch (err) {
+        console.error("ProductDetails load failed: ", err);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, [dispatch, id, searchParams]);
+
+  const lastVariantIdRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!carouselImages.length) return;
+
+    const variantId = selectedVariant?._id ?? null;
+
+    const vImgs = selectedVariant?.images || [];
+    const preferredVariantImage =
+      vImgs.find((img) => img.publicId !== blockedProductFirstId)?.publicId ??
+      vImgs[0]?.publicId ??
+      "";
+
+    if (!hasUserSelectedOption) {
+      lastVariantIdRef.current = null;
+
+      const exists = carouselImages.some((img) => img.publicId === mainImage);
+      if (!mainImage || !exists) setMainImage(carouselImages[0].publicId);
+      return;
+    }
+
+    const mainIsVariantImage = vImgs.some((img) => img.publicId === mainImage);
+
+    if (
+      (variantId && variantId !== lastVariantIdRef.current) ||
+      (!mainIsVariantImage && preferredVariantImage)
+    ) {
+      setMainImage(preferredVariantImage || carouselImages[0].publicId);
+      lastVariantIdRef.current = variantId;
+      return;
+    }
+
+    const exists = carouselImages.some((img) => img.publicId === mainImage);
+    if (!mainImage || !exists) setMainImage(carouselImages[0].publicId);
+  }, [
+    carouselImages,
+    hasUserSelectedOption,
+    selectedVariant?._id,
+    selectedVariant?.images,
+    blockedProductFirstId,
+    mainImage,
+  ]);
+
+  const handleQuantityChange = (action: "incr" | "decr") => {
+    if (action === "incr") setQuantity((prev) => prev + 1);
+    if (action === "decr") setQuantity((prev) => (prev > 1 ? prev - 1 : prev));
+  };
+
+  const pickNoStabiliserValue = (values: string[]) => {
+    const preferred = values.find((v) => {
+      const s = v.toLowerCase();
+      return s.includes("no");
+    });
+
+    return preferred ?? values[0];
+  };
+
+  const handleOptionSelect = (key: string, value: string) => {
+    const newParams = new URLSearchParams(searchParams);
+    newParams.set(key, value);
+
+    if (key === "color" && selectedProduct?.options?.stabiliser) {
+      const currentStab = newParams.get("stabiliser");
+      if (!currentStab) {
+        const stabValues = selectedProduct.options.stabiliser;
+        const noStab = pickNoStabiliserValue(stabValues);
+        newParams.set("stabiliser", noStab);
+      }
+    }
+
+    setSearchParams(newParams);
+  };
+
+  const handleAddToCart = () => {
+    if (!id) {
+      toast.error("Invalid product ID.");
+      return;
+    }
+
+    if (!selectedVariant?._id) {
+      toast.error("Please select a valid variant before adding to cart.", {
+        duration: 1500,
+      });
+      return;
+    }
+
+    if (selectedProduct?.options) {
+      const requiredKeys = Object.keys(selectedProduct.options);
+      const missing = requiredKeys.filter((key) => !searchParams.get(key));
+      if (missing.length > 0) {
+        toast.error(
+          `Please select ${missing.join(", ")} before adding to cart.`,
+          { duration: 1500 },
+        );
+        return;
+      }
+    }
+
+    setIsButtonDisabled(true);
+
+    const finalOptions: Record<string, string> = {};
+    searchParams.forEach((value, key) => {
+      finalOptions[key] = value;
+    });
+
+    dispatch(
+      addToCart({
+        productId: id,
+        productVariantId: selectedVariant._id,
+        quantity,
+        options: finalOptions,
+        guestId,
+        userId: user?._id,
+      }),
+    )
+      .unwrap()
+      .then(() => {
+        toast.success("Product added to cart!", { duration: 1000 });
+      })
+      .catch(() => {
+        toast.error("Failed to add to cart.", { duration: 1000 });
+      })
+      .finally(() => {
+        setIsButtonDisabled(false);
+      });
+  };
+
+  const getCurrentIndex = () => {
+    if (!carouselImages.length) return 0;
+    const idx = carouselImages.findIndex(
+      (img: ProductImage) => img.publicId === mainImage,
+    );
+    return idx >= 0 ? idx : 0;
+  };
+
+  const goPrev = () => {
+    if (!carouselImages.length) return;
+    const curr = getCurrentIndex();
+    const nextIndex =
+      (curr - 1 + carouselImages.length) % carouselImages.length;
+    setMainImage(carouselImages[nextIndex].publicId);
+  };
+
+  const goNext = () => {
+    if (!carouselImages.length) return;
+    const curr = getCurrentIndex();
+    const nextIndex = (curr + 1) % carouselImages.length;
+    setMainImage(carouselImages[nextIndex].publicId);
+  };
+
+  if (!selectedProduct) return null;
+
+  const isProductReady = !!selectedProduct && selectedProduct._id === id;
 
   return (
-    <Link to={productUrl} className="block">
-      <div className="bg-white p-4">
-        <div className="relative w-full aspect-7/8 mb-3 overflow-hidden">
-          <img
-            src={cloudinaryImageUrl(displayImageId)}
-            alt={displayAlt}
-            className="w-full h-full object-cover"
-          />
+    <>
+      <Navbar />
+      <LoadingOverlay show={loading} />
 
-          {/* SOLD OUT / LOW STOCK OVERLAY */}
-          {stockLabel && (
-            <div
-              className={`absolute inset-x-0 bottom-0 z-10 flex items-center justify-center gap-2
-          py-6 px-4
-          bg-acloblue/30
-        `}
-            >
-              {isSoldOut ? (
-                <span className="text-red-600 font-semibold tracking-widest uppercase text-md">
-                  Sold out
-                </span>
-              ) : (
-                <>
-                  <GoAlert className="text-orange-500 text-lg" aria-hidden />
-                  <span className="text-orange-500 font-semibold tracking-widest uppercase text-md">
-                    {stockLabel}
-                  </span>
-                </>
-              )}
+      <div className="p-6">
+        <div className="max-w-6xl mx-auto bg-white p-8 rounded-lg">
+          {error && <p className="mb-4 text-red-600">Error: {error}</p>}
+
+          {!isProductReady ? (
+            <div>
+              <div className="flex flex-col md:flex-row gap-10">
+                <div className="md:w-1/2">
+                  <div className="mb-4 w-full aspect-4/3 bg-gray-100 animate-pulse rounded" />
+                  <div className="flex gap-4">
+                    {Array.from({ length: 4 }).map((_, i) => (
+                      <div
+                        key={i}
+                        className="w-20 h-20 bg-gray-100 animate-pulse rounded"
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                <div className="md:w-1/2">
+                  <div className="h-8 w-3/4 bg-gray-100 animate-pulse rounded mb-4" />
+                  <div className="h-6 w-1/3 bg-gray-100 animate-pulse rounded mb-6" />
+                  <div className="h-10 w-full bg-gray-100 animate-pulse rounded mb-4" />
+                  <div className="h-40 w-full bg-gray-100 animate-pulse rounded" />
+                </div>
+              </div>
             </div>
+          ) : (
+            <>
+              <div className="flex flex-col md:flex-row">
+                {/* Images */}
+                <div className="md:w-1/2">
+                  {/* Main image */}
+                  <div className="mb-4 relative w-full aspect-square overflow-hidden rounded-lg bg-gray-50">
+                    <img
+                      src={
+                        mainImage ? cloudinaryImageUrl(mainImage) : undefined
+                      }
+                      alt={displayName}
+                      className="w-full h-full object-cover"
+                      style={{ objectPosition: "50% 50%" }}
+                    />
+
+                    {carouselImages.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={goPrev}
+                        aria-label="Previous image"
+                        className="absolute left-3 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 rounded-full w-10 h-10 flex items-center justify-center shadow"
+                      >
+                        ‹
+                      </button>
+                    )}
+
+                    {carouselImages.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={goNext}
+                        aria-label="Next image"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 rounded-full w-10 h-10 flex items-center justify-center shadow"
+                      >
+                        ›
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Thumbnails */}
+                  <div className="flex overflow-x-auto gap-4">
+                    {carouselImages.map(
+                      (image: ProductImage, index: number) => (
+                        <img
+                          key={image.publicId ?? index}
+                          src={cloudinaryImageUrl(image.publicId)}
+                          alt={image.alt || `Thumbnail ${index}`}
+                          className={`w-20 h-20 object-cover cursor-pointer border shrink-0 ${
+                            mainImage === image.publicId
+                              ? "border-black"
+                              : "border-gray-200"
+                          }`}
+                          onClick={() => setMainImage(image.publicId)}
+                        />
+                      ),
+                    )}
+                  </div>
+                </div>
+
+                {/* Right side - Details */}
+                <div className="md:w-1/2 md:ml-10">
+                  <h1 className="text-2xl md:text-3xl font-semibold mb-2 text-acloblue">
+                    {displayName}
+                  </h1>
+
+                  {/* Price Display */}
+                  <div className="mb-2">
+                    {selectedVariant?.discountPrice ? (
+                      <>
+                        <span className="text-xl font-medium text-acloblue mr-6">
+                          IDR {selectedVariant.discountPrice.toLocaleString()}
+                        </span>
+                        <span className="text-lg text-gray-500 line-through">
+                          IDR {selectedVariant.price.toLocaleString()}
+                        </span>
+                      </>
+                    ) : (
+                      <span className="text-xl text-gray-800">
+                        IDR{" "}
+                        {(selectedVariant?.price ?? "")
+                          ? selectedVariant?.price?.toLocaleString()
+                          : "Price Not Available"}
+                      </span>
+                    )}
+                    {isLowStock && (
+                      <p className="text-md text-yellow-500 font-medium">
+                        Low stock: {stockCount} left
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Options */}
+                  {!!selectedProduct.options &&
+                    Object.entries(selectedProduct.options).map(
+                      ([key, values]) => (
+                        <div className="mb-4" key={key}>
+                          <p className="text-sm font-medium text-gray-900 capitalize mb-2">
+                            {key}:{" "}
+                            <span className="text-gray-500 font-normal">
+                              {searchParams.get(key)}
+                            </span>
+                          </p>
+                          <div className="flex flex-wrap gap-2">
+                            {values.map((value: string) => {
+                              const isSelected =
+                                searchParams.get(key) === value;
+                              return (
+                                <button
+                                  key={value}
+                                  onClick={() => handleOptionSelect(key, value)}
+                                  className={`px-4 py-2 rounded-md border text-sm transition-all duration-200 ${
+                                    isSelected
+                                      ? "bg-acloblue text-white border-acloblue shadow-md"
+                                      : "bg-white text-gray-700 border-gray-200 hover:border-gray-400 hover:bg-gray-50"
+                                  }`}
+                                >
+                                  {value}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      ),
+                    )}
+
+                  {/* Quantity */}
+                  <div className="mb-6">
+                    <p className="text-gray-700">Quantity:</p>
+                    <div className="flex items-center space-x-4 mt-2">
+                      <button
+                        onClick={() => handleQuantityChange("decr")}
+                        className="px-2.5 py-1 bg-gray-200 rounded text-lg hover:bg-gray-300"
+                      >
+                        -
+                      </button>
+                      <span className="text-lg">{quantity}</span>
+                      <button
+                        onClick={() => handleQuantityChange("incr")}
+                        className="px-2 py-1 bg-gray-200 rounded text-lg hover:bg-gray-300"
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={handleAddToCart}
+                    disabled={isButtonDisabled || isSoldOut}
+                    className={`bg-acloblue text-white py-2 px-6 rounded w-full mb-2 ${
+                      isButtonDisabled || isSoldOut
+                        ? "cursor-not-allowed opacity-50"
+                        : "hover:bg-acloblue hover:opacity-50"
+                    }`}
+                  >
+                    {isButtonDisabled ? "Processing..." : "ADD TO CART"}
+                  </button>
+                  {isSoldOut && (
+                    <p className="text-left text-md text-red-600 font-semibold">
+                      Sold out
+                    </p>
+                  )}
+
+                  <ProductDescription md={selectedProduct.description} />
+                </div>
+              </div>
+
+              {/* Similar products */}
+              <div className="mt-20 text-center">
+                <h2 className="text-2xl font-medium">Buy more, save 5%</h2>
+                <p className="mt-1 text-md text-gray-500">
+                  Unlock 5% off when your cart hits IDR 1.500.000+
+                </p>
+
+                <div className="mt-4">
+                  <ProductGrid
+                    products={products.filter(
+                      (p) => p.isListed && p._id !== id,
+                    )}
+                    productVariants={productVariants}
+                    loading={productsLoading}
+                    error={error}
+                  />
+                </div>
+              </div>
+            </>
           )}
         </div>
       </div>
-      <h3 className="text-sm px-4 mb-2 text-center">{product.name}</h3>
-
-      {/* COLOR SELECTORS */}
-      {isLearningTower && product.options && (
-        <div className="px-4 mb-3 space-y-3">
-          {Object.entries(product.options).map(([key, rawValues]) => {
-            const values = rawValues as string[];
-
-            if (!CHECKED_KEYS.includes(key) || !values || values.length === 0) {
-              return null;
-            }
-
-            return (
-              <div key={key}>
-                <div className="flex flex-wrap justify-center gap-2">
-                  {values.map((value) => (
-                    <ColorSwatch
-                      key={value}
-                      optionKey={key}
-                      value={value}
-                      isSelected={selections[key] === value}
-                      onSelect={handleOptionSelect}
-                    />
-                  ))}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
-
-      <p className="px-4 text-center">
-        <span className="inline-flex items-center justify-center gap-2 flex-wrap">
-          {/* If discount exists: show original price crossed out */}
-          {discountPrice != null ? (
-            <>
-              {originalPrice != null && (
-                <span className="text-xs text-gray-400 line-through">
-                  IDR {originalPrice.toLocaleString("id-ID")}
-                </span>
-              )}
-
-              <span className="text-base font-semibold text-acloblue">
-                IDR {discountPrice.toLocaleString("id-ID")}
-              </span>
-            </>
-          ) : (
-            <>
-              {/* No discount: original price should be blue */}
-              {originalPrice != null ? (
-                <span className="text-base font-semibold text-acloblue">
-                  IDR {originalPrice.toLocaleString("id-ID")}
-                </span>
-              ) : (
-                <span className="text-sm text-gray-400">Price not found</span>
-              )}
-            </>
-          )}
-        </span>
-      </p>
-    </Link>
+    </>
   );
 };
 
-export default ProductCard;
+export default ProductDetails;
