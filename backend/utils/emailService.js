@@ -33,13 +33,35 @@ const sendEmail = async (userEmail, subject, text, html = null) => {
     }
 };
 
-const sendOrderStatusEmail = async (order) => {
+const sendOrderStatusEmail = async (order, includePending = false) => {
     // handles order status CHANGES. If there are changes to an order that doesn't change a status (e.g. change tracking link, a separate function is used)
     const userEmail = order.user?.email;
     if (!userEmail) return;
 
     let subject;
     let text;
+    let html;
+
+    if (includePending && order.status == "pending") {
+        // covers case where it goes "cancelling" --> "pending"
+        subject = `Order #${order.orderId}: Cancellation request rejected`;
+        text =
+            `Hi ${order.user.name},\n\n` +
+            `Your request for order cancellation for Order #${order.orderId} has been rejected.\n` +
+            `This order is now marked as pending.\n\n` +
+            `If you have any questions, feel free to contact our support team.\n\n` +
+            `Thank you.`;
+
+        html = getOrderStatusTemplate({
+            name: order.user.name,
+            orderId: order.orderId,
+            status: order.status,
+            trackingLink: order.trackingLink,
+        });
+
+        await sendEmail(userEmail, subject, text, html);
+        return;
+    }
 
     switch (order.status) {
         case "processing":
@@ -79,14 +101,16 @@ const sendOrderStatusEmail = async (order) => {
             subject = `Order #${order.orderId}: Cancellation request approved`;
             text =
                 `Hi ${order.user.name},\n\n` +
-                `Your request for order cancellation for Order #${order.orderId} has been approved.\n\n` +
-                `Thanks!`;
+                `Your cancellation request for Order #${order.orderId} has been approved.\n` +
+                `This order has now been successfully cancelled.\n\n` +
+                `If you have any questions, feel free to contact our support team.\n\n` +
+                `Thank you.`;
             break;
         default:
             return { success: true, skipped: true };
     }
 
-    const html = getOrderStatusTemplate({
+    html = getOrderStatusTemplate({
         name: order.user.name,
         orderId: order.orderId,
         status: order.status,
