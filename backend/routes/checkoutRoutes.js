@@ -8,6 +8,10 @@ const Order = require("../models/Order");
 const { protect } = require("../middleware/authMiddleware");
 const { sendEmail } = require("../utils/emailService");
 const {
+    getOrderStatusTemplate,
+    getPaymentCompleteTemplate,
+} = require("../utils/emailTemplates");
+const {
     generateCartSnapshotHash,
 } = require("../utils/generateCartSnapshotHash");
 const { CHECKOUT_EXPIRATION_TIME } = require("../config/checkoutConfig");
@@ -212,10 +216,15 @@ router.post("/:id/submit-proof", protect, async (req, res) => {
             );
         });
         if (createdOrder && req.user.email) {
+            const html = getPaymentCompleteTemplate({
+                name: req.user.name,
+                orderId: createdOrder.orderId,
+            });
             sendEmail(
                 req.user.email,
                 `Order Confirmation #${createdOrder.orderId}`,
-                `Your order with Order ID #${createdOrder.orderId} has been placed successfully.`,
+                `Hi ${req.user.name},\n\nYour order with Order ID #${createdOrder.orderId} has been placed successfully.\n\nWe have received your payment proof and your order is currently pending verification.\n\nWe’ll notify you again once your payment has been reviewed.`,
+                html,
             );
         }
         if (res.headersSent) return;
