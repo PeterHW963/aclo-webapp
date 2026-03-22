@@ -4,7 +4,6 @@ import { GoAlert } from "react-icons/go";
 
 import ColorSwatch from "./ColorSwatch";
 
-import { cloudinaryImageUrl } from "../../../shared/constants/cloudinary";
 import { LOW_STOCK_THRESHOLD } from "../../../shared/constants/products";
 
 import type { Product } from "../../../shared/types/product";

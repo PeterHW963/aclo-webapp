@@ -1,8 +1,5 @@
 import CloudinaryImage from "../../../shared/components/common/CloudinaryImage";
-import {
-  assets,
-  cloudinaryImageUrl,
-} from "../../../shared/constants/cloudinary";
+import { assets } from "../../../shared/constants/cloudinary";
 
 const IntroSection = () => {
   return (

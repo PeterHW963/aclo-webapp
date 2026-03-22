@@ -1,9 +1,6 @@
 import React from "react";
 import Navbar from "../../../shared/components/common/Navbar";
-import {
-  cloudinaryImageUrl,
-  assets,
-} from "../../../shared/constants/cloudinary";
+import { assets } from "../../../shared/constants/cloudinary";
 import CloudinaryImage from "../../../shared/components/common/CloudinaryImage";
 
 const Contact: React.FC = () => {

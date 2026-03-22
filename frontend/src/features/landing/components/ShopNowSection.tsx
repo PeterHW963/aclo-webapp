@@ -1,8 +1,5 @@
 import { Link } from "react-router-dom";
-import {
-  assets,
-  cloudinaryImageUrl,
-} from "../../../shared/constants/cloudinary";
+import { assets } from "../../../shared/constants/cloudinary";
 import CloudinaryImage from "../../../shared/components/common/CloudinaryImage";
 
 const ShopNowSection = () => {

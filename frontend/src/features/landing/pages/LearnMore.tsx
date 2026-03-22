@@ -1,10 +1,7 @@
 import React from "react";
 
 import Navbar from "../../../shared/components/common/Navbar";
-import {
-  cloudinaryImageUrl,
-  assets,
-} from "../../../shared/constants/cloudinary";
+import { assets } from "../../../shared/constants/cloudinary";
 import { DesignFeaturesCarousel } from "../../../shared/components/common/DesignFeaturesCarousel";
 import CloudinaryImage from "../../../shared/components/common/CloudinaryImage";
 
