@@ -36,6 +36,7 @@ const ProductDetails = () => {
     products,
     productVariants,
     loading: productsLoading,
+    variantLoading,
     error,
   } = useAppSelector((state) => state.products);
 
@@ -117,33 +118,17 @@ const ProductDetails = () => {
     typeof stockCount === "number" &&
     stockCount > 0 &&
     stockCount <= LOW_STOCK_THRESHOLD;
+  const variant = selectedVariant;
 
   useEffect(() => {
     let cancelled = false;
-    const load = async () => {
+    const loadBaseData = async () => {
       if (!id) return;
 
       setLoading(true);
       try {
         // curr product details
         await dispatch(fetchProductDetails({ id })).unwrap();
-
-        // product variant (based on URL params)
-        const color = searchParams.get("color") || undefined;
-        const variant = searchParams.get("variant") || undefined;
-        const ovenMitt = searchParams.get("ovenMitt") || undefined;
-        const stabiliser = searchParams.get("stabiliser") || undefined;
-
-        await dispatch(
-          fetchProductVariant({
-            productId: id,
-            color,
-            variant,
-            ovenMitt,
-            stabiliser,
-          }),
-        ).unwrap();
-
         const all = await dispatch(fetchProducts()).unwrap();
         const listed = all.filter((p: Product) => p.isListed && p._id !== id);
         const ids = listed.map((p: Product) => p._id);
@@ -151,27 +136,41 @@ const ProductDetails = () => {
         if (ids.length > 0) {
           await dispatch(fetchProductVariants({ productIds: ids })).unwrap();
         }
-
-        // similar products - NOT NEEDED NOW
-        // const similarProds = await dispatch(
-        //   fetchSimilarProducts({ id }),
-        // ).unwrap();
-        // const productIds = (similarProds ?? []).map((p: Product) => p._id);
-
-        // if (productIds.length > 0) {
-        //   await dispatch(fetchSimilarProductVariants({ productIds })).unwrap();
-        // }
       } catch (err) {
         console.error("ProductDetails load failed: ", err);
       } finally {
         if (!cancelled) setLoading(false);
       }
     };
-    load();
+    loadBaseData();
     return () => {
       cancelled = true;
     };
-  }, [dispatch, id, searchParams]);
+  }, [dispatch, id]);
+
+  useEffect(() => {
+    if (!id || !selectedProduct?.options) return;
+
+    const color = searchParams.get("color") || undefined;
+    const variant = searchParams.get("variant") || undefined;
+    const ovenMitt = searchParams.get("ovenMitt") || undefined;
+    const stabiliser = searchParams.get("stabiliser") || undefined;
+
+    const hasAnyOption = color || variant || ovenMitt || stabiliser;
+    if (!hasAnyOption) return;
+
+    dispatch(
+      fetchProductVariant({
+        productId: id,
+        color,
+        variant,
+        ovenMitt,
+        stabiliser,
+      }),
+    ).catch((err) => {
+      console.error("Variant load failed:", err);
+    });
+  }, [dispatch, id, searchParams, selectedProduct?.options]);
 
   const lastVariantIdRef = useRef<string | null>(null);
 
@@ -364,8 +363,15 @@ const ProductDetails = () => {
               <div className="flex flex-col md:flex-row">
                 {/* Images */}
                 <div className="md:w-1/2">
-                  {/* Main image */}
                   <div className="mb-4 relative w-full aspect-square overflow-hidden rounded-lg bg-gray-50">
+                    {variantLoading && (
+                      <div className="absolute inset-0 z-10 bg-white/60 backdrop-blur-sm flex items-center justify-center rounded-lg">
+                        <span className="text-sm font-medium text-gray-700">
+                          Loading image...
+                        </span>
+                      </div>
+                    )}
+                    {/* Main image */}
                     <img
                       src={
                         mainImage ? cloudinaryImageUrl(mainImage) : undefined
@@ -426,28 +432,36 @@ const ProductDetails = () => {
 
                   {/* Price Display */}
                   <div className="mb-2">
-                    {selectedVariant?.discountPrice ? (
-                      <>
-                        <span className="text-xl font-medium text-acloblue mr-6">
-                          IDR {selectedVariant.discountPrice.toLocaleString()}
+                    <div className="mb-2">
+                      {variantLoading ? (
+                        <div className="space-y-2">
+                          <div className="h-6 w-40 bg-gray-100 animate-pulse rounded" />
+                          <div className="h-4 w-24 bg-gray-100 animate-pulse rounded" />
+                        </div>
+                      ) : variant && variant.discountPrice ? (
+                        <>
+                          <span className="text-xl font-medium text-acloblue mr-6">
+                            IDR {variant.discountPrice.toLocaleString()}
+                          </span>
+                          <span className="text-lg text-gray-500 line-through">
+                            IDR {variant.price.toLocaleString()}
+                          </span>
+                        </>
+                      ) : (
+                        <span className="text-xl text-gray-800">
+                          IDR{" "}
+                          {variant?.price != null
+                            ? variant.price.toLocaleString()
+                            : "Price Not Available"}
                         </span>
-                        <span className="text-lg text-gray-500 line-through">
-                          IDR {selectedVariant.price.toLocaleString()}
-                        </span>
-                      </>
-                    ) : (
-                      <span className="text-xl text-gray-800">
-                        IDR{" "}
-                        {(selectedVariant?.price ?? "")
-                          ? selectedVariant?.price?.toLocaleString()
-                          : "Price Not Available"}
-                      </span>
-                    )}
-                    {isLowStock && (
-                      <p className="text-md text-yellow-500 font-medium">
-                        Low stock: {stockCount} left
-                      </p>
-                    )}
+                      )}
+
+                      {!variantLoading && isLowStock && (
+                        <p className="text-md text-yellow-500 font-medium">
+                          Low stock: {stockCount} left
+                        </p>
+                      )}
+                    </div>
                   </div>
 
                   {/* Options */}
@@ -458,7 +472,9 @@ const ProductDetails = () => {
                           <p className="text-sm font-medium text-gray-900 capitalize mb-2">
                             {key}:{" "}
                             <span className="text-gray-500 font-normal">
-                              {searchParams.get(key)}
+                              {variantLoading && searchParams.get(key)
+                                ? "Loading..."
+                                : searchParams.get(key)}
                             </span>
                           </p>
                           <div className="flex flex-wrap gap-2">
