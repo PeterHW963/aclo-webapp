@@ -1,5 +1,5 @@
 const express = require("express");
-const axios = require("axios");
+const rateLimit = require("express-rate-limit");
 const { protect } = require("../../middleware/authMiddleware");
 
 const router = express.Router();
@@ -17,63 +17,145 @@ function must(name) {
     };
 }
 
+// rate-limiters per user
+const autocompleteLimiter = rateLimit({
+    windowMs: 60 * 1000,
+    max: 30,
+    keyGenerator: (req) => req.user?.id || req.ip,
+    message: { error: "Too many autocomplete requests." },
+});
+
+const detailsLimiter = rateLimit({
+    windowMs: 60 * 1000,
+    max: 60,
+    keyGenerator: (req) => req.user?.id || req.ip,
+    message: { error: "Too many place detail requests." },
+});
+
+const reverseGeocodeLimiter = rateLimit({
+    windowMs: 60 * 1000,
+    max: 30,
+    keyGenerator: (req) => req.user?.id || req.ip,
+    message: { error: "Too many reverse geocode requests." },
+});
+
+// helper for google API error parsing
+async function readGoogleError(r) {
+    let data = null;
+
+    try {
+        data = await r.json();
+    } catch {
+        // ignore
+    }
+
+    if (r.ok) {
+        return { ok: true, data };
+    }
+
+    const googleMessage =
+        data?.error?.message || data?.status || "Google Maps request failed";
+
+    if (r.status === 429) {
+        return {
+            ok: false,
+            status: 429,
+            body: { error: "Google Maps quota exceeded. Try again later." },
+        };
+    }
+
+    if (r.status === 403) {
+        return {
+            ok: false,
+            status: 403,
+            body: { error: `Google Maps access denied: ${googleMessage}` },
+        };
+    }
+
+    return {
+        ok: false,
+        status: r.status || 500,
+        body: { error: googleMessage },
+    };
+}
+
 // @route GET /api/maps/autocomplete
 // @desc uses GMaps' Places (New) API to give autocomplete suggestions for a user's address
 // @access Private
-router.get("/autocomplete", protect, must("input"), async (req, res) => {
-    try {
-        const input = String(req.query.input);
-        const sessionToken = String(req.query.sessionToken || "");
-        const url = "https://places.googleapis.com/v1/places:autocomplete";
+router.get(
+    "/autocomplete",
+    protect,
+    autocompleteLimiter,
+    must("input"),
+    async (req, res) => {
+        try {
+            const input = String(req.query.input);
+            const sessionToken = String(req.query.sessionToken || "");
+            const url = "https://places.googleapis.com/v1/places:autocomplete";
 
-        const body = {
-            input,
-            // Bias to Indonesia
-            includedRegionCodes: ["ID"],
-            sessionToken: sessionToken || undefined,
-        };
+            const body = {
+                input,
+                // Bias to Indonesia
+                includedRegionCodes: ["ID"],
+                sessionToken: sessionToken || undefined,
+            };
 
-        const r = await fetch(url, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "X-Goog-Api-Key": GOOGLE_SERVER_KEY,
-                // FieldMask limits what you receive (important for cost + performance)
-                "X-Goog-FieldMask":
-                    "suggestions.placePrediction.placeId,suggestions.placePrediction.text",
-            },
-            body: JSON.stringify(body),
-        });
+            const r = await fetch(url, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-Goog-Api-Key": GOOGLE_SERVER_KEY,
+                    // FieldMask limits what you receive (important for cost + performance)
+                    "X-Goog-FieldMask":
+                        "suggestions.placePrediction.placeId,suggestions.placePrediction.text",
+                },
+                body: JSON.stringify(body),
+            });
 
-        const data = await r.json();
-        res.json(data);
-    } catch (e) {
-        res.status(500).json({ error: "Autocomplete failed" });
-    }
-});
+            const result = await readGoogleError(r);
+            if (!result.ok) {
+                return res.status(result.status).json(result.body);
+            }
+
+            return res.json(result.data);
+        } catch (e) {
+            res.status(500).json({ error: "Autocomplete failed" });
+        }
+    },
+);
 
 // @route GET /api/maps/details
 // @desc uses GMaps' Places (New) API to get details of a user's address including longitude latitude
 // @access Private
-router.get("/details", protect, must("placeId"), async (req, res) => {
-    try {
-        const placeId = String(req.query.placeId);
-        const url = `https://places.googleapis.com/v1/places/${encodeURIComponent(placeId)}`;
+router.get(
+    "/details",
+    protect,
+    detailsLimiter,
+    must("placeId"),
+    async (req, res) => {
+        try {
+            const placeId = String(req.query.placeId);
+            const url = `https://places.googleapis.com/v1/places/${encodeURIComponent(placeId)}`;
 
-        const r = await fetch(url, {
-            headers: {
-                "X-Goog-Api-Key": GOOGLE_SERVER_KEY,
-                "X-Goog-FieldMask":
-                    "id,formattedAddress,addressComponents,location,displayName",
-            },
-        });
+            const r = await fetch(url, {
+                headers: {
+                    "X-Goog-Api-Key": GOOGLE_SERVER_KEY,
+                    "X-Goog-FieldMask":
+                        "id,formattedAddress,addressComponents,location,displayName",
+                },
+            });
 
-        const data = await r.json();
-        res.json(data);
-    } catch (e) {
-        res.status(500).json({ error: "Place details failed" });
-    }
-});
+            const result = await readGoogleError(r);
+            if (!result.ok) {
+                return res.status(result.status).json(result.body);
+            }
+
+            return res.json(result.data);
+        } catch (e) {
+            res.status(500).json({ error: "Place details failed" });
+        }
+    },
+);
 
 // @route GET /api/maps/geocode-reverse
 // @desc uses GMaps' Geocoding API to get longitude and latitude of a location, the links it to an address
@@ -81,6 +163,7 @@ router.get("/details", protect, must("placeId"), async (req, res) => {
 router.get(
     "/geocode-reverse",
     protect,
+    reverseGeocodeLimiter,
     must("lat"),
     must("lng"),
     async (req, res) => {
@@ -98,7 +181,38 @@ router.get(
 
             const r = await fetch(url);
             const data = await r.json();
-            res.json(data);
+            if (!r.ok) {
+                return res.status(r.status).json({
+                    error: data?.error_message || "Reverse geocode failed",
+                    status: r.status,
+                });
+            }
+            if (data?.status === "OVER_QUERY_LIMIT") {
+                return res.status(429).json({
+                    error: "Google Maps quota exceeded. Try again later.",
+                    code: "GOOGLE_OVER_QUERY_LIMIT",
+                });
+            }
+            if (data?.status === "REQUEST_DENIED") {
+                return res.status(403).json({
+                    error: data?.error_message || "Google Maps request denied.",
+                    code: "GOOGLE_REQUEST_DENIED",
+                });
+            }
+            if (data?.status === "INVALID_REQUEST") {
+                return res.status(400).json({
+                    error: data?.error_message || "Invalid geocode request.",
+                    code: "GOOGLE_INVALID_REQUEST",
+                });
+            }
+            if (data?.status !== "OK" && data?.status !== "ZERO_RESULTS") {
+                return res.status(502).json({
+                    error:
+                        data?.error_message || "Unexpected Google Maps error.",
+                    code: data?.status || "GOOGLE_UNKNOWN_ERROR",
+                });
+            }
+            return res.json(data);
         } catch (e) {
             res.status(500).json({ error: "Reverse geocode failed" });
         }
