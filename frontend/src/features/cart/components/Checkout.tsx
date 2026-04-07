@@ -76,6 +76,17 @@ const Checkout = () => {
     );
   };
 
+  // shipping error helper
+  const getShippingErrorMessage = (error: any) => {
+    if (error?.code === "BITESHIP_RATE_LIMIT" || error?.status === 429) {
+      return "Shipping service is busy right now. Please wait a few seconds and try again.";
+    }
+    return (
+      error?.message ||
+      "Something went wrong. Please check your address and try again."
+    );
+  };
+
   useEffect(() => {
     if (!cartId) {
       navigate("/");
@@ -156,11 +167,7 @@ const Checkout = () => {
           })
           .catch((error: any) => {
             dispatch(clearShipping());
-            toast.error(
-              error?.message ||
-                "Something went wrong. Please check your address and try again.",
-              { duration: 3000 },
-            );
+            toast.error(getShippingErrorMessage(error), { duration: 3000 });
           });
       }
     } else {
@@ -230,11 +237,7 @@ const Checkout = () => {
       dispatch(setShippingDetails(shippingDetails));
       setShowShippingDetailsModal(false);
     } catch (error: any) {
-      toast.error(
-        error?.message ||
-          "Something went wrong. Please check your address and try again.",
-        { duration: 3000 },
-      );
+      toast.error(getShippingErrorMessage(error), { duration: 3000 });
       console.error("Error in handleShippingDetails:", error);
       throw error;
     }

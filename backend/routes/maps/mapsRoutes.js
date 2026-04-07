@@ -1,5 +1,5 @@
 const express = require("express");
-const rateLimit = require("express-rate-limit");
+const { rateLimit, ipKeyGenerator } = require("express-rate-limit");
 const { protect } = require("../../middleware/authMiddleware");
 
 const router = express.Router();
@@ -21,21 +21,21 @@ function must(name) {
 const autocompleteLimiter = rateLimit({
     windowMs: 60 * 1000,
     max: 30,
-    keyGenerator: (req) => req.user?.id || req.ip,
+    keyGenerator: (req) => req.user?._id?.toString() || ipKeyGenerator(req.ip),
     message: { error: "Too many autocomplete requests." },
 });
 
 const detailsLimiter = rateLimit({
     windowMs: 60 * 1000,
     max: 60,
-    keyGenerator: (req) => req.user?.id || req.ip,
+    keyGenerator: (req) => req.user?._id?.toString() || ipKeyGenerator(req.ip),
     message: { error: "Too many place detail requests." },
 });
 
 const reverseGeocodeLimiter = rateLimit({
     windowMs: 60 * 1000,
     max: 30,
-    keyGenerator: (req) => req.user?.id || req.ip,
+    keyGenerator: (req) => req.user?._id?.toString() || ipKeyGenerator(req.ip),
     message: { error: "Too many reverse geocode requests." },
 });
 

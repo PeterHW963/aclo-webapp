@@ -1,4 +1,5 @@
 const express = require("express");
+const { rateLimit, ipKeyGenerator } = require("express-rate-limit");
 const router = express.Router();
 const axios = require("axios");
 const { protect } = require("../../middleware/authMiddleware");
@@ -18,12 +19,49 @@ function applyMarkup(price, multiplier = 1.1) {
     return Math.ceil(p * multiplier);
 }
 
+// rate limit helper
+const shippingRateLimiter = rateLimit({
+    windowMs: 10 * 1000, // 10 seconds window
+    max: 9, // per user, per second
+    keyGenerator: (req) => req.user?._id?.toString() || ipKeyGenerator(req.ip),
+    message: {
+        success: false,
+        message:
+            "Too many shipping calculation requests. Please wait a moment and try again.",
+    },
+});
+
+// request wrapper with retry - retry based on error response
+async function postToBiteshipWithRetry(url, body, config, maxRetries = 2) {
+    let attempt = 0;
+
+    while (true) {
+        try {
+            return await axios.post(url, body, config);
+        } catch (error) {
+            const status = error.response?.status;
+
+            if (status !== 429 || attempt >= maxRetries) {
+                throw error;
+            }
+
+            const retryAfterHeader = error.response?.headers?.["retry-after"];
+            const retryAfterMs = retryAfterHeader
+                ? Number(retryAfterHeader) * 1000
+                : 1000 * Math.pow(2, attempt); // 1s, 2s
+
+            await new Promise((resolve) => setTimeout(resolve, retryAfterMs));
+            attempt += 1;
+        }
+    }
+}
+
 /**
  * @route   POST /api/calculate-shipping
  * @desc    Calculate shipping costs using Biteship API
  * @access  Private
  */
-router.post("/", protect, async (req, res) => {
+router.post("/", protect, shippingRateLimiter, async (req, res) => {
     try {
         const {
             destinationPostalCode,
@@ -212,20 +250,16 @@ router.post("/", protect, async (req, res) => {
             "Content-Type": "application/json",
         };
 
+        const BITESHIP_RATES_URL = "https://api.biteship.com/v1/rates/couriers";
+
         const [jneResp, gojekResp] = await Promise.all([
-            axios.post(
-                "https://api.biteship.com/v1/rates/couriers",
-                jneRequest,
-                {
-                    headers,
-                },
-            ),
+            postToBiteshipWithRetry(BITESHIP_RATES_URL, jneRequest, {
+                headers,
+            }),
             gojekRequest
-                ? axios.post(
-                      "https://api.biteship.com/v1/rates/couriers",
-                      gojekRequest,
-                      { headers },
-                  )
+                ? postToBiteshipWithRetry(BITESHIP_RATES_URL, gojekRequest, {
+                      headers,
+                  })
                 : Promise.resolve(null),
         ]);
 
@@ -293,16 +327,30 @@ router.post("/", protect, async (req, res) => {
     } catch (error) {
         console.error(error);
 
-        if (error.response?.data) {
-            return res.status(error.response.status || 500).json({
+        const status = error.response?.status;
+        const biteshipMessage =
+            error.response?.data?.message ||
+            "Something went wrong. Please check your address and try again.";
+
+        if (status === 429) {
+            return res.status(429).json({
+                success: false,
+                code: "BITESHIP_RATE_LIMIT",
                 message:
-                    error.response.data.message ||
-                    "Something went wrong. Please check your address and try again.",
+                    "Shipping service is busy right now. Please wait a moment and try again.",
+            });
+        }
+
+        if (error.response?.data) {
+            return res.status(status || 500).json({
+                success: false,
+                message: biteshipMessage,
                 error: error.response.data,
             });
         }
 
-        res.status(500).json({
+        return res.status(500).json({
+            success: false,
             message: "Failed to calculate shipping cost",
             error: error.message,
         });
