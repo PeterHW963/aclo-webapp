@@ -237,23 +237,37 @@ const ShippingDetailsModal = ({
       setIsNewAddress(true);
     }
   }, [user, initialMode, reduxShippingDetails]);
-
   useEffect(() => {
-    const t = setTimeout(async () => {
-      const q = addressQuery.trim();
-      if (selectedPlaceId || pinConfirmed) {
-        setSuggestions([]);
-        return;
-      }
-      if (q.length < 3) {
-        setSuggestions([]);
-        return;
-      }
+    const q = addressQuery.trim();
 
+    if (selectedPlaceId || pinConfirmed) {
+      setSuggestions([]);
+      return;
+    }
+
+    if (q.length < 3) {
+      setSuggestions([]);
+      return;
+    }
+
+    const controller = new AbortController();
+
+    const t = setTimeout(async () => {
       try {
         const r = await authFetch(
           `${API_URL}/api/maps/autocomplete?input=${encodeURIComponent(q)}&sessionToken=${encodeURIComponent(sessionToken)}`,
+          { signal: controller.signal },
         );
+
+        if (!r.ok) {
+          if (r.status === 429) {
+            setSuggestions([]);
+          } else {
+            setSuggestions([]);
+          }
+          return;
+        }
+
         const data = await r.json();
 
         const list: Suggestion[] =
@@ -266,14 +280,19 @@ const ShippingDetailsModal = ({
             })) ?? [];
 
         setSuggestions(list);
-      } catch {
-        // Don't hard fail UI on autocomplete
-        setSuggestions([]);
+      } catch (err: any) {
+        if (err?.name !== "AbortError") {
+          setSuggestions([]);
+        }
       }
-    }, 250);
+    }, 400); // better than 250 for reducing API spam
 
-    return () => clearTimeout(t);
-  }, [addressQuery, selectedPlaceId, sessionToken]);
+    return () => {
+      clearTimeout(t);
+      controller.abort();
+    };
+  }, [addressQuery, selectedPlaceId, pinConfirmed, sessionToken]);
+
   const mapsBootstrappedRef = useRef(false);
 
   const syncCoordsToDetails = (p: { lat: number; lng: number }) => {
@@ -423,9 +442,22 @@ const ShippingDetailsModal = ({
         `${API_URL}/api/maps/geocode-reverse?lat=${latLng.lat}&lng=${latLng.lng}`,
       );
       if (!rg.ok) {
-        const t = await rg.text().catch(() => "");
-        console.error("reverse geocode failed", rg.status, t);
+        const errData = await rg.json().catch(() => null);
         setPinConfirmed(false);
+        if (rg.status === 429) {
+          setAddressError(
+            "Too many map consecutive map requests. Please wait a moment and try again.",
+          );
+          return;
+        }
+        if (rg.status === 403) {
+          setAddressError("Map access was denied. Please contact support.");
+          return;
+        }
+        setAddressError(
+          errData?.error ||
+            "Failed to validate pin location. Please try again.",
+        );
         return;
       }
       const rgData = await rg.json();
