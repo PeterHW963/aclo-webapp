@@ -315,7 +315,7 @@ const EditProductPage = () => {
       setLoading(false);
     }
   };
-  // if (loading) return <p>Loading...</p>;
+
   if (error) return <p>Error: {error}</p>;
 
   const availableVariants =
