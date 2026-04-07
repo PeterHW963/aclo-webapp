@@ -43,7 +43,7 @@ const PaymentPendingBanner = ({
   const { user } = useAppSelector((s) => s.auth);
   const { checkout } = useAppSelector((s) => s.checkout);
 
-  const [now, setNow] = useState(Date.now());
+  const [now, setNow] = useState(() => Date.now());
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
@@ -261,7 +261,7 @@ const PaymentPendingBanner = ({
 
   return (
     <div
-      className={`fixed right-3 sm:right-4 z-50 ${topOffsetClass}`}
+      className={`fixed right-3 sm:right-4 z-30 ${topOffsetClass}`}
       aria-live="polite"
     >
       {isCollapsed ? (

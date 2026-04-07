@@ -13,6 +13,7 @@ import { clearCart } from "../slices/cartSlice";
 import LoadingOverlay from "../../../shared/components/common/LoadingOverlay";
 import Navbar from "../../../shared/components/common/Navbar";
 import { clamp, formatCountdown } from "../../../shared/utils/timerCountdown";
+import { toast } from "sonner";
 
 const REDIRECT_AFTER_MS = 2000;
 
@@ -71,7 +72,18 @@ const Payment = () => {
   const handleImageUpload = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    const allowedTypes = [
+      "image/png",
+      "image/jpeg",
+      "image/webp",
+      "application/pdf",
+    ];
 
+    if (!allowedTypes.includes(file.type)) {
+      toast.error("Only PNG, JPG, JPEG, WEBP, and PDF files are allowed.");
+      e.target.value = "";
+      return;
+    }
     const formData = new FormData();
     formData.append("image", file);
     formData.append("folder", "payments");
@@ -242,6 +254,7 @@ const Payment = () => {
           <input
             ref={fileInputRef}
             type="file"
+            accept=".png,.jpg,.jpeg,.webp,.pdf"
             onChange={handleImageUpload}
             className="hidden"
           />
