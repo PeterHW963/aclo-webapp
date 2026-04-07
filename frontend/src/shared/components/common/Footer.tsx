@@ -61,11 +61,7 @@ const Footer = () => {
                 SHOP
               </Link>
             </li>
-            <li>
-              <Link to="/contact" className="text-acloblue transition-colors">
-                CONTACT US
-              </Link>
-            </li>
+            
           </ul>
         </div>
         {/* Support links */}
@@ -81,6 +77,11 @@ const Footer = () => {
               </Link>
             </li>
             <li>
+              <Link to="/contact" className="text-acloblue transition-colors">
+                CONTACT US
+              </Link>
+            </li>
+            {/* <li>
               <Link to="#" className="text-acloblue transition-colors">
                 FAQ
               </Link>
@@ -94,7 +95,7 @@ const Footer = () => {
               <Link to="#" className="text-acloblue transition-colors">
                 DELIVERY & EXCHANGE
               </Link>
-            </li>
+            </li> */}
           </ul>
         </div>
         {/* Stay in Touch section */}
