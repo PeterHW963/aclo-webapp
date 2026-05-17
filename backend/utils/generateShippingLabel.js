@@ -309,16 +309,6 @@ const generateShippingLabelHTML = (order) => {
 const generateShippingLabelPDF = async (order) => {
     let browser;
     try {
-        console.log("IS_PRODUCTION raw:", process.env.IS_PRODUCTION);
-        console.log("isProduction parsed:", isProduction);
-        console.log(
-            "chromium executablePath:",
-            isProduction ? await chromium.executablePath() : "LOCAL_CHROME",
-        );
-        console.log(
-            "using puppeteer package:",
-            require.resolve("puppeteer-core"),
-        );
         browser = await puppeteer.launch({
             args: isProduction
                 ? chromium.args

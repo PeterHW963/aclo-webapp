@@ -235,9 +235,16 @@ const Payment = () => {
             .
           </div>
           <div className="text-xl mb-6">
-            Please do a bank transfer to this account xxxxxxxxxxxxx and upload a
-            screenshot of the proof of transaction. If a proof of transaction is
-            not provided or is deemed invalid, we cannot process your order.
+            Please make payment via bank transfer to the account below, then
+            upload your proof of payment. We can only process orders with valid
+            proof of payment.
+            <br />
+            <br />
+            Bank: <strong>BCA</strong>
+            <br />
+            Account Number: <strong>7090385865</strong>
+            <br />
+            Account Name: <strong>Christian Hadi Wijaya</strong>
           </div>
           {uploading && <p>Uploading image...</p>}
           <button
