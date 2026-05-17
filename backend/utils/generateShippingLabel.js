@@ -1,4 +1,7 @@
-const puppeteer = require("puppeteer");
+const puppeteer = require("puppeteer-core");
+const chromium = require("@sparticuz/chromium");
+
+const isProduction = process.env.IS_PRODUCTION === "true";
 
 /**
  * Generate shipping label in HTML from order data
@@ -8,10 +11,11 @@ const generateShippingLabelHTML = (order) => {
     // TODO: this will be hardcoded, replace with actual sender address
     const senderAddress = {
         name: "ACLO Kids",
-        address: "Jl. Example Street No. 123",
-        city: "KOTA JAKARTA UTARA",
-        postalCode: "12345",
-        phone: "+6282128528968",
+        address:
+            "Jl Yos Sudarso Kav 48 Blok F no 5B, RT.10/RW.6, Sungai Bambu, Kec. Tj. Priok, Jkt Utara",
+        city: "DKI Jakarta",
+        postalCode: "14330",
+        phone: "+6281289555598",
     };
 
     // ACLO logo
@@ -306,8 +310,19 @@ const generateShippingLabelPDF = async (order) => {
     let browser;
     try {
         browser = await puppeteer.launch({
+            args: isProduction
+                ? chromium.args
+                : ["--no-sandbox", "--disable-setuid-sandbox"],
+
+            defaultViewport: isProduction
+                ? chromium.defaultViewport
+                : { width: 800, height: 1200 },
+
+            executablePath: isProduction
+                ? await chromium.executablePath()
+                : "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+
             headless: true,
-            args: ["--no-sandbox", "--disable-setuid-sandbox"],
         });
 
         const page = await browser.newPage();

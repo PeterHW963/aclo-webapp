@@ -15,6 +15,7 @@
     "license": "ISC",
     "description": "",
     "dependencies": {
+        "@sparticuz/chromium": "^147.0.0",
         "bcryptjs": "^3.0.3",
         "cloudinary": "^2.8.0",
         "cors": "^2.8.5",
@@ -28,6 +29,7 @@
         "nodemailer": "^7.0.12",
         "nodemon": "^3.1.11",
         "puppeteer": "^24.34.0",
+        "puppeteer-core": "^25.0.2",
         "streamifier": "^0.1.1"
     }
 }
