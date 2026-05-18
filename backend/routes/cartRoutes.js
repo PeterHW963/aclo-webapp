@@ -61,7 +61,7 @@ router.post("/", async (req, res) => {
         // if the cart exists, update it
         if (cart) {
             const productVariantIndex = cart.products.findIndex(
-                (p) => p.productVariantId?.toString() === productVariantId
+                (p) => p.productVariantId?.toString() === productVariantId,
             );
 
             if (productVariantIndex > -1) {
@@ -84,7 +84,7 @@ router.post("/", async (req, res) => {
             // Recalculate total price
             cart.totalPrice = cart.products.reduce(
                 (acc, item) => acc + item.price * item.quantity,
-                0
+                0,
             );
             await cart.save();
             return res.status(200).json(cart);
@@ -153,7 +153,7 @@ router.put("/", async (req, res) => {
 
         cart.totalPrice = cart.products.reduce(
             (acc, item) => acc + item.price * item.quantity,
-            0
+            0,
         );
         await cart.save();
         return res.status(200).json(cart);
@@ -186,7 +186,7 @@ router.delete("/", async (req, res) => {
         cart.products.splice(productVariantIndex, 1);
         cart.totalPrice = cart.products.reduce(
             (acc, item) => acc + item.price * item.quantity,
-            0
+            0,
         );
         // TODO: add logic to remove the cart document if it's empty
         await cart.save();
@@ -204,9 +204,11 @@ router.get("/", async (req, res) => {
     const { userId, guestId } = req.query;
     try {
         const cart = await getCart(userId, guestId);
-        if (cart) {
-            res.json(cart);
+        if (!cart) {
+            return res.status(404).json({ message: "Cart Not Found" });
         }
+
+        return res.json(cart);
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: "Server Error" });
@@ -249,7 +251,7 @@ router.post("/merge", protect, async (req, res) => {
                         (item) =>
                             item.productVariantId.toString() ===
                                 guestItem.productVariantId.toString() &&
-                            sameOptions(item.options, guestItem.options)
+                            sameOptions(item.options, guestItem.options),
                     );
                     if (productIndex > -1) {
                         // if item exists in the user cart, update quantity
@@ -262,7 +264,7 @@ router.post("/merge", protect, async (req, res) => {
                 });
                 userCart.totalPrice = userCart.products.reduce(
                     (acc, item) => acc + item.price * item.quantity,
-                    0
+                    0,
                 );
 
                 await userCart.save();
