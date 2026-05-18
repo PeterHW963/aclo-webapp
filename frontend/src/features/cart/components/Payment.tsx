@@ -17,6 +17,10 @@ import { toast } from "sonner";
 
 const REDIRECT_AFTER_MS = 2000;
 
+const bankName = import.meta.env.VITE_BANK_NAME;
+const bankAccountNumber = import.meta.env.VITE_BANK_ACCOUNT_NUMBER;
+const bankAccountName = import.meta.env.VITE_BANK_ACCOUNT_NAME;
+
 const Payment = () => {
   const { checkoutId } = useParams<{ checkoutId: string }>();
   const dispatch = useAppDispatch();
@@ -240,11 +244,11 @@ const Payment = () => {
             proof of payment.
             <br />
             <br />
-            Bank: <strong>BCA</strong>
+            Bank: <strong>{bankName}</strong>
             <br />
-            Account Number: <strong>7090385865</strong>
+            Account Number: <strong>{bankAccountNumber}</strong>
             <br />
-            Account Name: <strong>Christian Hadi Wijaya</strong>
+            Account Name: <strong>{bankAccountName}</strong>
           </div>
           {uploading && <p>Uploading image...</p>}
           <button

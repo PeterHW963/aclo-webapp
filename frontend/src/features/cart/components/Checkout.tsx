@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
 import ShippingOptionsModal from "./ShippingOptionsModal";
@@ -15,7 +15,7 @@ import {
   clearShipping,
 } from "../slices/shippingSlice";
 import {
-  fetchCartById,
+  fetchCart,
   removeFromCart,
   updateCartItemQuantity,
 } from "../slices/cartSlice";
@@ -32,7 +32,6 @@ const Checkout = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const { cart, loading, error } = useAppSelector((state) => state.cart);
-  const { cartId } = useParams<{ cartId: string }>();
   const { user } = useAppSelector((state) => state.auth);
   const {
     shippingOptions,
@@ -88,25 +87,27 @@ const Checkout = () => {
   };
 
   useEffect(() => {
-    if (!cartId) {
-      navigate("/");
+    if (!user?._id) {
+      navigate("/login?redirect=checkout");
       return;
     }
 
-    // ensure no infinite loop of cart loading state.
-    // If this effect runs while loading is still true, loading will stay true all the time
-    if (loading) return;
+    const cartBelongsToUser = String(cart?.user || "") === String(user._id);
 
-    if (!cart?._id || cart._id !== cartId) {
-      dispatch(fetchCartById({ cartId }));
-      return;
+    if (!cart?._id || !cartBelongsToUser) {
+      dispatch(fetchCart({ userId: user._id }));
     }
+  }, [user?._id, cart?._id, cart?.user, dispatch, navigate]);
 
-    if (!loading && (!cart.products || cart.products.length === 0)) {
+  useEffect(() => {
+    if (
+      !loading &&
+      cart?._id &&
+      (!cart.products || cart.products.length === 0)
+    ) {
       navigate("/");
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cartId, cart?._id, cart?.products?.length, loading, dispatch, navigate]);
+  }, [loading, cart?._id, cart?.products?.length, navigate]);
 
   // Auto-fill shipping details + calculate shipping if user has saved addresses
   useEffect(() => {

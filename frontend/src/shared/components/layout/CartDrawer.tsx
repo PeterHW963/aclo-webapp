@@ -35,7 +35,7 @@ const Cartdrawer = ({ drawerOpen, toggleCartDrawer }: CartDrawerProps) => {
       return;
     }
 
-    navigate(`/checkout/${cart._id}`);
+    navigate(`/checkout`);
   };
 
   return (
