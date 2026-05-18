@@ -149,15 +149,12 @@ const ProductDetails = () => {
   }, [dispatch, id]);
 
   useEffect(() => {
-    if (!id || !selectedProduct?.options) return;
+    if (!id || !selectedProduct) return;
 
     const color = searchParams.get("color") || undefined;
     const variant = searchParams.get("variant") || undefined;
     const ovenMitt = searchParams.get("ovenMitt") || undefined;
     const stabiliser = searchParams.get("stabiliser") || undefined;
-
-    const hasAnyOption = color || variant || ovenMitt || stabiliser;
-    if (!hasAnyOption) return;
 
     dispatch(
       fetchProductVariant({
@@ -170,7 +167,7 @@ const ProductDetails = () => {
     ).catch((err) => {
       console.error("Variant load failed:", err);
     });
-  }, [dispatch, id, searchParams, selectedProduct?.options]);
+  }, [dispatch, id, searchParams, selectedProduct]);
 
   const lastVariantIdRef = useRef<string | null>(null);
 

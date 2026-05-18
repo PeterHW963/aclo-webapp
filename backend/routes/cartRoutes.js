@@ -237,7 +237,7 @@ router.get("/:cartId", protect, async (req, res) => {
 router.post("/merge", protect, async (req, res) => {
     const { guestId } = req.body;
     try {
-        const guestCart = await Cart.findOne({ guestId });
+        const guestCart = await Cart.findOneAndDelete({ guestId });
         const userCart = await Cart.findOne({ user: req.user._id });
         if (guestCart) {
             if (guestCart.products.length === 0) {
@@ -269,12 +269,6 @@ router.post("/merge", protect, async (req, res) => {
 
                 await userCart.save();
 
-                // remove guest cart after merging
-                try {
-                    await Cart.findOneAndDelete({ guestId });
-                } catch (error) {
-                    console.error("Error deleting guest cart: ", error);
-                }
                 res.status(200).json(userCart);
             } else {
                 // if user has no existing cart, assign the guest cart to the user
