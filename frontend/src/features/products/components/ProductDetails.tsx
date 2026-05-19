@@ -190,12 +190,7 @@ const ProductDetails = () => {
       return;
     }
 
-    const mainIsVariantImage = vImgs.some((img) => img.publicId === mainImage);
-
-    if (
-      (variantId && variantId !== lastVariantIdRef.current) ||
-      (!mainIsVariantImage && preferredVariantImage)
-    ) {
+    if (variantId && variantId !== lastVariantIdRef.current) {
       setMainImage(preferredVariantImage || carouselImages[0].publicId);
       lastVariantIdRef.current = variantId;
       return;
