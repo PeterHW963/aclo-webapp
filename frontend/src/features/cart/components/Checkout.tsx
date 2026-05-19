@@ -23,10 +23,10 @@ import {
 import type { Checkout, ShippingDetails } from "../../../shared/types/checkout";
 import { cloudinaryImageUrl } from "../../../shared/constants/cloudinary";
 
-import LoadingOverlay from "../../../shared/components/common/LoadingOverlay";
 import Navbar from "../../../shared/components/common/Navbar";
 import type { CartItem } from "../../../shared/types/cart";
 import { getDisplayServiceName } from "../../../shared/utils/shippingService";
+import LoadingOverlay from "../../../shared/components/common/LoadingOverlay";
 
 const Checkout = () => {
   const navigate = useNavigate();
@@ -42,6 +42,7 @@ const Checkout = () => {
   } = useAppSelector((state) => state.shipping);
 
   const [creatingCheckout, setCreatingCheckout] = useState<boolean>(false); // prevent double-clicking
+  const [updatingItemKey, setUpdatingItemKey] = useState<string | null>(null);
   const [showShippingModal, setShowShippingModal] = useState<boolean>(false);
   const [showShippingDetailsModal, setShowShippingDetailsModal] =
     useState(false);
@@ -55,6 +56,13 @@ const Checkout = () => {
     latitude: number;
     longitude: number;
   } | null>(null);
+
+  const getCartItemKey = (
+    productVariantId: string,
+    options?: Record<string, any>,
+  ) => {
+    return `${productVariantId}-${JSON.stringify(options ?? {})}`;
+  };
 
   // Only calculate shipping if postal code or cart changed
   const shouldCalculateShipping = (
@@ -297,7 +305,7 @@ const Checkout = () => {
     return 0;
   };
 
-  const handleChangeQty = (
+  const handleChangeQty = async (
     productVariantId: string,
     delta: number,
     quantity: number,
@@ -308,27 +316,39 @@ const Checkout = () => {
       return;
     }
 
+    const itemKey = getCartItemKey(productVariantId, options);
     const newQuantity = quantity + delta;
     const userId = user?._id;
 
-    if (newQuantity === 0) {
-      dispatch(removeFromCart({ productVariantId, options, userId }));
-      return;
-    }
+    setUpdatingItemKey(itemKey);
 
-    if (newQuantity >= 1) {
-      dispatch(
-        updateCartItemQuantity({
-          productVariantId,
-          quantity: newQuantity,
-          options,
-          userId,
-        }),
-      );
+    try {
+      if (newQuantity === 0) {
+        await dispatch(
+          removeFromCart({ productVariantId, options, userId }),
+        ).unwrap();
+        return;
+      }
+
+      if (newQuantity >= 1) {
+        await dispatch(
+          updateCartItemQuantity({
+            productVariantId,
+            quantity: newQuantity,
+            options,
+            userId,
+          }),
+        ).unwrap();
+      }
+    } catch (err) {
+      console.error("Failed to update cart item:", err);
+      toast.error("Failed to update cart item.");
+    } finally {
+      setUpdatingItemKey(null);
     }
   };
 
-  if (loading) return <p>Loading cart...</p>;
+  if (loading && !cart?._id) return <p>Loading cart...</p>;
   if (error) return <p>Error: {error}</p>;
   if (!cart || !cart.products || cart.products.length === 0) {
     return <p>Your cart is empty</p>;
@@ -339,10 +359,12 @@ const Checkout = () => {
   const shippingCost = Number(selectedShipping?.price || 0);
 
   const total = subtotal - discount + shippingCost;
+  const isInitialCartLoading = loading && !cart?._id;
+  const isPriceUpdating = updatingItemKey !== null || shippingLoading;
 
   return (
     <>
-      {shippingLoading && <LoadingOverlay show />}
+      <LoadingOverlay show={isInitialCartLoading} />
 
       <Navbar />
       <div className="max-w-4xl mx-auto py-10 px-6 tracking-tighter">
@@ -416,86 +438,109 @@ const Checkout = () => {
           {/* Products List */}
           <div className="mt-2 rounded-2xl border border-gray-100 overflow-hidden bg-white">
             <div className="divide-y divide-gray-100">
-              {cart.products.map((product: CartItem, index: number) => (
-                <div
-                  key={index}
-                  className="flex items-start justify-between gap-4 px-5 py-4"
-                >
-                  <div className="flex items-start gap-4">
-                    <img
-                      src={cloudinaryImageUrl(product.image)}
-                      alt={product.name}
-                      className="w-20 h-24 object-cover rounded-xl border border-gray-100"
-                    />
-                    <div>
-                      <h3 className="text-[15px] font-medium text-gray-900">
-                        {product.name}
-                      </h3>
+              {cart.products.map((product: CartItem) => {
+                const itemKey = getCartItemKey(
+                  product.productVariantId,
+                  product.options,
+                );
+                const isUpdatingThisItem = updatingItemKey === itemKey;
+                return (
+                  <div
+                    key={itemKey}
+                    className={`relative flex items-start justify-between gap-4 px-5 py-4 transition`}
+                  >
+                    {isUpdatingThisItem && (
+                      <div className="absolute inset-0 z-10 bg-white/60 backdrop-blur-sm flex items-center justify-center">
+                        <span className="text-sm font-medium text-gray-700">
+                          Updating...
+                        </span>
+                      </div>
+                    )}
+                    <div className="flex items-start gap-4">
+                      <img
+                        src={cloudinaryImageUrl(product.image)}
+                        alt={product.name}
+                        className="w-20 h-24 object-cover rounded-xl border border-gray-100"
+                      />
+                      <div>
+                        <h3 className="text-[15px] font-medium text-gray-900">
+                          {product.name}
+                        </h3>
 
-                      {product.options &&
-                        Object.keys(product.options).length > 0 && (
-                          <div className="mt-2 flex flex-wrap gap-2">
-                            {Object.entries(product.options).map(
-                              ([key, value]) => (
-                                <span
-                                  key={key}
-                                  className="text-xs px-2.5 py-1 rounded-full bg-acloblue/10 text-acloblue"
-                                >
-                                  {key.charAt(0).toUpperCase() + key.slice(1)}:{" "}
-                                  {String(value)}
-                                </span>
-                              ),
-                            )}
-                          </div>
-                        )}
+                        {product.options &&
+                          Object.keys(product.options).length > 0 && (
+                            <div className="mt-2 flex flex-wrap gap-2">
+                              {Object.entries(product.options).map(
+                                ([key, value]) => (
+                                  <span
+                                    key={key}
+                                    className="text-xs px-2.5 py-1 rounded-full bg-acloblue/10 text-acloblue"
+                                  >
+                                    {key.charAt(0).toUpperCase() + key.slice(1)}
+                                    : {String(value)}
+                                  </span>
+                                ),
+                              )}
+                            </div>
+                          )}
+                      </div>
+                    </div>
+                    <div className="flex h-24 flex-col items-end">
+                      <p className="text-xl text-acloblue font-semibold">
+                        IDR {Number(product.price).toLocaleString("id-ID")}
+                      </p>
+                      <div className="mt-3 flex items-center gap-2">
+                        <button
+                          type="button"
+                          disabled={isUpdatingThisItem}
+                          onClick={() =>
+                            handleChangeQty(
+                              product.productVariantId,
+                              -1,
+                              product.quantity,
+                              product.options,
+                            )
+                          }
+                          className="px-2.5 py-1 bg-gray-200 rounded text-lg hover:bg-gray-300 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          -
+                        </button>
+
+                        <span className="text-base font-medium w-8 text-center">
+                          {product.quantity}
+                        </span>
+
+                        <button
+                          type="button"
+                          disabled={isUpdatingThisItem}
+                          onClick={() =>
+                            handleChangeQty(
+                              product.productVariantId,
+                              1,
+                              product.quantity,
+                              product.options,
+                            )
+                          }
+                          className="px-2.5 py-1 bg-gray-200 rounded text-lg hover:bg-gray-300 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          +
+                        </button>
+                      </div>
                     </div>
                   </div>
-                  <div className="flex h-24 flex-col items-end">
-                    <p className="text-xl text-acloblue font-semibold">
-                      IDR {Number(product.price).toLocaleString("id-ID")}
-                    </p>
-                    <div className="mt-3 flex items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() =>
-                          handleChangeQty(
-                            product.productVariantId,
-                            -1,
-                            product.quantity,
-                            product.options,
-                          )
-                        }
-                        className="px-2.5 py-1 bg-gray-200 rounded text-lg hover:bg-gray-300"
-                      >
-                        -
-                      </button>
-
-                      <span className="text-base font-medium w-8 text-center">
-                        {product.quantity}
-                      </span>
-
-                      <button
-                        type="button"
-                        onClick={() =>
-                          handleChangeQty(
-                            product.productVariantId,
-                            1,
-                            product.quantity,
-                            product.options,
-                          )
-                        }
-                        className="px-2.5 py-1 bg-gray-200 rounded text-lg hover:bg-gray-300"
-                      >
-                        +
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
 
-          <div className="mt-6 rounded-2xl border border-gray-100 bg-white p-5">
+          <div className="relative mt-6 rounded-2xl border border-gray-100 bg-white p-5 overflow-hidden">
+            {isPriceUpdating && (
+              <div className="absolute inset-0 z-10 bg-white/60 backdrop-blur-sm flex items-center justify-center rounded-2xl">
+                <span className="text-sm font-medium text-gray-700">
+                  Updating total...
+                </span>
+              </div>
+            )}
             <div className="flex justify-between items-center">
               <p className="text-gray-700">Subtotal</p>
               <p className="text-lg font-medium text-gray-900">
