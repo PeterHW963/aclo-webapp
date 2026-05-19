@@ -171,6 +171,11 @@ const ProductDetails = () => {
 
   const lastVariantIdRef = useRef<string | null>(null);
 
+  // reset product quantity when product or variant changes
+  useEffect(() => {
+    setQuantity(1);
+  }, [id, selectedVariant?._id]);
+
   useEffect(() => {
     if (!carouselImages.length) return;
 
