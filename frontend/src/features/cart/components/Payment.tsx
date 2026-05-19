@@ -40,6 +40,7 @@ const Payment = () => {
 
   const [previewOpen, setPreviewOpen] = useState<boolean>(false);
 
+  const [initialCheckoutLoading, setInitialCheckoutLoading] = useState(false);
   const [uploading, setUploading] = useState<boolean>(false);
   const [submitting, setSubmitting] = useState(false);
   const [deleting, setDeleting] = useState<boolean>(false);
@@ -55,7 +56,14 @@ const Payment = () => {
 
     // fetch if missing OR wrong checkout in redux
     if (!checkout?._id || checkout._id !== checkoutId) {
-      dispatch(fetchCheckoutById({ checkoutId }));
+      // dispatch(fetchCheckoutById({ checkoutId }));
+      setInitialCheckoutLoading(true);
+
+      dispatch(fetchCheckoutById({ checkoutId }))
+        .unwrap()
+        .finally(() => {
+          setInitialCheckoutLoading(false);
+        });
     }
   }, [checkoutId, checkout?._id, dispatch, navigate]);
 
@@ -227,7 +235,7 @@ const Payment = () => {
     <>
       <Navbar />
       <div className="flex justify-center px-4 py-10">
-        <LoadingOverlay show={checkoutLoading} />
+        <LoadingOverlay show={initialCheckoutLoading} />
         <div className="max-w-4xl border-black border-2 rounded-lg mx-auto py-10 px-6 tracking-tighter">
           <div className="text-3xl uppercase mb-4 text-acloblue">
             Payment Instructions
