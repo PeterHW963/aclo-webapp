@@ -1,3 +1,17 @@
+const getSupportContactBlock = () => `
+    <p style="margin: 24px 0 0; font-size: 15px; color: #666666; line-height: 1.7;">
+        If you are facing any issues, please contact us on WhatsApp at
+        <a
+            href="https://api.whatsapp.com/send?phone=628118635635&text=Halo%20ACLO!"
+            target="_blank"
+            rel="noopener noreferrer"
+            style="color: #00b7e8; font-weight: 600; text-decoration: none;"
+        >
+            +62 811 8635 635
+        </a>
+    </p>
+`;
+
 // Base email template
 const getBaseTemplate = (content) => {
     const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
@@ -32,6 +46,7 @@ const getBaseTemplate = (content) => {
                     <tr>
                         <td style="padding: 40px;">
                             ${content}
+                            ${getSupportContactBlock()}
                         </td>
                     </tr>
                     
