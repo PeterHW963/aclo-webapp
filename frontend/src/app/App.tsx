@@ -63,7 +63,7 @@ function AppInner() {
           <Route path="learn-more" element={<LearnMore />} />
           <Route path="shop" element={<ShopPage />} />
           <Route path="product/:id" element={<ProductDetails />} />
-          <Route path="checkout/:cartId" element={<Checkout />} />
+          <Route path="checkout" element={<Checkout />} />
           <Route path="payment/:checkoutId" element={<Payment />} />
           <Route
             path="order/:orderId/confirmation"

@@ -35,20 +35,31 @@ const Login = () => {
 
   // get redirect parameter and check if it's checkout or something else
   const redirect = new URLSearchParams(location.search).get("redirect") || "/";
-  const isCheckoutRedirect = redirect.includes("checkout");
+  const isCheckoutRedirect = redirect === "/checkout";
 
   useEffect(() => {
-    if (user) {
-      if (cart?.products.length > 0 && guestId) {
-        // merge guest products with user products
-        dispatch(mergeCart({ guestId, user })).then(() => {
-          navigate(isCheckoutRedirect ? `/checkout/${cart._id}` : "/");
-        });
-      } else {
-        navigate(isCheckoutRedirect ? `/checkout/${cart._id}` : "/");
+    if (!user) return;
+
+    const goAfterLogin = async () => {
+      if (cart?.products?.length > 0 && guestId) {
+        await dispatch(mergeCart({ guestId, user })).unwrap();
       }
-    }
-  }, [user, guestId, cart, navigate, isCheckoutRedirect, dispatch]);
+
+      navigate(isCheckoutRedirect ? "/checkout" : redirect, {
+        replace: true,
+      });
+    };
+
+    goAfterLogin();
+  }, [
+    user,
+    guestId,
+    cart?.products?.length,
+    redirect,
+    navigate,
+    isCheckoutRedirect,
+    dispatch,
+  ]);
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     setError(null);
