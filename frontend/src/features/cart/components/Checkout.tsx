@@ -100,11 +100,7 @@ const Checkout = () => {
       return;
     }
 
-    const cartBelongsToUser = String(cart?.user || "") === String(user._id);
-
-    if (!cart?._id || !cartBelongsToUser) {
-      dispatch(fetchCart({ userId: user._id }));
-    }
+    dispatch(fetchCart({ userId: user._id }));
   }, [user?._id, cart?._id, cart?.user, dispatch, navigate]);
 
   useEffect(() => {

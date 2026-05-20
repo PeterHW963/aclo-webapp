@@ -237,7 +237,7 @@ router.get("/:cartId", protect, async (req, res) => {
 router.post("/merge", protect, async (req, res) => {
     const { guestId } = req.body;
     try {
-        const guestCart = await Cart.findOneAndDelete({ guestId });
+        const guestCart = await Cart.findOne({ guestId });
         const userCart = await Cart.findOne({ user: req.user._id });
         if (guestCart) {
             if (guestCart.products.length === 0) {
@@ -289,6 +289,8 @@ router.post("/merge", protect, async (req, res) => {
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: "Server Error" });
+    } finally {
+        await Cart.deleteOne({ guestId: guestId });
     }
 });
 

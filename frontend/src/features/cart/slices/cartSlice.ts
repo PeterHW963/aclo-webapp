@@ -85,7 +85,7 @@ export const addToCart = createAsyncThunk<
   "cart/addToCart",
   async (
     { productId, productVariantId, quantity, options, guestId, userId },
-    { rejectWithValue }
+    { rejectWithValue },
   ) => {
     try {
       const response = await axios.post<Cart>(`${API_URL}/api/cart`, {
@@ -104,7 +104,7 @@ export const addToCart = createAsyncThunk<
       }
       return rejectWithValue({ message: "Failed to add to cart" });
     }
-  }
+  },
 );
 
 // update the quantity of an item in the cart
@@ -122,7 +122,7 @@ export const updateCartItemQuantity = createAsyncThunk<
   "cart/updateCartItemQuantity",
   async (
     { productVariantId, quantity, options, guestId, userId },
-    { rejectWithValue }
+    { rejectWithValue },
   ) => {
     try {
       const response = await axios.put<Cart>(`${API_URL}/api/cart`, {
@@ -140,7 +140,7 @@ export const updateCartItemQuantity = createAsyncThunk<
       }
       return rejectWithValue({ message: "Failed to update item quantity" });
     }
-  }
+  },
 );
 
 // Remove an item from the cart
@@ -157,7 +157,7 @@ export const removeFromCart = createAsyncThunk<
   "cart/removeFromCart",
   async (
     { productVariantId, options, guestId, userId },
-    { rejectWithValue }
+    { rejectWithValue },
   ) => {
     try {
       // diff syntax because DELETE method in axios treats 2nd argument as options, not as req body
@@ -172,7 +172,7 @@ export const removeFromCart = createAsyncThunk<
       }
       return rejectWithValue({ message: "Failed to remove item" });
     }
-  }
+  },
 );
 
 // Merge guest cart into user cart
@@ -187,7 +187,7 @@ export const mergeCart = createAsyncThunk<
       { guestId, user },
       {
         headers: getAuthHeader(),
-      }
+      },
     );
     return response.data as Cart;
   } catch (err) {
