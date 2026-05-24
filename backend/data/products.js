@@ -6,9 +6,9 @@ const products = [
 
 ### Key Features
 
-- **Ultra-Sturdy Build:** Made from high-quality materials — safe, smooth, and child-friendly.
+- **Ultra-Sturdy Build:** Made from high-quality materials - safe, smooth, and child-friendly.
 - **Foldable & Compact:** Minimalist design that folds easily to save space.
-- **Adjustable Heights:** Height can be adjusted as your child grows — a long-term investment.
+- **Adjustable Heights:** Height can be adjusted as your child grows - a long-term investment.
 - **Lightweight & Portable:** Easy to move around so your child can join different activities at home.
 - **Available in 3 playful colours!**
 
@@ -17,7 +17,7 @@ const products = [
 - **Brand:** ACLO  
 - **Open dimensions (H x W x D):** 90 x 44 x 44 cm  
 - **Folded thickness:** 14 cm *(without footrest)*; 22 cm *(with footrest)*  
-- **Weight:** 6 kg  
+- **Weight:** 8.5kg  
 - **Material:** Birch plywood  
 - **Maximum load:** 100 kg  
 
@@ -25,12 +25,12 @@ const products = [
 
 This learning tower supports your child’s natural curiosity through hands-on experiences. Whether they’re helping in the kitchen, washing their hands, or observing their surroundings, it helps develop **independence, self-confidence, and practical life skills**.
 
-Delivered fully assembled *(comes with a manual and tools).*
+Delivered fully assembled except for the attachable step. Manual and tools included.
 
 ### Shipping
 
 **When will my order be processed and shipped?**  
-Monday – Sunday: Orders placed before **16:00 WIB** will be processed and shipped the same day.  
+Monday - Sunday: Orders placed before **16:00 WIB** will be processed and shipped the same day.  
 Orders placed after **16:00 WIB** will be processed on the next working day.
 
 **Need it urgently?**  
@@ -89,7 +89,7 @@ Instant delivery is available within Jabodetabek.
             width: 16.5,
             height: 102,
         },
-        weight: 7500,
+        weight: 8850,
         isListed: true,
     },
     {
@@ -109,7 +109,7 @@ Instant delivery is available within Jabodetabek.
 - **Brand:** ACLO 
 - **Open dimensions (H x W x D):** 90 x 41 x 48 cm  
 - **Folded thickness:** 10 cm  
-- **Weight:** 4 kg  
+- **Weight:** 6.5 kg  
 - **Material:** Birch plywood  
 - **Maximum load:** 80 kg  
 
@@ -122,7 +122,7 @@ Delivered fully assembled *(comes with a manual and tools).*
 ### Shipping
 
 **When will my order be processed and shipped?**  
-Monday – Sunday: Orders placed before **16:00 WIB** will be processed and shipped the same day.  
+Monday - Sunday: Orders placed before **16:00 WIB** will be processed and shipped the same day.  
 Orders placed after **16:00 WIB** will be processed on the next working day.
 
 **Need it urgently?**  
@@ -181,7 +181,7 @@ Instant delivery is available within Jabodetabek.
             width: 12,
             height: 104,
         },
-        weight: 8500,
+        weight: 6540,
         isListed: true,
     },
     {
@@ -192,9 +192,9 @@ Instant delivery is available within Jabodetabek.
 ### Key Features
 
 - **Super Lightweight & Portable:** Easy to move around the house, so your child can join different activities in different spaces.
-- **Foldable & Compact:** Slim, minimalist design that folds neatly — space-saving and still stylish in your home.
+- **Foldable & Compact:** Slim, minimalist design that folds neatly - space-saving and still stylish in your home.
 - **Durable & Safe:** Made from high-quality, non-toxic materials with a smooth finish to keep your child safe while climbing, standing, and exploring.
-- **Adjustable Heights:** Adjusts as your child grows — a long-term investment in Montessori learning.
+- **Adjustable Heights:** Adjusts as your child grows - a long-term investment in Montessori learning.
 - **Available in 2 neutral colours!**
 
 ### Specifications
@@ -202,7 +202,7 @@ Instant delivery is available within Jabodetabek.
 - **Brand:** ACLO  
 - **Open dimensions (H x W x D):** 56 x 40 x 38 cm  
 - **Folded thickness:** 12.5 cm  
-- **Weight:** 3 kg  
+- **Weight:** 3.6 kg  
 - **Material:** Birch plywood  
 - **Maximum load:** 50 kg  
 
@@ -215,7 +215,7 @@ This learning tower supports your child’s natural curiosity through hands-on e
 ### Shipping
 
 **When will my order be processed and shipped?**  
-Monday – Sunday: Orders placed before **16:00 WIB** will be processed and shipped the same day.  
+Monday - Sunday: Orders placed before **16:00 WIB** will be processed and shipped the same day.  
 Orders placed after **16:00 WIB** will be processed on the next working day.
 
 **Need it urgently?**  
@@ -271,34 +271,34 @@ Instant delivery is available within Jabodetabek.
             width: 8,
             height: 65,
         },
-        weight: 4000,
+        weight: 3650,
         isListed: true,
     },
     {
         name: "QUILL - Premium Kid-size Mini Kitchen Utensils",
         category: "Utensils",
-        description: `Real cooking tools for little chefs at home! Designed in a mini size that’s safe and ergonomic — comfortable for kids to hold, yet still usable for adults. Perfect for supporting your child’s independence, confidence, and curiosity from an early age.
+        description: `Real cooking tools for little chefs at home! Designed in a mini size that’s safe and ergonomic - comfortable for kids to hold, yet still usable for adults. Perfect for supporting your child’s independence, confidence, and curiosity from an early age.
 
 ### Key Features
 
 - **Perfect Fit for Little Hands:** Ergonomic handles that are comfortable to grip, helping children practise fine motor skills while learning to cook.
-- **World-Class Quality:** Made from food-grade stainless steel (430 & 201) and solid beech wood — rust-resistant, durable, smooth, and easy to clean.
+- **World-Class Quality:** Made from food-grade stainless steel (430 & 201) and solid beech wood - rust-resistant, durable, smooth, and easy to clean.
 - **Heat-Resistant:** Withstands heat up to **150°C**, safe for light cooking activities in the kitchen.
 
 ### What’s Included (7 or 8 pcs)
 
-- **Soup Ladle** — Stainless steel 430 (15.5 cm)  
-- **Whisk** — Stainless steel 201 (19 cm)  
-- **Spatula** — Stainless steel 430 (18 cm)  
-- **Pasta Claw** — Stainless steel 430 (17.5 cm)  
-- **Skimmer** — Stainless steel 430 (18.5 cm)  
-- **Wooden Spoon** — Solid beech wood (16.5 cm)  
-- **Utensil Holder** — Metal (height 11 cm, diameter 7 cm)  
-- **[Optional] Oven Mitt** — Polyester with heat-resistant cotton filling (17.5 x 11 cm)
+- **Soup Ladle** - Stainless steel 430 (15.5 cm)  
+- **Whisk** - Stainless steel 201 (19 cm)  
+- **Spatula** - Stainless steel 430 (18 cm)  
+- **Pasta Claw** - Stainless steel 430 (17.5 cm)  
+- **Skimmer** - Stainless steel 430 (18.5 cm)  
+- **Wooden Spoon** - Solid beech wood (16.5 cm)  
+- **Utensil Holder** - Metal (height 11 cm, diameter 7 cm)  
+- **[Optional] Oven Mitt** - Polyester with heat-resistant cotton filling (17.5 x 11 cm)
 
 ### Why Choose QUILL?
 
-Kids learn by doing — and the kitchen is one of the best places to build independence and confidence. QUILL helps children take part in real kitchen activities: whisking batter, mixing sauces, or scooping food — using tools that are genuinely functional and safe for them.
+Kids learn by doing - and the kitchen is one of the best places to build independence and confidence. QUILL helps children take part in real kitchen activities: whisking batter, mixing sauces, or scooping food - using tools that are genuinely functional and safe for them.
 
 ### Specifications
 
@@ -313,7 +313,7 @@ This supports your child’s natural curiosity through hands-on experiences. Whe
 ### Shipping
 
 **When will my order be processed and shipped?**  
-Monday – Sunday: Orders placed before **16:00 WIB** will be processed and shipped the same day.  
+Monday - Sunday: Orders placed before **16:00 WIB** will be processed and shipped the same day.  
 Orders placed after **16:00 WIB** will be processed on the next working day.
 
 **Need it urgently?**  
@@ -371,7 +371,7 @@ Instant delivery is available within Jabodetabek.
             width: 8,
             height: 21.5,
         },
-        weight: 30,
+        weight: 380,
         isListed: true,
     },
     {
@@ -387,7 +387,7 @@ Instant delivery is available within Jabodetabek.
 
 ### Why Choose QUILL?
 
-Kids learn by doing. Kitchen activities help build independence and self-confidence. QUILL helps children take part in real kitchen tasks — whisking batter, mixing sauces, or scooping food.
+Kids learn by doing. Kitchen activities help build independence and self-confidence. QUILL helps children take part in real kitchen tasks - whisking batter, mixing sauces, or scooping food.
 
 ### Specifications
 
@@ -402,7 +402,7 @@ This supports your child’s natural curiosity through hands-on experiences. Whe
 ### Shipping
 
 **When will my order be processed and shipped?**  
-Monday – Sunday: Orders placed before **16:00 WIB** will be processed and shipped the same day.  
+Monday - Sunday: Orders placed before **16:00 WIB** will be processed and shipped the same day.  
 Orders placed after **16:00 WIB** will be processed on the next working day.
 
 **Need it urgently?**  
@@ -457,7 +457,7 @@ Instant delivery is available within Jabodetabek.
             width: 9,
             height: 8,
         },
-        weight: 30,
+        weight: 100,
         isListed: true,
     },
     {
@@ -485,7 +485,7 @@ This supports your child’s natural curiosity through hands-on experiences. Whe
 ### Shipping
 
 **When will my order be processed and shipped?**  
-Monday – Sunday: Orders placed before **16:00 WIB** will be processed and shipped the same day.  
+Monday - Sunday: Orders placed before **16:00 WIB** will be processed and shipped the same day.  
 Orders placed after **16:00 WIB** will be processed on the next working day.
 
 **Need it urgently?**  
@@ -538,7 +538,7 @@ Instant delivery is available within Jabodetabek.
             width: 18.5,
             height: 3,
         },
-        weight: 200,
+        weight: 190,
         isListed: true,
     },
     {
@@ -566,7 +566,7 @@ This supports your child’s natural curiosity through hands-on experiences. Whe
 ### Shipping
 
 **When will my order be processed and shipped?**  
-Monday – Sunday: Orders placed before **16:00 WIB** will be processed and shipped the same day.  
+Monday - Sunday: Orders placed before **16:00 WIB** will be processed and shipped the same day.  
 Orders placed after **16:00 WIB** will be processed on the next working day.
 
 **Need it urgently?**  
@@ -610,7 +610,7 @@ Instant delivery is available within Jabodetabek.
             width: 13.5,
             height: 5,
         },
-        weight: 30,
+        weight: 200,
         isListed: true,
     },
 ];
