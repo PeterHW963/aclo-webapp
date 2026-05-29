@@ -37,9 +37,6 @@ const ProductCard = ({ product, variants }: ProductCardProps) => {
     }));
   };
 
-  // find default variant
-  const defaultVariant = variants.find((v) => v.isDefault);
-
   // find selected variant, if any
   const selectedVariant = variants.find((v) => {
     if (Object.keys(selections).length === 0) return false;
@@ -58,14 +55,23 @@ const ProductCard = ({ product, variants }: ProductCardProps) => {
   const displayAlt =
     selectedVariant?.images?.[0]?.alt || product.images[0]?.alt || product.name;
 
+  const cheapestVariant = variants.reduce<ProductVariant | undefined>(
+    (cheapest, variant) => {
+      const variantDisplayPrice = variant.discountPrice ?? variant.price;
+      const cheapestDisplayPrice = cheapest
+        ? (cheapest.discountPrice ?? cheapest.price)
+        : Infinity;
+
+      return variantDisplayPrice < cheapestDisplayPrice ? variant : cheapest;
+    },
+    undefined,
+  );
   // determine price to display
-  let discountPrice = defaultVariant?.discountPrice ?? null;
+  let discountPrice = cheapestVariant?.discountPrice ?? null;
+  let originalPrice = cheapestVariant?.price;
+
   if (selectedVariant) {
     discountPrice = selectedVariant.discountPrice ?? selectedVariant.price;
-  }
-
-  let originalPrice = defaultVariant?.price;
-  if (selectedVariant) {
     originalPrice = selectedVariant.price;
   }
 
