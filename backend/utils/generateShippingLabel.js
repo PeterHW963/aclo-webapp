@@ -1,4 +1,7 @@
-const puppeteer = require("puppeteer-core");
+async function getPuppeteer() {
+    const puppeteer = await import("puppeteer-core");
+    return puppeteer.default;
+}
 const chromium = require("@sparticuz/chromium");
 
 const isProduction = process.env.IS_PRODUCTION === "true";
