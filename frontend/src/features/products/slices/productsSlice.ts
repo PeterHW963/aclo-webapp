@@ -16,6 +16,7 @@ import { updateProduct } from "../../admin/slices/adminProductSlice";
 interface ProductState {
   products: Product[];
   productVariants: Record<string, ProductVariant[]>;
+  selectedProductVariants: ProductVariant[];
   selectedProduct: Product | null;
   selectedVariant: ProductVariant | null;
   similarProducts: Product[];
@@ -28,6 +29,7 @@ interface ProductState {
 const initialState: ProductState = {
   products: [],
   productVariants: {},
+  selectedProductVariants: [],
   selectedProduct: null,
   selectedVariant: null,
   similarProducts: [],
@@ -99,11 +101,11 @@ export const fetchSimilarProducts = createAsyncThunk<
 });
 
 // async thunk to get all product variants
-export const fetchProductVariants = createAsyncThunk<
+export const fetchProductVariantsBulk = createAsyncThunk<
   ProductVariant[],
   { productIds: string[] },
   { rejectValue: AppError }
->("products/fetchVariants", async ({ productIds }, { rejectWithValue }) => {
+>("products/fetchVariantsBulk", async ({ productIds }, { rejectWithValue }) => {
   try {
     const response = await axios.post<ProductVariant[]>(
       `${API_URL}/api/products/variants/bulk`,
@@ -138,6 +140,34 @@ export const fetchSimilarProductVariants = createAsyncThunk<
         return rejectWithValue(error.response.data);
       }
       return rejectWithValue({ message: "Failed to fetch product variants" });
+    }
+  },
+);
+
+// async thunk to fetch all variants of ONE product
+export const fetchSelectedProductVariants = createAsyncThunk<
+  ProductVariant[],
+  { productId: string },
+  { rejectValue: AppError }
+>(
+  "products/fetchSelectedProductVariants",
+  async ({ productId }, { rejectWithValue }) => {
+    try {
+      const response = await axios.get<ProductVariant[]>(
+        `${API_URL}/api/products/${productId}/variants`,
+      );
+
+      return response.data;
+    } catch (err) {
+      const error = err as AxiosError<AppError>;
+
+      if (error.response && error.response.data) {
+        return rejectWithValue(error.response.data);
+      }
+
+      return rejectWithValue({
+        message: "Failed to fetch product variants",
+      });
     }
   },
 );
@@ -234,11 +264,11 @@ const productSlice = createSlice({
           action.payload?.message || "Failed to fetch similar products";
       })
       // FETCH VARIANTS (BULK)
-      .addCase(fetchProductVariants.pending, (state) => {
+      .addCase(fetchProductVariantsBulk.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(fetchProductVariants.fulfilled, (state, action) => {
+      .addCase(fetchProductVariantsBulk.fulfilled, (state, action) => {
         state.loading = false;
         // Clear old data and rebuild the map
         const newMap: Record<string, ProductVariant[]> = {};
@@ -255,7 +285,7 @@ const productSlice = createSlice({
           ...newMap,
         };
       })
-      .addCase(fetchProductVariants.rejected, (state, action) => {
+      .addCase(fetchProductVariantsBulk.rejected, (state, action) => {
         state.loading = false;
         state.error =
           action.payload?.message || "Failed to bulk fetch product variants";
@@ -283,6 +313,22 @@ const productSlice = createSlice({
         state.loading = false;
         state.error =
           action.payload?.message || "Failed to bulk fetch product variants";
+      })
+      // FETCH VARIANTS FOR 1 PRODUCT (fetchSelectedProductVariants)
+      .addCase(fetchSelectedProductVariants.pending, (state) => {
+        state.variantLoading = true;
+        state.error = null;
+        state.selectedProductVariants = [];
+      })
+      .addCase(fetchSelectedProductVariants.fulfilled, (state, action) => {
+        state.variantLoading = false;
+        state.selectedProductVariants = action.payload;
+      })
+      .addCase(fetchSelectedProductVariants.rejected, (state, action) => {
+        state.variantLoading = false;
+        state.error =
+          action.payload?.message ||
+          "Failed to fetch selected product variants";
       })
       // VARIANT
       .addCase(fetchProductVariant.pending, (state) => {

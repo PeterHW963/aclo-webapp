@@ -10,7 +10,7 @@ import {
 } from "../slices/adminProductSlice";
 import {
   fetchProducts,
-  fetchProductVariants,
+  fetchProductVariantsBulk,
 } from "../../products/slices/productsSlice";
 
 import { cloudinaryImageUrl } from "../../../shared/constants/cloudinary";
@@ -89,7 +89,9 @@ const ProductManagement = () => {
         const ids = prods.map((p) => p._id);
 
         if (ids.length > 0) {
-          await dispatch(fetchProductVariants({ productIds: ids })).unwrap();
+          await dispatch(
+            fetchProductVariantsBulk({ productIds: ids }),
+          ).unwrap();
         }
       } catch (err) {
         console.error("Failed to load products: ", err);
@@ -117,7 +119,7 @@ const ProductManagement = () => {
       const prods = await dispatch(fetchProducts()).unwrap();
       const ids = prods.map((p) => p._id);
       if (ids.length > 0) {
-        await dispatch(fetchProductVariants({ productIds: ids })).unwrap();
+        await dispatch(fetchProductVariantsBulk({ productIds: ids })).unwrap();
       }
 
       toast.success("Product deleted successfully");
@@ -370,7 +372,7 @@ const ProductManagement = () => {
                 const ids = prods.map((p) => p._id);
                 if (ids.length > 0) {
                   await dispatch(
-                    fetchProductVariants({ productIds: ids }),
+                    fetchProductVariantsBulk({ productIds: ids }),
                   ).unwrap();
                 }
 
