@@ -12,8 +12,8 @@ import { useAppDispatch, useAppSelector } from "../../../app/hooks";
 
 import {
   fetchProductDetails,
-  fetchProductVariant,
-  fetchProductVariants,
+  fetchSelectedProductVariants,
+  fetchProductVariantsBulk,
   fetchProducts,
 } from "../slices/productsSlice";
 
@@ -23,6 +23,7 @@ import { cloudinaryImageUrl } from "../../../shared/constants/cloudinary";
 import { LOW_STOCK_THRESHOLD } from "../../../shared/constants/products";
 
 import type { Product, ProductImage } from "../../../shared/types/product";
+import type { ProductVariant } from "../../../shared/types/productVariant";
 
 const ProductDetails = () => {
   const [loading, setLoading] = useState<boolean>(true);
@@ -32,7 +33,7 @@ const ProductDetails = () => {
 
   const {
     selectedProduct,
-    selectedVariant,
+    selectedProductVariants,
     products,
     productVariants,
     loading: productsLoading,
@@ -63,6 +64,68 @@ const ProductDetails = () => {
     });
   }, [selectedProduct, searchParams]);
 
+  const getDisplayPrice = (variant: ProductVariant) => {
+    return variant.discountPrice ?? variant.price;
+  };
+
+  const getCheapestInStockVariant = (variants: ProductVariant[]) => {
+    return (
+      [...variants]
+        .filter((variant) => variant.countInStock > 0)
+        .sort((a, b) => getDisplayPrice(a) - getDisplayPrice(b))[0] ?? null
+    );
+  };
+
+  const selectedOptions = useMemo(() => {
+    if (!selectedProduct?.options) return {};
+
+    return Object.fromEntries(
+      Object.keys(selectedProduct.options)
+        .map((key) => [key, searchParams.get(key)])
+        .filter(([, value]) => value != null && value !== ""),
+    ) as Record<string, string>;
+  }, [selectedProduct, searchParams]);
+
+  const matchingVariants = useMemo(() => {
+    const entries = Object.entries(selectedOptions);
+
+    if (entries.length === 0) {
+      return selectedProductVariants;
+    }
+
+    return selectedProductVariants.filter((variant) =>
+      entries.every(([key, value]) => {
+        return variant[key as keyof ProductVariant] === value;
+      }),
+    );
+  }, [selectedProductVariants, selectedOptions]);
+
+  const selectedVariant = useMemo(() => {
+    if (!selectedProduct?.options) return null;
+    if (!hasAllRequiredOptionsSelected) return null;
+
+    const optionKeys = Object.keys(selectedProduct.options);
+
+    return (
+      selectedProductVariants.find((variant) =>
+        optionKeys.every((key) => {
+          return variant[key as keyof ProductVariant] === searchParams.get(key);
+        }),
+      ) ?? null
+    );
+  }, [
+    selectedProduct,
+    selectedProductVariants,
+    searchParams,
+    hasAllRequiredOptionsSelected,
+  ]);
+
+  const previewVariant = useMemo(() => {
+    return getCheapestInStockVariant(matchingVariants);
+  }, [matchingVariants]);
+
+  const displayVariant = selectedVariant ?? previewVariant;
+
   const displayName = useMemo(() => {
     if (hasAllRequiredOptionsSelected && selectedVariant?.name) {
       return selectedVariant.name;
@@ -78,8 +141,8 @@ const ProductDetails = () => {
     const productImgs = selectedProduct?.images?.length
       ? selectedProduct.images
       : [];
-    const variantImgs = selectedVariant?.images?.length
-      ? selectedVariant.images
+    const variantImgs = displayVariant?.images?.length
+      ? displayVariant.images
       : [];
 
     if (!hasUserSelectedOption) return productImgs;
@@ -95,7 +158,7 @@ const ProductDetails = () => {
     ];
 
     return merged.length ? merged : productImgs;
-  }, [selectedProduct, selectedVariant, hasUserSelectedOption]);
+  }, [selectedProduct, displayVariant, hasUserSelectedOption]);
 
   // Don't show first image in product details
   const blockedProductFirstId = selectedProduct?.images?.[0]?.publicId || null;
@@ -112,13 +175,13 @@ const ProductDetails = () => {
   }, [displayedImages, blockedProductFirstId]);
 
   // Stock status
-  const stockCount = selectedVariant?.countInStock;
+  const stockCount = displayVariant?.countInStock;
   const isSoldOut = stockCount === 0;
   const isLowStock =
     typeof stockCount === "number" &&
     stockCount > 0 &&
     stockCount <= LOW_STOCK_THRESHOLD;
-  const variant = selectedVariant;
+  const variant = displayVariant;
 
   useEffect(() => {
     let cancelled = false;
@@ -129,12 +192,17 @@ const ProductDetails = () => {
       try {
         // curr product details
         await dispatch(fetchProductDetails({ id })).unwrap();
+        await dispatch(
+          fetchSelectedProductVariants({ productId: id }),
+        ).unwrap();
         const all = await dispatch(fetchProducts()).unwrap();
         const listed = all.filter((p: Product) => p.isListed && p._id !== id);
         const ids = listed.map((p: Product) => p._id);
 
         if (ids.length > 0) {
-          await dispatch(fetchProductVariants({ productIds: ids })).unwrap();
+          await dispatch(
+            fetchProductVariantsBulk({ productIds: ids }),
+          ).unwrap();
         }
       } catch (err) {
         console.error("ProductDetails load failed: ", err);
@@ -148,27 +216,6 @@ const ProductDetails = () => {
     };
   }, [dispatch, id]);
 
-  useEffect(() => {
-    if (!id || !selectedProduct) return;
-
-    const color = searchParams.get("color") || undefined;
-    const variant = searchParams.get("variant") || undefined;
-    const ovenMitt = searchParams.get("ovenMitt") || undefined;
-    const stabiliser = searchParams.get("stabiliser") || undefined;
-
-    dispatch(
-      fetchProductVariant({
-        productId: id,
-        color,
-        variant,
-        ovenMitt,
-        stabiliser,
-      }),
-    ).catch((err) => {
-      console.error("Variant load failed:", err);
-    });
-  }, [dispatch, id, searchParams, selectedProduct]);
-
   const lastVariantIdRef = useRef<string | null>(null);
 
   // reset product quantity when product or variant changes
@@ -179,9 +226,9 @@ const ProductDetails = () => {
   useEffect(() => {
     if (!carouselImages.length) return;
 
-    const variantId = selectedVariant?._id ?? null;
+    const variantId = displayVariant?._id ?? null;
 
-    const vImgs = selectedVariant?.images || [];
+    const vImgs = displayVariant?.images || [];
     const preferredVariantImage =
       vImgs.find((img) => img.publicId !== blockedProductFirstId)?.publicId ??
       vImgs[0]?.publicId ??
@@ -206,8 +253,8 @@ const ProductDetails = () => {
   }, [
     carouselImages,
     hasUserSelectedOption,
-    selectedVariant?._id,
-    selectedVariant?.images,
+    displayVariant?._id,
+    displayVariant?.images,
     blockedProductFirstId,
     mainImage,
   ]);
@@ -226,6 +273,39 @@ const ProductDetails = () => {
     return preferred ?? values[0];
   };
 
+  const pickDefaultColorValue = (stabiliserValue: string) => {
+    const matchingVariants = selectedProductVariants.filter((variant) => {
+      return variant.stabiliser === stabiliserValue && variant.color;
+    });
+
+    // 1. Prefer default variant if it matches stabiliser and is in stock
+    const defaultInStockVariant = matchingVariants.find((variant) => {
+      return variant.isDefault && variant.countInStock > 0;
+    });
+
+    if (defaultInStockVariant?.color) {
+      return defaultInStockVariant.color;
+    }
+
+    // 2. If default is not in stock, use the next in-stock matching variant
+    const nextInStockVariant = matchingVariants.find((variant) => {
+      return variant.countInStock > 0;
+    });
+
+    if (nextInStockVariant?.color) {
+      return nextInStockVariant.color;
+    }
+
+    // 3. If everything is out of stock, fall back to default matching variant
+    const defaultVariant = matchingVariants.find((variant) => {
+      return variant.isDefault;
+    });
+
+    if (defaultVariant?.color) {
+      return defaultVariant.color;
+    }
+  };
+
   const handleOptionSelect = (key: string, value: string) => {
     const newParams = new URLSearchParams(searchParams);
     newParams.set(key, value);
@@ -236,6 +316,18 @@ const ProductDetails = () => {
         const stabValues = selectedProduct.options.stabiliser;
         const noStab = pickNoStabiliserValue(stabValues);
         newParams.set("stabiliser", noStab);
+      }
+    }
+
+    if (key === "stabiliser" && selectedProduct?.options?.color) {
+      const currentColor = newParams.get("color");
+
+      if (!currentColor) {
+        const defaultColor = pickDefaultColorValue(value);
+
+        if (defaultColor) {
+          newParams.set("color", defaultColor);
+        }
       }
     }
 

@@ -14,7 +14,7 @@ import { useAppDispatch, useAppSelector } from "../../../app/hooks";
 
 import {
   fetchProductDetails,
-  fetchProductVariants,
+  fetchSelectedProductVariants,
 } from "../../products/slices/productsSlice";
 import {
   updateProduct,
@@ -68,7 +68,7 @@ const EditProductPage = () => {
   const navigate = useNavigate();
   const { id, variantId } = useParams();
 
-  const { selectedProduct, productVariants, error } = useAppSelector(
+  const { selectedProduct, selectedProductVariants, error } = useAppSelector(
     (state) => state.products,
   );
 
@@ -111,7 +111,9 @@ const EditProductPage = () => {
       setLoading(true);
       try {
         await dispatch(fetchProductDetails({ id })).unwrap();
-        await dispatch(fetchProductVariants({ productIds: [id] })).unwrap();
+        await dispatch(
+          fetchSelectedProductVariants({ productId: id }),
+        ).unwrap();
       } catch (err) {
         console.error("EditProductPage initial load failed:", err);
       } finally {
@@ -141,9 +143,8 @@ const EditProductPage = () => {
 
   // auto-fetch the product's default variant
   useEffect(() => {
-    if (!id || !variantId || !productVariants[id]) return;
-    const variantsForSelectedProduct = productVariants[id];
-    const selectedVariant = variantsForSelectedProduct.find(
+    if (!variantId || !selectedProductVariants.length) return;
+    const selectedVariant = selectedProductVariants.find(
       (v) => v._id === variantId,
     );
     if (selectedVariant) {
@@ -160,7 +161,7 @@ const EditProductPage = () => {
         variantImages: selectedVariant.images || [],
       });
     }
-  }, [productVariants, id, variantId]);
+  }, [selectedProductVariants, variantId]);
 
   // variant switcher logic
   const handleSwitchVariant = (e: ChangeEvent<HTMLSelectElement>) => {
@@ -306,7 +307,7 @@ const EditProductPage = () => {
       ).unwrap();
 
       // refresh variants so dropdown stock/name etc stays correct
-      await dispatch(fetchProductVariants({ productIds: [id] })).unwrap();
+      await dispatch(fetchSelectedProductVariants({ productId: id })).unwrap();
 
       toast.success("Product variant updated successfully");
     } catch (err: any) {
@@ -318,8 +319,7 @@ const EditProductPage = () => {
 
   if (error) return <p>Error: {error}</p>;
 
-  const availableVariants =
-    id && productVariants[id] ? productVariants[id] : [];
+  const availableVariants = selectedProductVariants;
 
   return (
     <>

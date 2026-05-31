@@ -3,7 +3,10 @@ import { useEffect, useState } from "react";
 import ProductGrid from "../components/ProductGrid";
 
 import { useAppDispatch, useAppSelector } from "../../../app/hooks";
-import { fetchProducts, fetchProductVariants } from "../slices/productsSlice";
+import {
+  fetchProducts,
+  fetchProductVariantsBulk,
+} from "../slices/productsSlice";
 
 import Navbar from "../../../shared/components/common/Navbar";
 import LoadingOverlay from "../../../shared/components/common/LoadingOverlay";
@@ -38,7 +41,9 @@ const ShopPage = () => {
         const ids = listed.map((p) => p._id);
 
         if (ids.length > 0) {
-          await dispatch(fetchProductVariants({ productIds: ids })).unwrap();
+          await dispatch(
+            fetchProductVariantsBulk({ productIds: ids }),
+          ).unwrap();
         }
       } catch (error) {
         console.error("Failed to fetch initial products:", error);

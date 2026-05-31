@@ -75,6 +75,23 @@ router.get("/similar/:id", async (req, res) => {
     }
 });
 
+// @route GET /api/products/:id/variants
+// @desc Get all variants for one product
+// @access Public
+router.get("/:id/variants", async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const variants = await ProductVariant.find({ productId: id });
+
+        return res.json(variants);
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: "Server Error" });
+    }
+});
+
+// UNUSED FOR NOW
 // @route GET /api/products/:id/variant?color=Red&variant=Stork
 // @desc Get a single product variant based on query params. Return value includes variant's _id
 // @access Public
@@ -84,25 +101,46 @@ router.get("/:id/variant", async (req, res) => {
         const { color, variant, ovenMitt, stabiliser, productVariantId } =
             req.query;
 
-        const q = { productId: id };
+        const hasAttributeParams =
+            color != null ||
+            variant != null ||
+            ovenMitt != null ||
+            stabiliser != null;
+
+        let pv;
+
         if (productVariantId) {
             // If ID is provided, strictly match by that ID
-            q._id = productVariantId;
-        } else {
-            // Fallback to attributes if no ID is present
+            pv = await ProductVariant.findOne({
+                productId: id,
+                _id: productVariantId,
+            });
+        } else if (hasAttributeParams) {
+            // Fetch by selected attributes
+            const q = { productId: id };
+
             if (color != null) q.color = color;
             if (variant != null) q.variant = variant;
             if (ovenMitt != null) q.ovenMitt = ovenMitt;
             if (stabiliser != null) q.stabiliser = stabiliser;
+
+            pv = await ProductVariant.findOne(q);
+        } else {
+            // No params selected yet:
+            // fetch cheapest in-stock variant
+            pv = await ProductVariant.findOne({
+                productId: id,
+                countInStock: { $gt: 0 },
+            }).sort({
+                discountPrice: 1,
+                price: 1,
+            });
         }
 
-        // fetch default variant if no params are given
-        const pv = await ProductVariant.findOne(q).sort({ isDefault: -1 });
         if (!pv)
             return res
                 .status(404)
                 .json({ message: "Matching variant not found" });
-
         return res.json(pv); // returns the variantId in the _id field
     } catch (error) {
         console.error(error);
